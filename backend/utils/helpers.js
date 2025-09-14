@@ -23,11 +23,7 @@ const generateRandomPassword = (length = 12) => {
   return password.split('').sort(() => Math.random() - 0.5).join('');
 };
 
-// Sanitize user input
-const sanitizeInput = (input) => {
-  if (typeof input !== 'string') return input;
-  return input.trim().replace(/[<>]/g, '');
-};
+
 
 // Format error response
 const formatErrorResponse = (message, statusCode = 500, errors = null) => {
@@ -57,17 +53,7 @@ const removePasswordFromUser = (user) => {
   return userWithoutPassword;
 };
 
-// Validate email format
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
 
-// Check if string is UUID
-const isValidUUID = (uuid) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-};
 
 // Capitalize first letter of each word
 const capitalizeWords = (str) => {
@@ -77,26 +63,12 @@ const capitalizeWords = (str) => {
     .join(' ');
 };
 
-// Log request details (for debugging)
-const logRequest = (req, message = '') => {
-  console.log(`
-    🔍 ${message}
-    Method: ${req.method}
-    URL: ${req.originalUrl}
-    IP: ${req.ip}
-    User-Agent: ${req.get('User-Agent')}
-    Time: ${new Date().toISOString()}
-  `);
-};
+
 
 module.exports = {
   generateRandomPassword,
-  sanitizeInput,
   formatErrorResponse,
   formatSuccessResponse,
   removePasswordFromUser,
-  isValidEmail,
-  isValidUUID,
-  capitalizeWords,
-  logRequest
+  capitalizeWords
 };

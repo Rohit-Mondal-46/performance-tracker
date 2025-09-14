@@ -2,7 +2,7 @@ const pool = require('./database');
 
 const createTables = async () => {
   try {
-    // Create Admin Table
+    // Admin Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -13,7 +13,7 @@ const createTables = async () => {
       );
     `);
 
-    // Create Organization Table
+    // Organization Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS organizations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -26,7 +26,7 @@ const createTables = async () => {
       );
     `);
 
-    // Create Employee Table
+    // Employee Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS employees (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,12 +51,12 @@ const createTables = async () => {
         ['System Admin', 'admin@performancetracker.com', hashedPassword]
       );
       
-      console.log('🔐 Default admin created: admin@performancetracker.com / admin123');
+      console.log('Default admin created: admin@performancetracker.com / admin123');
     }
 
-    console.log('📊 Database tables created successfully');
+    console.log('Database tables created successfully');
   } catch (error) {
-    console.error('❌ Error creating tables:', error);
+    console.error('Error creating tables:', error);
     throw error;
   }
 };
@@ -66,9 +66,9 @@ const dropTables = async () => {
     await pool.query('DROP TABLE IF EXISTS employees CASCADE;');
     await pool.query('DROP TABLE IF EXISTS organizations CASCADE;');
     await pool.query('DROP TABLE IF EXISTS admins CASCADE;');
-    console.log('🗑️ Database tables dropped successfully');
+    console.log('Database tables dropped successfully');
   } catch (error) {
-    console.error('❌ Error dropping tables:', error);
+    console.error('Error dropping tables:', error);
     throw error;
   }
 };

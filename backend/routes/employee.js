@@ -10,7 +10,7 @@ const {
 const { verifyToken, requireEmployee } = require('../middleware/auth');
 const { validateEmployeeUpdate } = require('../middleware/validation');
 
-// All employee routes require authentication and employee role
+// All employee require authentication and employee role
 router.use(verifyToken, requireEmployee);
 
 // Employee profile management

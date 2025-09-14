@@ -13,7 +13,7 @@ const {
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 const { validateOrganizationCreation } = require('../middleware/validation');
 
-// All admin routes require authentication and admin role
+// All admin require authentication and admin role
 router.use(verifyToken, requireAdmin);
 
 // Organization management
@@ -23,7 +23,7 @@ router.get('/organizations/:id', getOrganizationById);
 router.put('/organizations/:id', updateOrganization);
 router.delete('/organizations/:id', deleteOrganization);
 
-// Employee management (admin can see all employees)
+// Employee management 
 router.get('/employees', getAllEmployees);
 router.get('/organizations/:organizationId/employees', getEmployeesByOrganization);
 

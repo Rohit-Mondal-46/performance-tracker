@@ -13,7 +13,7 @@ const {
 const { verifyToken, requireOrganization } = require('../middleware/auth');
 const { validateEmployeeCreation, validateEmployeeUpdate } = require('../middleware/validation');
 
-// All organization routes require authentication and organization role
+// All organization require authentication and organization role
 router.use(verifyToken, requireOrganization);
 
 // Employee management
