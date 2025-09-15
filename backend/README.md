@@ -1,52 +1,80 @@
 # Performance Tracker Backend
 
-A comprehensive Node.js backend system with JWT authentication, role-based access control, and email functionality for managing organizations and employees.
+A complete Node.js backend system with JWT authentication, role-based access control, and email notifications. The system supports three user roles: Admin, Organization, and Employee.
 
 ## 🚀 Features
 
-- **Multi-Role Authentication**: Admin, Organization, and Employee roles with JWT
-- **Email Integration**: Nodemailer with styled email templates
-- **Database**: PostgreSQL with Neon DB support
-- **Security**: Helmet, CORS, bcrypt password hashing
-- **Role-Based Access Control**: Middleware-protected routes
-- **Validation**: Express-validator for input validation
-- **Error Handling**: Comprehensive error handling and logging
+- **JWT Authentication** with role-based access control
+- **Three User Roles**: Admin, Organization, Employee
+- **Email Service** with Nodemailer for credential delivery
+- **PostgreSQL Database** with NeonDB integration
+- **Password Hashing** with bcrypt
+- **Input Validation** with express-validator
+- **Security Middleware** with Helmet and CORS
+- **Comprehensive Error Handling**
 
-## 📁 Project Structure
+## 📋 Prerequisites
 
+- Node.js (v14 or higher)
+- PostgreSQL database (NeonDB recommended)
+- SMTP email service (Gmail, Mailtrap, etc.)
+
+## 🔧 Development
+
+### File Structure
 ```
 backend/
 ├── config/
-│   ├── database.js          # PostgreSQL connection
-│   └── initDb.js            # Database initialization
+│   ├── database.js          # Database connection
+│   └── initDb.js           # Database initialization
 ├── controllers/
+│   ├── adminController.js   # Admin business logic
 │   ├── authController.js    # Authentication logic
-│   ├── adminController.js   # Admin management
-│   ├── organizationController.js # Organization management
-│   └── employeeController.js     # Employee management
+│   ├── employeeController.js # Employee business logic
+│   └── organizationController.js # Organization logic
 ├── middleware/
-│   ├── auth.js              # JWT and role-based middleware
-│   └── validation.js        # Input validation rules
+│   ├── auth.js             # JWT & role-based auth
+│   └── validation.js       # Input validation
 ├── models/
-│   ├── Admin.js             # Admin model
-│   ├── Organization.js      # Organization model
-│   └── Employee.js          # Employee model
+│   ├── Admin.js            # Admin database model
+│   ├── Employee.js         # Employee database model
+│   └── Organization.js     # Organization database model
 ├── routes/
-│   ├── index.js             # Main route handler
-│   ├── auth.js              # Authentication routes
-│   ├── admin.js             # Admin routes
-│   ├── organization.js      # Organization routes
-│   └── employee.js          # Employee routes
+│   ├── admin.js            # Admin routes
+│   ├── auth.js             # Authentication routes
+│   ├── employee.js         # Employee routes
+│   ├── index.js            # Route aggregator
+│   └── organization.js     # Organization routes
 ├── utils/
-│   ├── emailService.js      # Email functionality
-│   └── helpers.js           # Utility functions
-├── .env                     # Environment variables
-├── .gitignore              
-├── package.json
-└── index.js                 # Main application file
+│   ├── emailService.js     # Email sending service
+│   └── helpers.js          # Utility functions
+└── index.js                # Main application file
 ```
 
-## 🔧 Setup Instructions
+
+
+
+
+
+---
+
+
+
+
+
+---
+
+## 📞 Support
+
+For issues and questions:
+1. Check the error logs in the console
+2. Verify environment variables are set correctly
+3. Ensure database connection is working
+4. Check email service configuration
+
+
+
+*Built with Node.js, Express, PostgreSQL, JWT, and Nodemailer*
 
 ### 1. Environment Configuration
 
@@ -82,13 +110,6 @@ npm run dev
 # Production
 npm start
 ```
-
-### 4. Database Setup
-
-The database tables will be created automatically when the server starts. A default admin account will be created:
-
-- **Email**: admin@performancetracker.com
-- **Password**: admin123
 
 ## 📡 API Endpoints
 
@@ -172,79 +193,13 @@ curl -X POST http://localhost:3000/api/organization/employees \
     "department": "Engineering",
     "position": "Software Developer"
   }'
-```
 
-## 📧 Email Configuration
 
-### Gmail Setup
-1. Enable 2-factor authentication
-2. Generate an App Password
-3. Use the App Password in `EMAIL_PASS`
 
-### Mailtrap Setup (Testing)
-```env
-EMAIL_HOST="smtp.mailtrap.io"
-EMAIL_PORT="2525"
-EMAIL_USER="your-mailtrap-user"
-EMAIL_PASS="your-mailtrap-password"
-```
 
-## 🛡️ Security Features
 
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: bcrypt with salt rounds
-- **Role-Based Access**: Middleware-enforced permissions
-- **Input Validation**: Express-validator for data sanitization
-- **CORS Protection**: Configurable origin restrictions
-- **Helmet**: Security headers and protections
-- **Rate Limiting**: Can be added for production use
 
-## 🗄️ Database Schema
 
-### Admins Table
-```sql
-CREATE TABLE admins (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Organizations Table
-```sql
-CREATE TABLE organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(150) NOT NULL,
-  industry VARCHAR(100),
-  location VARCHAR(150),
-  email VARCHAR(150) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Employees Table
-```sql
-CREATE TABLE employees (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) UNIQUE NOT NULL,
-  department VARCHAR(100),
-  position VARCHAR(100),
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## 🔍 Testing
-
-### Health Check
-```bash
-curl http://localhost:3000/api/health
-```
 
 ### Get Current User
 ```bash
@@ -252,48 +207,8 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   http://localhost:3000/api/auth/me
 ```
 
-## 🚀 Deployment
 
-### Environment Variables for Production
-```env
-NODE_ENV="production"
-DATABASE_URL="your-production-database-url"
-JWT_SECRET="your-production-jwt-secret"
-EMAIL_HOST="your-production-email-host"
-EMAIL_USER="your-production-email"
-EMAIL_PASS="your-production-email-password"
-```
 
-### Production Considerations
-- Use environment-specific secrets
-- Configure proper CORS origins
-- Enable rate limiting
-- Set up proper logging
-- Use HTTPS in production
-- Configure database connection pooling
-
-## 📝 Error Handling
-
-The API returns consistent error responses:
-
-```json
-{
-  "success": false,
-  "message": "Error description",
-  "statusCode": 400,
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-Success responses:
-```json
-{
-  "success": true,
-  "message": "Success message",
-  "data": { /* response data */ },
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
 
 ## 🤝 Contributing
 
@@ -303,19 +218,5 @@ Success responses:
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
 
-This project is licensed under the ISC License.
 
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Error**: Check DATABASE_URL and network connectivity
-2. **Email Not Sending**: Verify EMAIL_* environment variables
-3. **JWT Errors**: Ensure JWT_SECRET is set and tokens are valid
-4. **CORS Issues**: Configure allowed origins in CORS settings
-
-### Support
-
-For issues and questions, please check the error logs and ensure all environment variables are properly configured.
