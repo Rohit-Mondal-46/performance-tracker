@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { FloatingParticles } from '../components/ui/FloatingParticles';
+import { FloatingParticles } from '../components/ui/landing ui/FloatingParticles';
 import { Navigation } from '../components/layout/Navigation';
 import { HeroSection } from '../components/landing sections/HeroSection';
 import { FeaturesSection } from '../components/landing sections/FeaturesSection';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card3D } from '../ui/Card3D';
+import { Card3D } from '../ui/landing ui/Card3D';
 import { features } from '../../data/features';
 
 export function FeaturesSection() {

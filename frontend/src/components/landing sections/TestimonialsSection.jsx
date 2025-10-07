@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
-import { Card3D } from '../ui/Card3D';
+import { Card3D } from '../ui/landing ui/Card3D'; 
 import { testimonials } from '../../data/testimonials';
 
 export function TestimonialsSection() {

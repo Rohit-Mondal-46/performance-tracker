@@ -1,6 +1,7 @@
 import React from 'react';
 import { Monitor, Brain, TrendingUp, Sparkles } from 'lucide-react';
-import { Card3D } from '../ui/Card3D';
+import { Card3D } from '../ui/landing ui/Card3D';
+
 
 export function HowItWorksSection() {
   const steps = [

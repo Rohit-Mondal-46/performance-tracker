@@ -1,13 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Monitor, Sparkles, Play, ArrowRight, ChevronDown } from 'lucide-react';
-import { ParallaxSection } from '../ui/ParallaxSection';
-import { Card3D } from '../ui/Card3D';
-import { RippleButton } from '../ui/RippleButton';
-import { AnimatedCounter } from '../ui/AnimatedCounter';
-import { MorphingShape } from '../ui/MorphingShape';
-import { Cube3D } from '../ui/Cube3D';
-import { stats } from '../../data/stats';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Monitor, Sparkles, Play, ArrowRight, ChevronDown } from "lucide-react";
+import { ParallaxSection } from "../ui/landing ui/ParallaxSection";
+import { Card3D } from "../ui/landing ui/Card3D";
+import { RippleButton } from "../ui/landing ui/RippleButton";
+import { AnimatedCounter } from "../ui/landing ui/AnimatedCounter";
+import { MorphingShape } from "../ui/landing ui/MorphingShape";
+import { Cube3D } from "../ui/landing ui/Cube3D";
+import { stats } from "../../data/stats";
 
 export function HeroSection() {
   return (
@@ -23,16 +23,25 @@ export function HeroSection() {
                   <div className="relative bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 p-8 rounded-2xl transform transition-all duration-700 group-hover:scale-110 group-hover:rotate-y-12 shadow-2xl">
                     <Monitor className="h-20 w-20 text-blue-600 transform transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12" />
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-                    
+
                     {/* Orbiting elements */}
-                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                    <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
-                    <div className="absolute top-1/2 -right-4 w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '2s' }} />
+                    <div
+                      className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0s" }}
+                    />
+                    <div
+                      className="absolute -bottom-2 -left-2 w-3 h-3 bg-purple-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "1s" }}
+                    />
+                    <div
+                      className="absolute top-1/2 -right-4 w-2 h-2 bg-pink-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "2s" }}
+                    />
                   </div>
                   <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
               </div>
-              
+
               {/* Title */}
               <div className="relative max-w-5xl mx-auto">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight px-4">
@@ -48,25 +57,35 @@ export function HeroSection() {
                 {/* Floating elements */}
                 <MorphingShape className="hidden xl:block absolute -top-16 -left-32 opacity-30" />
                 <Cube3D className="hidden xl:block absolute -top-8 -right-32 opacity-40" />
-                <div className="hidden xl:block absolute top-1/2 -right-40 w-12 h-12 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-xl animate-float" style={{ animationDelay: '4s' }}></div>
+                <div
+                  className="hidden xl:block absolute top-1/2 -right-40 w-12 h-12 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-xl animate-float"
+                  style={{ animationDelay: "4s" }}
+                ></div>
               </div>
-              
+
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in-up stagger-3 px-4">
-                Transform your workplace with intelligent monitoring that tracks focus, engagement, and productivity
-                in real-time. Secure, private, and powered by cutting-edge AI technology.
+                Transform your workplace with intelligent monitoring that tracks
+                focus, engagement, and productivity in real-time. Secure,
+                private, and powered by cutting-edge AI technology.
               </p>
-              
+
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 animate-fade-in-up stagger-4 px-4 max-w-3xl mx-auto">
-                <Link to="/login" className="w-full sm:w-auto">
-                  <RippleButton variant="primary" className="flex items-center justify-center w-full sm:w-auto">
+                <Link to="/role-selection" className="w-full sm:w-auto">
+                  <RippleButton
+                    variant="primary"
+                    className="flex items-center justify-center w-full sm:w-auto"
+                  >
                     <Sparkles className="mr-2 h-5 w-5" />
                     Start Free Trial
                     <ArrowRight className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" />
                   </RippleButton>
                 </Link>
 
-                <RippleButton variant="secondary" className="flex items-center justify-center w-full sm:w-auto">
+                <RippleButton
+                  variant="secondary"
+                  className="flex items-center justify-center w-full sm:w-auto"
+                >
                   <Play className="mr-2 h-5 w-5 transform transition-transform duration-300 group-hover:scale-110" />
                   Watch Demo
                 </RippleButton>
@@ -75,15 +94,32 @@ export function HeroSection() {
               {/* Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto animate-fade-in-up stagger-5 px-4 mt-16">
                 {stats.map((stat, index) => (
-                  <Card3D key={index} delay={index * 200} hoverEffect="scale" glowColor={index % 2 === 0 ? 'blue' : 'purple'}>
+                  <Card3D
+                    key={index}
+                    delay={index * 200}
+                    hoverEffect="scale"
+                    glowColor={index % 2 === 0 ? "blue" : "purple"}
+                  >
                     <div className="text-center group p-4">
-                      <AnimatedCounter 
-                        end={stat.number.includes('+') ? parseInt(stat.number.replace(/[^0-9]/g, '')) : 
-                             stat.number.includes('%') ? parseInt(stat.number.replace('%', '')) :
-                             stat.number.includes('.') ? parseFloat(stat.number) : parseInt(stat.number)}
-                        suffix={stat.number.includes('+') ? '+' : 
-                               stat.number.includes('%') ? '%' : 
-                               stat.number.includes('/') ? '/7' : ''}
+                      <AnimatedCounter
+                        end={
+                          stat.number.includes("+")
+                            ? parseInt(stat.number.replace(/[^0-9]/g, ""))
+                            : stat.number.includes("%")
+                            ? parseInt(stat.number.replace("%", ""))
+                            : stat.number.includes(".")
+                            ? parseFloat(stat.number)
+                            : parseInt(stat.number)
+                        }
+                        suffix={
+                          stat.number.includes("+")
+                            ? "+"
+                            : stat.number.includes("%")
+                            ? "%"
+                            : stat.number.includes("/")
+                            ? "/7"
+                            : ""
+                        }
                       />
                       <div className="text-gray-600 dark:text-gray-400 font-medium transform transition-transform duration-300 group-hover:scale-105">
                         {stat.label}

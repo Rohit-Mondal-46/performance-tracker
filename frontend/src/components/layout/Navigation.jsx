@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Monitor, Moon, Sun, Menu, X } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
-import { RippleButton } from '../ui/RippleButton';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Monitor, Moon, Sun, Menu, X } from "lucide-react";
+import { useTheme } from "../../contexts/ThemeContext";
+import { RippleButton } from "../ui/landing ui/RippleButton";
 
 export function Navigation() {
   const { isDark, toggle } = useTheme();
@@ -21,17 +21,26 @@ export function Navigation() {
               ProMonitor
             </span>
           </div>
-          
+
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group">
+            <a
+              href="#features"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group"
+            >
               Features
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a href="#testimonials" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group">
+            <a
+              href="#testimonials"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group"
+            >
               Testimonials
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a href="#pricing" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group">
+            <a
+              href="#pricing"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group"
+            >
               Pricing
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
@@ -46,10 +55,8 @@ export function Navigation() {
                 <Moon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
               )}
             </button>
-            <Link to="/login">
-              <RippleButton variant="primary">
-                Get Started
-              </RippleButton>
+            <Link to="/role-selection">
+              <RippleButton variant="primary">Get Started</RippleButton>
             </Link>
           </div>
 
@@ -69,28 +76,45 @@ export function Navigation() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      <div className={`md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ${
-        isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-      }`}>
+      <div
+        className={`md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ${
+          isMenuOpen
+            ? "max-h-64 opacity-100"
+            : "max-h-0 opacity-0 overflow-hidden"
+        }`}
+      >
         <div className="px-4 py-4 space-y-4">
-          <a href="#features" className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2">
+          <a
+            href="#features"
+            className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2"
+          >
             Features
           </a>
-          <a href="#testimonials" className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2">
+          <a
+            href="#testimonials"
+            className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2"
+          >
             Testimonials
           </a>
-          <a href="#pricing" className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2">
+          <a
+            href="#pricing"
+            className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2"
+          >
             Pricing
           </a>
           <Link
-            to="/login"
+            to="/role-selection"
             className="block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-lg font-medium transition-colors text-center"
           >
             Get Started

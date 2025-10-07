@@ -1,7 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
-import { Card3D } from '../ui/Card3D';
-import { RippleButton } from '../ui/RippleButton';
+import { Card3D } from '../ui/landing ui/Card3D';
+import { RippleButton } from '../ui/landing ui/RippleButton';
 import { pricingPlans } from '../../data/pricing';
 
 export function PricingSection() {
@@ -63,12 +64,22 @@ export function PricingSection() {
                       </li>
                     ))}
                   </ul>
-                  <RippleButton 
-                    variant={plan.popular ? "primary" : "secondary"} 
-                    className="w-full"
-                  >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
-                  </RippleButton>
+                  
+                  {/* Updated buttons with Link wrappers */}
+                  {plan.name === 'Enterprise' ? (
+                    <RippleButton variant="secondary" className="w-full">
+                      Contact Sales
+                    </RippleButton>
+                  ) : (
+                    <Link to="/role-selection" className="w-full">
+                      <RippleButton 
+                        variant={plan.popular ? "primary" : "secondary"} 
+                        className="w-full"
+                      >
+                        Start Free Trial
+                      </RippleButton>
+                    </Link>
+                  )}
                 </div>
               </div>
             </Card3D>
