@@ -1,45 +1,5 @@
-// import React, { useEffect } from 'react';
-// import useGesture from '../hooks/useGesture';
-
-// const GestureControl = ({ onNext, onPrevious }) => {
-//   const hands = useGesture({ onSwipeLeft: onPrevious, onSwipeRight: onNext });
-
-//   useEffect(() => {
-//     // Gesture processing loop
-//     const video = document.createElement('video');
-//     video.autoplay = true;
-//     video.muted = true;
-
-//     const startWebcam = async () => {
-//       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//       video.srcObject = stream;
-//     };
-//     startWebcam();
-
-//     const loop = async () => {
-//       if (hands.current && video.readyState === 4) {
-//         await hands.current.send({ image: video });
-//       }
-//       requestAnimationFrame(loop);
-//     };
-//     loop();
-//   }, [hands]);
-
-//   return (
-//     <div className="p-2 bg-green-100 rounded mt-2">
-//       <p className="text-sm text-gray-700">✋ Gesture Control Active</p>
-//       <p className="text-xs text-gray-500">Swipe left/right to navigate</p>
-//     </div>
-//   );
-// };
-
-// export default GestureControl;
-
-
-
-
-
-import React, { useState, useEffect } from 'react';
+// components/GestureControl.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import useGesture from '../hooks/useGesture';
 
 const GestureControl = ({ 
@@ -53,12 +13,12 @@ const GestureControl = ({
   onPeaceSign,
   showVideo = false 
 }) => {
+  const videoRef = useRef(null);
   const [gestureStatus, setGestureStatus] = useState('Initializing...');
   const [lastGesture, setLastGesture] = useState(null);
   const [gestureCount, setGestureCount] = useState(0);
 
   const { 
-    videoRef, 
     error, 
     isInitialized, 
     restart,
@@ -104,7 +64,7 @@ const GestureControl = ({
       setGestureCount(prev => prev + 1);
       if (onPeaceSign) onPeaceSign();
     }
-  });
+  }, videoRef); // Pass videoRef as second parameter
 
   // Update status based on initialization state
   useEffect(() => {
@@ -227,6 +187,22 @@ const GestureControl = ({
             <span>👍</span>
             <span className="text-gray-600">Thumbs Up</span>
           </div>
+          <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
+            <span>✊</span>
+            <span className="text-gray-600">Fist</span>
+          </div>
+          <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
+            <span>✌️</span>
+            <span className="text-gray-600">Peace</span>
+          </div>
+          <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
+            <span>↑</span>
+            <span className="text-gray-600">Swipe Up</span>
+          </div>
+          <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
+            <span>↓</span>
+            <span className="text-gray-600">Swipe Down</span>
+          </div>
         </div>
       </div>
 
@@ -236,6 +212,12 @@ const GestureControl = ({
           <div className={`w-2 h-2 rounded-full ${isInitialized ? 'bg-green-500' : 'bg-gray-400'}`}></div>
           <span>Hand detection: {isInitialized ? 'Active' : 'Inactive'}</span>
         </div>
+        {currentGesture && (
+          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <span>Current: {currentGesture}</span>
+          </div>
+        )}
       </div>
 
       {/* Restart Button */}

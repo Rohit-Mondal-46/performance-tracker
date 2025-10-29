@@ -17,6 +17,10 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "public/mediapipe/**/*",
+      "public/models/**/*",
+      "node_modules/@mediapipe/**/*", 
+      "node_modules/@models/**/*", 
       "package.json"
     ],
     "directories": {
@@ -24,6 +28,9 @@
     },
     "win": {
       "target": "nsis"
+    },
+    "extraMetadata": {
+      "main": "electron/main.js"
     }
   },
   "dependencies": {

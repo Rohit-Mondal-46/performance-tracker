@@ -1,37 +1,53 @@
-// import { useEffect } from 'react';
-
-// const useVoice = (commands) => {
-//   useEffect(() => {
-//     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) return;
-
-//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-//     const recognition = new SpeechRecognition();
-
-//     recognition.continuous = true;
-//     recognition.interimResults = false;
-//     recognition.lang = 'en-US';
-
-//     recognition.onresult = (event) => {
-//       const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-//       // Match command keys
-//       Object.keys(commands).forEach((key) => {
-//         if (transcript.includes(key.toLowerCase())) {
-//           commands[key](); // execute mapped function
-//         }
-//       });
-//     };
-
-//     recognition.start();
-
-//     return () => recognition.stop();
-//   }, [commands]);
-// };
-// export default useVoice;
-
-
 // src/hooks/useVoice.js
 import { useEffect, useState, useCallback, useRef } from 'react';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
+// Check if we're in Electron
+const isElectron = window && window.process && window.process.versions?.electron;
+
+// Mock SpeechRecognition for Electron or unsupported browsers
+const createSpeechRecognitionMock = () => ({
+  startListening: () => console.log('Speech recognition would start (mock)'),
+  stopListening: () => console.log('Speech recognition would stop (mock)'),
+  useSpeechRecognition: () => ({
+    transcript: '',
+    listening: false,
+    browserSupportsSpeechRecognition: false,
+    isMicrophoneAvailable: false,
+    resetTranscript: () => {}
+  })
+});
+
+// Use mock in Electron or real library in browser
+let SpeechRecognition;
+let useSpeechRecognition;
+
+if (isElectron) {
+  // Use mock in Electron environment
+  SpeechRecognition = createSpeechRecognitionMock();
+  useSpeechRecognition = () => ({
+    transcript: '',
+    listening: false,
+    browserSupportsSpeechRecognition: false,
+    isMicrophoneAvailable: false,
+    resetTranscript: () => {}
+  });
+} else {
+  // Use real library in browser
+  try {
+    SpeechRecognition = require('react-speech-recognition');
+    useSpeechRecognition = SpeechRecognition.useSpeechRecognition;
+  } catch (error) {
+    console.warn('react-speech-recognition not available, using mock');
+    SpeechRecognition = createSpeechRecognitionMock();
+    useSpeechRecognition = () => ({
+      transcript: '',
+      listening: false,
+      browserSupportsSpeechRecognition: false,
+      isMicrophoneAvailable: false,
+      resetTranscript: () => {}
+    });
+  }
+}
 
 const useVoice = (commands = {}, options = {}) => {
   const {
@@ -46,7 +62,7 @@ const useVoice = (commands = {}, options = {}) => {
   const [lastCommand, setLastCommand] = useState('');
   const timeoutRef = useRef(null);
 
-  // Use the library's hook
+  // Use the library's hook (or mock in Electron)
   const {
     transcript,
     listening: isListening,
@@ -60,7 +76,10 @@ const useVoice = (commands = {}, options = {}) => {
     setIsSupported(browserSupportsSpeechRecognition);
     
     if (!browserSupportsSpeechRecognition) {
-      setError('Speech recognition not supported in this browser');
+      setError(isElectron 
+        ? 'Speech recognition limited in Electron. Use keyboard shortcuts instead.' 
+        : 'Speech recognition not supported in this browser'
+      );
     } else if (!isMicrophoneAvailable) {
       setError('Microphone not available. Please check permissions.');
     } else {
@@ -209,7 +228,8 @@ const useVoice = (commands = {}, options = {}) => {
     toggleListening,
     isMicrophoneAvailable,
     browserSupportsSpeechRecognition: isSupported,
-    status: isListening ? 'listening' : error ? 'error' : 'idle'
+    status: isListening ? 'listening' : error ? 'error' : 'idle',
+    isElectron // Add this flag so components know they're in Electron
   };
 };
 
@@ -257,7 +277,8 @@ export const useVoiceNative = (commands = {}, options = {}) => {
     toggleListening: () => isListening ? 
       SpeechRecognition.stopListening() : 
       SpeechRecognition.startListening({ continuous }),
-    isMicrophoneAvailable
+    isMicrophoneAvailable,
+    isElectron
   };
 };
 

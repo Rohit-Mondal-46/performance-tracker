@@ -48,8 +48,7 @@
 
 
 
-
-
+//app.jsx
 import React, { useState } from "react";
 import Navbar from "./components/Navbar";
 import CameraMonitor from "./components/CameraMonitor";
@@ -57,7 +56,6 @@ import Dashboard from "./components/Dashboard";
 import VoiceControl from "./components/VoiceControl";
 import GestureControl from "./components/GestureControl";
 import OrgSwitcher from "./components/OrgSwitcher";
-import VoiceStatus from "./components/VoiceStatus"; // Add voice status indicator
 
 const App = () => {
   // State
@@ -104,6 +102,21 @@ const App = () => {
     const nextIndex = (currentIndex + 1) % organizations.length;
     const nextOrg = organizations[nextIndex];
     handleSwitchOrg(nextOrg);
+  };
+
+  // Simple Voice Status Component (if you don't have a separate one)
+  const VoiceStatus = () => {
+    const isElectron = window && window.process && window.process.versions?.electron;
+    
+    return (
+      <div className="px-4 py-2 bg-yellow-100 border-b border-yellow-200 text-center text-sm text-yellow-800">
+        {isElectron ? (
+          <span>🎤 Voice commands limited in Electron. Use keyboard shortcuts.</span>
+        ) : (
+          <span>🎤 Voice commands available. Say "next org", "go home", "next", or "previous"</span>
+        )}
+      </div>
+    );
   };
 
   return (
