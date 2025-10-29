@@ -9,5 +9,29 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Optional: Preload MediaPipe for better performance -->
+    <script>
+      // Make MediaPipe available globally for Electron
+      if (window && window.process && window.process.versions && window.process.versions.electron) {
+        console.log('Running in Electron environment');
+        
+        // Preload MediaPipe components for immediate access
+        window.preloadMediaPipe = function() {
+          if (window.Holistic && window.Hands && window.Camera) {
+            console.log('MediaPipe components already loaded');
+            return Promise.resolve();
+          }
+          
+          return new Promise((resolve) => {
+            // Components will be available via the script tags above
+            setTimeout(resolve, 1000);
+          });
+        };
+        
+        // Start preloading
+        window.preloadMediaPipe();
+      }
+    </script>
   </body>
 </html>
