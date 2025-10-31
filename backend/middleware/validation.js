@@ -2,8 +2,10 @@ const { body, validationResult } = require('express-validator');
 
 // Error handler for validation
 const handleValidationErrors = (req, res, next) => {
+  console.log('Request body:', req.body); // Debug log
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array()); // Debug log
     return res.status(400).json({
       success: false,
       message: 'Validation errors',
@@ -115,6 +117,63 @@ const validateEmployeeUpdate = [
   handleValidationErrors
 ];
 
+// Performance Score validation rules
+const validatePerformanceScore = [
+  body('workingTime')
+    .notEmpty()
+    .withMessage('Working time is required')
+    .isNumeric()
+    .withMessage('Working time must be a valid number')
+    .custom(value => {
+      const num = Number(value);
+      if (num < 0 || num > 1440) {
+        throw new Error('Working time must be between 0 and 1440 minutes per day');
+      }
+      return true;
+    }),
+  body('idleTime')
+    .notEmpty()
+    .withMessage('Idle time is required')
+    .isNumeric()
+    .withMessage('Idle time must be a valid number')
+    .custom(value => {
+      const num = Number(value);
+      if (num < 0 || num > 1440) {
+        throw new Error('Idle time must be between 0 and 1440 minutes per day');
+      }
+      return true;
+    }),
+  body('absentTime')
+    .notEmpty()
+    .withMessage('Absent time is required')
+    .isNumeric()
+    .withMessage('Absent time must be a valid number')
+    .custom(value => {
+      const num = Number(value);
+      if (num < 0 || num > 1440) {
+        throw new Error('Absent time must be between 0 and 1440 minutes per day');
+      }
+      return true;
+    }),
+  body('distractedTime')
+    .notEmpty()
+    .withMessage('Distracted time is required')
+    .isNumeric()
+    .withMessage('Distracted time must be a valid number')
+    .custom(value => {
+      const num = Number(value);
+      if (num < 0 || num > 1440) {
+        throw new Error('Distracted time must be between 0 and 1440 minutes per day');
+      }
+      return true;
+    }),
+  body('scoreDate')
+    .optional()
+    .isISO8601()
+    .withMessage('Score date must be a valid date in ISO format (YYYY-MM-DD)'),
+  handleValidationErrors
+];
+
 module.exports = {
   validateAdminLogin,
   validateOrganizationCreation,
@@ -122,5 +181,6 @@ module.exports = {
   validateEmployeeCreation,
   validateEmployeeLogin,
   validateEmployeeUpdate,
+  validatePerformanceScore,
   handleValidationErrors
 };

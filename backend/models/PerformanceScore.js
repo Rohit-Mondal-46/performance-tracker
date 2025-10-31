@@ -1,181 +1,217 @@
 const pool = require('../config/database');
 
 class PerformanceScore {
+  // Create a new performance score
   static async create(scoreData) {
-    const { 
-      employee_id, 
-      date, 
-      work_time, 
-      monitored_time, 
-      engaged_frames, 
-      total_frames, 
-      productivity_score,
-      engagement_score,
-      final_score,
-      score_type = 'daily',
-      metadata = {}
-    } = scoreData;
-
     try {
-      const result = await pool.query(`
-        INSERT INTO performance_scores 
-        (employee_id, date, work_time, monitored_time, engaged_frames, total_frames, 
-         productivity_score, engagement_score, final_score, score_type, metadata, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
-        RETURNING *
-      `, [
-        employee_id, date, work_time, monitored_time, engaged_frames, total_frames,
-        productivity_score, engagement_score, final_score, score_type, JSON.stringify(metadata)
-      ]);
+      const {
+        employee_id,
+        organization_id,
+        working_time,
+        idle_time,
+        absent_time,
+        distracted_time,
+        total_time,
+        productivity_score,
+        engagement_score,
+        overall_score,
+        performance_grade,
+        score_date
+      } = scoreData;
 
+      const query = `
+        INSERT INTO performance_scores (
+          employee_id, organization_id, working_time, idle_time, absent_time, 
+          distracted_time, total_time, productivity_score, engagement_score, 
+          overall_score, performance_grade, score_date
+        ) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *
+      `;
+
+      const values = [
+        employee_id, organization_id, working_time, idle_time, absent_time,
+        distracted_time, total_time, productivity_score, engagement_score,
+        overall_score, performance_grade, score_date
+      ];
+
+      const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      throw new Error(`Error creating performance score: ${error.message}`);
+      if (error.code === '23505') { // Unique constraint violation
+        throw new Error('Performance score for this employee on this date already exists');
+      }
+      console.error('Error creating performance score:', error);
+      throw new Error('Error creating performance score: ' + error.message);
     }
   }
 
-  static async getEmployeeScores(employeeId, options = {}) {
-    const { 
-      startDate, 
-      endDate, 
-      scoreType = 'daily', 
-      limit = 30,
-      offset = 0 
-    } = options;
-
+  // Find performance score by ID
+  static async findById(id) {
     try {
-      let query = `
-        SELECT * FROM performance_scores 
-        WHERE employee_id = $1 AND score_type = $2
+      const query = `
+        SELECT ps.*, e.name as employee_name, e.department, e.position,
+               o.name as organization_name
+        FROM performance_scores ps
+        JOIN employees e ON ps.employee_id = e.id
+        JOIN organizations o ON ps.organization_id = o.id
+        WHERE ps.id = $1
       `;
-      let params = [employeeId, scoreType];
-      let paramCount = 2;
+      
+      const result = await pool.query(query, [id]);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error finding performance score by ID:', error);
+      throw new Error('Error finding performance score: ' + error.message);
+    }
+  }
 
-      if (startDate) {
-        query += ` AND date >= $${++paramCount}`;
-        params.push(startDate);
-      }
-
-      if (endDate) {
-        query += ` AND date <= $${++paramCount}`;
-        params.push(endDate);
-      }
-
-      query += ` ORDER BY date DESC LIMIT $${++paramCount} OFFSET $${++paramCount}`;
-      params.push(limit, offset);
-
-      const result = await pool.query(query, params);
+  // Get performance scores by employee
+  static async getByEmployee(employeeId, limit = 30) {
+    try {
+      console.log('Debug - getByEmployee called with employeeId:', employeeId, 'limit:', limit);
+      
+      const query = `
+        SELECT ps.*, e.name as employee_name, e.department, e.position,
+        o.name as organization_name
+        FROM performance_scores ps
+        JOIN employees e ON ps.employee_id = e.id
+        JOIN organizations o ON ps.organization_id = o.id
+        WHERE ps.employee_id = $1
+        ORDER BY ps.score_date DESC, ps.created_at DESC
+        LIMIT $2
+      `;
+      
+      console.log('Debug - Executing query with params:', [employeeId, limit]);
+      
+      const result = await pool.query(query, [employeeId, limit]);
+      
+      console.log('Debug - Query result rows:', result.rows.length);
+      console.log('Debug - First row:', result.rows[0]);
+      
       return result.rows;
     } catch (error) {
-      throw new Error(`Error fetching employee scores: ${error.message}`);
+      console.error('Error getting performance scores by employee:', error);
+      throw new Error('Error retrieving employee performance scores: ' + error.message);
     }
   }
 
-  static async getLatestScore(employeeId, scoreType = 'daily') {
+  // Get performance scores by organization
+  static async getByOrganization(organizationId, limit = 100) {
     try {
-      const result = await pool.query(`
-        SELECT * FROM performance_scores 
-        WHERE employee_id = $1 AND score_type = $2 
-        ORDER BY date DESC 
-        LIMIT 1
-      `, [employeeId, scoreType]);
+      const query = `
+        SELECT ps.*, e.name as employee_name, e.department, e.position,
+               o.name as organization_name
+        FROM performance_scores ps
+        JOIN employees e ON ps.employee_id = e.id
+        JOIN organizations o ON ps.organization_id = o.id
+        WHERE ps.organization_id = $1
+        ORDER BY ps.score_date DESC, ps.created_at DESC
+        LIMIT $2
+      `;
+      
+      const result = await pool.query(query, [organizationId, limit]);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting performance scores by organization:', error);
+      throw new Error('Error retrieving organization performance scores: ' + error.message);
+    }
+  }
 
+  // Get performance scores by date range
+  static async getByDateRange(employeeId, startDate, endDate) {
+    try {
+      const query = `
+        SELECT ps.*, e.name as employee_name, e.department, e.position,
+               o.name as organization_name
+        FROM performance_scores ps
+        JOIN employees e ON ps.employee_id = e.id
+        JOIN organizations o ON ps.organization_id = o.id
+        WHERE ps.employee_id = $1 
+        AND ps.score_date >= $2 
+        AND ps.score_date <= $3
+        ORDER BY ps.score_date DESC
+      `;
+      
+      const result = await pool.query(query, [employeeId, startDate, endDate]);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting performance scores by date range:', error);
+      throw new Error('Error retrieving performance scores by date range: ' + error.message);
+    }
+  }
+
+
+
+  // Get performance analytics for organization
+  static async getOrganizationAnalytics(organizationId, days = 30) {
+    try {
+      const query = `
+        SELECT 
+          COUNT(*) as total_scores,
+          AVG(overall_score) as average_score,
+          AVG(productivity_score) as average_productivity,
+          AVG(engagement_score) as average_engagement,
+          AVG(working_time) as average_working_time,
+          AVG(idle_time + distracted_time) as average_unproductive_time,
+          COUNT(CASE WHEN performance_grade = 'A+' THEN 1 END) as grade_a_plus,
+          COUNT(CASE WHEN performance_grade = 'A' THEN 1 END) as grade_a,
+          COUNT(CASE WHEN performance_grade = 'B' THEN 1 END) as grade_b,
+          COUNT(CASE WHEN performance_grade = 'C' THEN 1 END) as grade_c,
+          COUNT(CASE WHEN performance_grade = 'D' THEN 1 END) as grade_d,
+          COUNT(CASE WHEN performance_grade = 'F' THEN 1 END) as grade_f
+        FROM performance_scores 
+        WHERE organization_id = $1 
+        AND score_date >= CURRENT_DATE - INTERVAL '%s days'
+      `;
+      
+      const result = await pool.query(query.replace('%s', days), [organizationId]);
       return result.rows[0];
     } catch (error) {
-      throw new Error(`Error fetching latest score: ${error.message}`);
+      console.error('Error getting organization analytics:', error);
+      throw new Error('Error retrieving organization analytics: ' + error.message);
     }
   }
 
-  static async getAverageScores(employeeId, days = 30) {
+  // Get employee performance trends
+  static async getEmployeeTrends(employeeId, days = 30) {
     try {
-      const result = await pool.query(`
+      const query = `
         SELECT 
-          AVG(productivity_score) as avg_productivity,
-          AVG(engagement_score) as avg_engagement,
-          AVG(final_score) as avg_final_score,
-          COUNT(*) as total_days
+          score_date,
+          overall_score,
+          productivity_score,
+          engagement_score,
+          performance_grade,
+          working_time,
+          idle_time + distracted_time as unproductive_time
         FROM performance_scores 
         WHERE employee_id = $1 
-          AND score_type = 'daily'
-          AND date >= CURRENT_DATE - INTERVAL '${days} days'
-      `, [employeeId]);
-
-      return result.rows[0];
+        AND score_date >= CURRENT_DATE - INTERVAL '%s days'
+        ORDER BY score_date ASC
+      `;
+      
+      const result = await pool.query(query.replace('%s', days), [employeeId]);
+      return result.rows;
     } catch (error) {
-      throw new Error(`Error calculating average scores: ${error.message}`);
+      console.error('Error getting employee trends:', error);
+      throw new Error('Error retrieving employee trends: ' + error.message);
     }
   }
 
-  static calculateScores(activityData, weights = { productivity: 0.8, engagement: 0.2 }) {
-    const { workTime, monitoredTime, engagedFrames, totalFrames } = activityData;
-
-    // Calculate productivity score (work time / monitored time * 100)
-    const productivityScore = monitoredTime > 0 ? 
-      Math.min((workTime / monitoredTime) * 100, 100) : 0;
-
-    // Calculate engagement score (engaged frames / total frames * 100)
-    const engagementScore = totalFrames > 0 ? 
-      (engagedFrames / totalFrames) * 100 : 0;
-
-    // Calculate final weighted score
-    const finalScore = (weights.productivity * productivityScore) + 
-                      (weights.engagement * engagementScore);
-
-    return {
-      productivityScore: Math.round(productivityScore * 100) / 100,
-      engagementScore: Math.round(engagementScore * 100) / 100,
-      finalScore: Math.round(finalScore * 100) / 100
-    };
-  }
-
-  static async generateDailyScore(employeeId, date, activityData, customWeights = null) {
+  // Check if score exists for employee on date
+  static async scoreExistsForDate(employeeId, scoreDate) {
     try {
-      const weights = customWeights || { productivity: 0.8, engagement: 0.2 };
-      const scores = this.calculateScores(activityData, weights);
-
-      const scoreData = {
-        employee_id: employeeId,
-        date: date,
-        work_time: activityData.workTime,
-        monitored_time: activityData.monitoredTime,
-        engaged_frames: activityData.engagedFrames,
-        total_frames: activityData.totalFrames,
-        productivity_score: scores.productivityScore,
-        engagement_score: scores.engagementScore,
-        final_score: scores.finalScore,
-        score_type: 'daily',
-        metadata: { weights, raw_data: activityData }
-      };
-
-      // Check if score already exists for this date
-      const existingScore = await pool.query(`
+      const query = `
         SELECT id FROM performance_scores 
-        WHERE employee_id = $1 AND date = $2 AND score_type = 'daily'
-      `, [employeeId, date]);
-
-      if (existingScore.rows.length > 0) {
-        // Update existing score
-        const result = await pool.query(`
-          UPDATE performance_scores 
-          SET work_time = $3, monitored_time = $4, engaged_frames = $5, 
-              total_frames = $6, productivity_score = $7, engagement_score = $8, 
-              final_score = $9, metadata = $10, updated_at = NOW()
-          WHERE employee_id = $1 AND date = $2 AND score_type = 'daily'
-          RETURNING *
-        `, [
-          employeeId, date, activityData.workTime, activityData.monitoredTime,
-          activityData.engagedFrames, activityData.totalFrames,
-          scores.productivityScore, scores.engagementScore, scores.finalScore,
-          JSON.stringify(scoreData.metadata)
-        ]);
-        
-        return result.rows[0];
-      } else {
-        // Create new score
-        return await this.create(scoreData);
-      }
+        WHERE employee_id = $1 AND score_date = $2
+      `;
+      
+      const result = await pool.query(query, [employeeId, scoreDate]);
+      return result.rows.length > 0;
     } catch (error) {
-      throw new Error(`Error generating daily score: ${error.message}`);
+      console.error('Error checking score existence:', error);
+      throw new Error('Error checking score existence: ' + error.message);
     }
   }
 }

@@ -40,67 +40,41 @@ const createTables = async () => {
       );
     `);
 
-    // Performance Scores Table (NEW - ADD THIS)
+    // Performance Scores Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS performance_scores (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-        date DATE NOT NULL,
-        work_time INTEGER DEFAULT 0,
-        monitored_time INTEGER DEFAULT 0,
-        engaged_frames INTEGER DEFAULT 0,
-        total_frames INTEGER DEFAULT 0,
-        productivity_score DECIMAL(5,2) DEFAULT 0,
-        engagement_score DECIMAL(5,2) DEFAULT 0,
-        final_score DECIMAL(5,2) DEFAULT 0,
-        score_type VARCHAR(20) DEFAULT 'daily' CHECK (score_type IN ('daily', 'weekly', 'monthly')),
-        metadata JSONB DEFAULT '{}',
+        employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+        organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        working_time INTEGER NOT NULL CHECK (working_time >= 0),
+        idle_time INTEGER NOT NULL CHECK (idle_time >= 0),
+        absent_time INTEGER NOT NULL CHECK (absent_time >= 0),
+        distracted_time INTEGER NOT NULL CHECK (distracted_time >= 0),
+        total_time INTEGER NOT NULL CHECK (total_time > 0),
+        productivity_score DECIMAL(5,2) NOT NULL CHECK (productivity_score >= 0 AND productivity_score <= 100),
+        engagement_score DECIMAL(5,2) NOT NULL CHECK (engagement_score >= 0 AND engagement_score <= 100),
+        overall_score DECIMAL(5,2) NOT NULL CHECK (overall_score >= 0 AND overall_score <= 100),
+        performance_grade VARCHAR(10) NOT NULL,
+        score_date DATE NOT NULL DEFAULT CURRENT_DATE,
         created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
+        UNIQUE(employee_id, score_date)
       );
     `);
 
-    // Create indexes for performance_scores table
+    // Create indexes for better performance
     await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_performance_scores_employee_date 
-      ON performance_scores(employee_id, date);
+      CREATE INDEX IF NOT EXISTS idx_performance_scores_employee_id ON performance_scores(employee_id);
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_performance_scores_organization_id ON performance_scores(organization_id);
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_performance_scores_date ON performance_scores(score_date);
     `);
 
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_performance_scores_employee_type 
-      ON performance_scores(employee_id, score_type);
-    `);
-
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_performance_scores_date_type 
-      ON performance_scores(date, score_type);
-    `);
-
-    // Create unique constraint to prevent duplicate daily scores
-    await pool.query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_performance_scores_unique_daily 
-      ON performance_scores(employee_id, date, score_type) 
-      WHERE score_type = 'daily';
-    `);
-
-    // Create trigger function for updated_at
-    await pool.query(`
-      CREATE OR REPLACE FUNCTION update_updated_at_column()
-      RETURNS TRIGGER AS $$
-      BEGIN
-          NEW.updated_at = NOW();
-          RETURN NEW;
-      END;
-      $$ language 'plpgsql';
-    `);
-
-    // Create trigger for performance_scores
-    await pool.query(`
-      DROP TRIGGER IF EXISTS update_performance_scores_updated_at ON performance_scores;
-      CREATE TRIGGER update_performance_scores_updated_at 
-          BEFORE UPDATE ON performance_scores 
-          FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-    `);
+    
 
     // Create a default admin if none exists
     const adminExists = await pool.query('SELECT id FROM admins LIMIT 1');
@@ -129,7 +103,6 @@ const dropTables = async () => {
     await pool.query('DROP TABLE IF EXISTS employees CASCADE;');
     await pool.query('DROP TABLE IF EXISTS organizations CASCADE;');
     await pool.query('DROP TABLE IF EXISTS admins CASCADE;');
-    await pool.query('DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;');
     console.log('Database tables dropped successfully');
   } catch (error) {
     console.error('Error dropping tables:', error);

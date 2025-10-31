@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const dotenv = require("dotenv");
 const { createTables } = require('./config/initDb');
 const { testEmailConfiguration } = require('./utils/emailService');
+const morgan = require('morgan');
+
 
 dotenv.config();
 
@@ -11,6 +13,8 @@ const apiRoutes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(morgan('dev'));
 
 app.use(helmet({
   contentSecurityPolicy: {
