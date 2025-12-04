@@ -5,10 +5,15 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { RoleSelection } from './pages/RoleSelection';
+// import Dashboard from './pages/Dashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { Profile } from './pages/Profile';
+// import { HRManagerDashboard } from './pages/HRManagerDashboard';
+// import { Analytics } from './pages/Analytics';
+import { Profile } from './pages/Profile';    //reportviewer page is need for these page activation
+// import { Blockchain } from './pages/Blockchain';
+// import { AIConfigPage } from './pages/AIConfig';
+// import { Users } from './pages/Users';
 import { Landing } from './pages/Landing';
-import { ReportViewer } from './components/profile/ReportViewer';
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isHRManager, isEmployee } = useAuth();
@@ -34,7 +39,7 @@ function AppRoutes() {
   const getDashboardRoute = () => {
     if (isAdmin) return '/admin-dashboard';
     // if (isHRManager) return '/hr-dashboard';
-    return '/'; // after adding the dashboard route redirect to '/dashboard'
+    return '/'; //after adding the dashboard route redirect to '/dashboard'
   };
 
   return (
@@ -62,9 +67,8 @@ function AppRoutes() {
             <Profile />
           </ProtectedRoute>
         }
-      />
-      {/* 
-      <Route
+      /> 
+      {/* <Route
         path="/hr-dashboard"
         element={
           <ProtectedRoute requiredRole="hr_manager">
