@@ -19,8 +19,8 @@
       "electron/**/*",
       "public/mediapipe/**/*",
       "public/models/**/*",
-      "node_modules/@mediapipe/**/*",
-      "node_modules/@models/**/*",
+      "node_modules/@mediapipe/**/*", 
+      "node_modules/@models/**/*", 
       "package.json"
     ],
     "directories": {
@@ -38,12 +38,9 @@
     "@mediapipe/hands": "^0.4.1675469240",
     "@mediapipe/holistic": "^0.5.1675471629",
     "@tensorflow/tfjs": "^4.22.0",
-    "axios": "^1.13.2",
     "face-api.js": "^0.22.2",
-    "lucide-react": "^0.556.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.10.1",
     "react-speech-recognition": "^4.0.1"
   },
   "devDependencies": {

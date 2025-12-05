@@ -76,50 +76,18 @@ const createTables = async () => {
 
     
 
-    // Create demo users for testing
-    const bcrypt = require('bcryptjs');
-    
     // Create a default admin if none exists
-    const adminExists = await pool.query('SELECT id FROM admins WHERE email = $1', ['admin@promonitor.com']);
+    const adminExists = await pool.query('SELECT id FROM admins LIMIT 1');
     if (adminExists.rows.length === 0) {
+      const bcrypt = require('bcryptjs');
       const hashedPassword = await bcrypt.hash('admin123', 12);
       
       await pool.query(
         'INSERT INTO admins (name, email, password) VALUES ($1, $2, $3)',
-        ['System Administrator', 'admin@promonitor.com', hashedPassword]
+        ['System Admin', 'admin@performancetracker.com', hashedPassword]
       );
       
-      console.log('✅ Default admin created: admin@promonitor.com / admin123');
-    }
-
-    // Create a demo organization if none exists
-    const orgExists = await pool.query('SELECT id FROM organizations WHERE email = $1', ['hr@promonitor.com']);
-    let orgId;
-    if (orgExists.rows.length === 0) {
-      const hashedPassword = await bcrypt.hash('hr123456', 12);
-      
-      const orgResult = await pool.query(
-        'INSERT INTO organizations (name, industry, location, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-        ['ProMonitor Corp', 'Technology', 'San Francisco, CA', 'hr@promonitor.com', hashedPassword]
-      );
-      
-      orgId = orgResult.rows[0].id;
-      console.log('✅ Demo organization created: hr@promonitor.com / hr123456');
-    } else {
-      orgId = orgExists.rows[0].id;
-    }
-
-    // Create a demo employee if none exists
-    const employeeExists = await pool.query('SELECT id FROM employees WHERE email = $1', ['employee@promonitor.com']);
-    if (employeeExists.rows.length === 0) {
-      const hashedPassword = await bcrypt.hash('employee123', 12);
-      
-      await pool.query(
-        'INSERT INTO employees (organization_id, name, email, department, position, password) VALUES ($1, $2, $3, $4, $5, $6)',
-        [orgId, 'John Employee', 'employee@promonitor.com', 'Engineering', 'Software Developer', hashedPassword]
-      );
-      
-      console.log('✅ Demo employee created: employee@promonitor.com / employee123');
+      console.log('Default admin created: admin@performancetracker.com / admin123');
     }
 
     console.log('Database tables created successfully');
