@@ -86,7 +86,7 @@ const organizationLogin = async (req, res) => {
       formatSuccessResponse({
         user: organizationData,
         token,
-        role: 'organization'
+        role: 'hr_manager' // Map to hr_manager for frontend compatibility
       }, 'Organization login successful')
     );
 
@@ -179,7 +179,7 @@ const getCurrentUser = async (req, res) => {
     res.status(200).json(
       formatSuccessResponse({
         user: userWithoutPassword,
-        role
+        role: role === 'organization' ? 'hr_manager' : role // Map organization to hr_manager
       }, 'User data retrieved successfully')
     );
 
