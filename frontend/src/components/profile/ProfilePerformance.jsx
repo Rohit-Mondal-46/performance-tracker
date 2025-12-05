@@ -1,6 +1,6 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ReportViewer } from '../ReportViewer';
+import { ReportViewer } from './ReportViewer';
 
 const mockPersonalData = [
   { date: '2024-01-01', productivity: 82, engagement: 79, hours: 7.2 },
