@@ -5,18 +5,15 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { RoleSelection } from './pages/RoleSelection';
-// import Dashboard from './pages/Dashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
-// import { HRManagerDashboard } from './pages/HRManagerDashboard';
-// import { Analytics } from './pages/Analytics';
-import { Profile } from './pages/Profile';    //reportviewer page is need for these page activation
-// import { Blockchain } from './pages/Blockchain';
-// import { AIConfigPage } from './pages/AIConfig';
-// import { Users } from './pages/Users';
+import { OrganizationDashboard } from './pages/OrganizationDashboard';
+import { EmployeeDashboard } from './pages/EmployeeDashboard';
+import { OrganizationAnalytics } from './pages/OrganizationAnalytics';
+import { EmployeeAnalytics } from './pages/EmployeeAnalytics';
 import { Landing } from './pages/Landing';
 
 function ProtectedRoute({ children, requiredRole }) {
-  const { user, isAdmin, isHRManager, isEmployee } = useAuth();
+  const { user, isAdmin, isOrganization, isEmployee } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -26,7 +23,11 @@ function ProtectedRoute({ children, requiredRole }) {
     return <Navigate to="/" replace />;
   }
 
-  if (requiredRole === 'hr_manager' && !isHRManager && !isAdmin) {
+  if (requiredRole === 'organization' && !isOrganization && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requiredRole === 'employee' && !isEmployee && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 
@@ -34,12 +35,13 @@ function ProtectedRoute({ children, requiredRole }) {
 }
 
 function AppRoutes() {
-  const { user, isAdmin, isHRManager } = useAuth();
+  const { user, isAdmin, isOrganization, isEmployee } = useAuth();
 
   const getDashboardRoute = () => {
     if (isAdmin) return '/admin-dashboard';
-    // if (isHRManager) return '/hr-dashboard';
-    return '/'; //after adding the dashboard route redirect to '/dashboard'
+    if (isOrganization) return '/organization-dashboard';
+    if (isEmployee) return '/employee-dashboard';
+    return '/';
   };
 
   return (
@@ -61,62 +63,39 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/profile"
+        path="/organization-dashboard"
         element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      /> 
-      {/* <Route
-        path="/hr-dashboard"
-        element={
-          <ProtectedRoute requiredRole="hr_manager">
-            <HRManagerDashboard />
+          <ProtectedRoute requiredRole="organization">
+            <OrganizationDashboard />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/dashboard"
+        path="/employee-dashboard"
         element={
-          <ProtectedRoute>
-            <Dashboard />
+          <ProtectedRoute requiredRole="employee">
+            <EmployeeDashboard />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/organization-analytics"
+        element={
+          <ProtectedRoute requiredRole="organization">
+            <OrganizationAnalytics />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/analytics"
+        path="/employee-analytics"
         element={
-          <ProtectedRoute>
-            <Analytics />
+          <ProtectedRoute requiredRole="employee">
+            <EmployeeAnalytics />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute>
-            <Users />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/blockchain"
-        element={
-          <ProtectedRoute>
-            <Blockchain />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/config"
-        element={
-          <ProtectedRoute>
-            <AIConfigPage />
-          </ProtectedRoute>
-        }
-      />
-      */}
+     
       <Route path="/" element={<Landing />} />
     </Routes>
   );

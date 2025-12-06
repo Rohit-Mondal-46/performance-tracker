@@ -19,29 +19,29 @@ export function RoleSelection() {
       bgColor: 'from-red-500/10 to-orange-500/10',
       borderColor: 'border-red-500/50',
       iconColor: 'text-red-400',
-      description: 'Full system access with ability to manage HR Managers and system settings',
+      description: 'Full system access with ability to manage organizations and monitor overall performance',
       features: [
-        'Create and manage HR Manager accounts',
+        'Create and manage organizations',
         'Generate login credentials',
-        'Full system configuration',
-        'Access all reports and analytics'
+        'View all employees across organizations',
+        'Access system-wide analytics'
       ]
     },
     {
-      id: 'hr_manager',
-      name: 'HR Manager',
-      displayName: 'HR Manager',
+      id: 'organization',
+      name: 'Organization',
+      displayName: 'Organization Manager',
       icon: Users,
       color: 'from-blue-500 to-purple-500',
       bgColor: 'from-blue-500/10 to-purple-500/10',
       borderColor: 'border-blue-500/50',
       iconColor: 'text-blue-400',
-      description: 'Manage employees, monitor productivity, and generate reports',
+      description: 'Manage employees, monitor productivity, and generate reports for your organization',
       features: [
         'Add and manage employees',
         'Monitor employee productivity',
         'Generate detailed reports',
-        'View analytics dashboard'
+        'View organization analytics'
       ]
     },
     {

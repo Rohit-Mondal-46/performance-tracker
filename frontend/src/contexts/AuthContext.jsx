@@ -1,172 +1,112 @@
-import React, { createContext, useContext, useState } from 'react';
-import { realTimeDataService } from '../services/realTimeDataService';
-
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext(undefined);
 
-// Initial users - will be expanded dynamically
-const initialUsers= [
-  {
-    id: '1',
-    name: 'System Administrator',
-    email: 'admin@promonitor.com',
-    role: 'admin',
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'hr@promonitor.com',
-    role: 'hr_manager',
-    avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-  },
-  {
-    id: '3',
-    name: 'Mike Chen',
-    email: 'employee@promonitor.com',
-    role: 'employee',
-    avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-  }
-];
-
-// Store passwords separately (in real app, this would be hashed and stored securely)
-const initialPasswords= [
-  ['admin@promonitor.com', 'admin123'],
-  ['hr@promonitor.com', 'hr123'],
-  ['employee@promonitor.com', 'employee123']
-];
-
-// Initialize with copies to avoid reference issues
-let mockUsers= [...initialUsers];
-let userPasswords= new Map(initialPasswords);
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (email, password) => {
-    console.log('=== LOGIN ATTEMPT ===');
-    console.log('Email:', email);
-    console.log('Password:', password);
-    console.log('Available users:', mockUsers.map(u => ({ id: u.id, email: u.email, role: u.role })));
-    console.log('Available passwords:', Array.from(userPasswords.entries()));
-    
-    const foundUser = mockUsers.find(u => u.email === email);
-    const storedPassword = userPasswords.get(email);
-    
-    console.log('Found user:', foundUser ? { id: foundUser.id, email: foundUser.email, role: foundUser.role } : null);
-    console.log('Stored password for', email, ':', storedPassword);
-    console.log('Password match:', storedPassword === password);
-    
-    if (foundUser && storedPassword && storedPassword === password) {
-      console.log('✅ LOGIN SUCCESS for:', email);
-      setUser(foundUser);
+  // Check for existing session on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
       
-      // Initialize user in real-time service only for employees
-      if (foundUser.role === 'employee') {
-        realTimeDataService.initializeUser(foundUser);
+      if (token && savedUser) {
+        try {
+          // Verify token is still valid
+          const response = await authAPI.getCurrentUser();
+          if (response.data.success) {
+            setUser(JSON.parse(savedUser));
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        } catch (error) {
+          console.error('Session verification failed:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
-      
-      return true;
-    }
-    
-    console.log('❌ LOGIN FAILED for:', email);
-    console.log('Reason:', !foundUser ? 'User not found' : !storedPassword ? 'No password stored' : 'Password mismatch');
-    return false;
-  };
-
-  const logout = () => {
-    if (user && user.role === 'employee') {
-      realTimeDataService.removeUser(user.id);
-    }
-    setUser(null);
-  };
-
-  const registerUser = async (name, email, password, role) => {
-    console.log('=== USER REGISTRATION ===');
-    console.log('Registering user:', { name, email, role });
-    console.log('Password:', password);
-    
-    // Check if email already exists
-    const existingUser = mockUsers.find(u => u.email === email);
-    if (existingUser) {
-      console.log('❌ Email already exists:', email);
-      return false;
-    }
-
-    // Generate new user ID
-    const newId = (Math.max(...mockUsers.map(u => parseInt(u.id))) + 1).toString();
-    console.log('Generated new ID:', newId);
-    
-    // Generate avatar URL
-    const avatarUrls = [
-      'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-    ];
-    
-    const newUser= {
-      id: newId,
-      name,
-      email,
-      role,
-      avatar: avatarUrls[Math.floor(Math.random() * avatarUrls.length)]
+      setLoading(false);
     };
 
-    // Add user to arrays
-    mockUsers.push(newUser);
-    userPasswords.set(email, password);
-    
-    console.log('✅ User registered successfully');
-    console.log('New user:', { id: newUser.id, email: newUser.email, role: newUser.role });
-    console.log('Updated users count:', mockUsers.length);
-    console.log('Updated passwords count:', userPasswords.size);
-    console.log('All users:', mockUsers.map(u => ({ id: u.id, email: u.email, role: u.role })));
-    console.log('All passwords:', Array.from(userPasswords.entries()));
-    
-    // Add to real-time service if it's an employee
-    if (role === 'employee') {
-      realTimeDataService.addUser(newUser);
+    initAuth();
+  }, []);
+
+  const login = async (email, password, role) => {
+    try {
+      console.log('=== LOGIN ATTEMPT ===');
+      console.log('Email:', email, 'Role:', role);
+      
+      let response;
+      
+      // Call appropriate login endpoint based on role
+      switch (role) {
+        case 'admin':
+          response = await authAPI.adminLogin(email, password);
+          break;
+        case 'organization':
+          response = await authAPI.organizationLogin(email, password);
+          break;
+        case 'employee':
+          response = await authAPI.employeeLogin(email, password);
+          break;
+        default:
+          throw new Error('Invalid role specified');
+      }
+      
+      if (response.data.success && response.data.data.token) {
+        const { token, user: userData, role } = response.data.data;
+        
+        // Ensure role is part of user object
+        const userWithRole = {
+          ...userData,
+          role: role || userData.role // Use role from response or fallback to userData.role
+        };
+        
+        // Store token and user data
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userWithRole));
+        
+        setUser(userWithRole);
+        console.log('✅ LOGIN SUCCESS:', userWithRole);
+        
+        return { success: true, user: userWithRole };
+      }
+      
+      return { success: false, message: 'Login failed' };
+    } catch (error) {
+      console.error('❌ LOGIN FAILED:', error);
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      return { success: false, message };
     }
-    
-    return true;
   };
 
-  const getAllUsers = () => {
-    return [...mockUsers];
-  };
-
-  const deleteUser = (userId) => {
-    const userIndex = mockUsers.findIndex(u => u.id === userId);
-    if (userIndex === -1) return false;
-    
-    const userToDelete = mockUsers[userIndex];
-    
-    // Don't allow deleting initial demo users
-    if (userToDelete.email === 'admin@promonitor.com' ||
-        userToDelete.email === 'hr@promonitor.com' ||
-        userToDelete.email === 'employee@promonitor.com') {
-      console.log('Cannot delete demo user:', userToDelete.email);
-      return false;
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
     }
-    
-    mockUsers.splice(userIndex, 1);
-    userPasswords.delete(userToDelete.email);
-    
-    console.log('User deleted:', userToDelete.email);
-    console.log('Remaining users:', mockUsers.map(u => u.email));
-    
-    // Remove from real-time service
-    realTimeDataService.removeUser(userId);
-    
-    return true;
   };
 
   const isAdmin = user?.role === 'admin';
-  const isHRManager = user?.role === 'hr_manager';
+  const isOrganization = user?.role === 'organization';
   const isEmployee = user?.role === 'employee';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{
@@ -174,11 +114,9 @@ export function AuthProvider({ children }) {
       login,
       logout,
       isAdmin,
-      isHRManager,
+      isOrganization,
       isEmployee,
-      registerUser,
-      getAllUsers,
-      deleteUser
+      loading
     }}>
       {children}
     </AuthContext.Provider>

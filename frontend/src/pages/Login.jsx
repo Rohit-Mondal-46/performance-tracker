@@ -13,15 +13,17 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { user, login, isAdmin, isHRManager } = useAuth();
+  const { user, login, isAdmin, isOrganization, isEmployee } = useAuth();
 
   if (user) {
     if (isAdmin) {
       return <Navigate to="/admin-dashboard" replace />;
-    } else if (isHRManager) {
-      return <Navigate to="/hr-dashboard" replace />;
+    } else if (isOrganization) {
+      return <Navigate to="/organization-dashboard" replace />;
+    } else if (isEmployee) {
+      return <Navigate to="/employee-dashboard" replace />;
     }
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const getRoleInfo = () => {
@@ -33,12 +35,12 @@ export function Login() {
           title: 'Admin Login',
           description: 'Sign in with your administrator credentials'
         };
-      case 'hr_manager':
+      case 'organization':
         return {
           icon: Users,
           color: 'blue',
-          title: 'HR Manager Login',
-          description: 'Sign in with your HR Manager credentials'
+          title: 'Organization Login',
+          description: 'Sign in with your organization credentials'
         };
       case 'employee':
         return {
@@ -51,8 +53,8 @@ export function Login() {
         return {
           icon: Monitor,
           color: 'blue',
-          title: 'Welcome to ProMonitor',
-          description: 'Sign in to access your productivity dashboard'
+          title: 'Welcome to Performance Tracker',
+          description: 'Sign in to access your dashboard'
         };
     }
   };
@@ -68,10 +70,12 @@ export function Login() {
     try {
       console.log('=== LOGIN FORM SUBMISSION ===');
       console.log('Email entered:', email);
-      console.log('Password entered:', password);
-      const success = await login(email, password);
-      if (!success) {
-        setError('Invalid email or password');
+      console.log('Selected role:', selectedRole);
+      
+      const result = await login(email, password, selectedRole);
+      
+      if (!result.success) {
+        setError(result.message || 'Invalid email or password');
         console.log('❌ Login failed in form handler');
       } else {
         console.log('✅ Login successful in form handler');
