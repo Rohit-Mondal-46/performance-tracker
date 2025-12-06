@@ -214,6 +214,94 @@ class PerformanceScore {
       throw new Error('Error checking score existence: ' + error.message);
     }
   }
+
+  // Get average scores for an employee over a period
+  static async getAverageScores(employeeId, days = 30) {
+    try {
+      const query = `
+        SELECT 
+          COUNT(*) as total_days,
+          AVG(overall_score) as avg_final_score,
+          AVG(productivity_score) as avg_productivity,
+          AVG(engagement_score) as avg_engagement,
+          AVG(working_time) as avg_working_time,
+          AVG(total_time) as avg_total_time
+        FROM performance_scores 
+        WHERE employee_id = $1 
+        AND score_date >= CURRENT_DATE - INTERVAL '${days} days'
+      `;
+      
+      const result = await pool.query(query, [employeeId]);
+      return result.rows[0] || {
+        total_days: 0,
+        avg_final_score: 0,
+        avg_productivity: 0,
+        avg_engagement: 0,
+        avg_working_time: 0,
+        avg_total_time: 0
+      };
+    } catch (error) {
+      console.error('Error getting average scores:', error);
+      throw new Error('Error retrieving average scores: ' + error.message);
+    }
+  }
+
+  // Get latest score for an employee
+  static async getLatestScore(employeeId) {
+    try {
+      const query = `
+        SELECT 
+          score_date as date,
+          overall_score as final_score,
+          productivity_score,
+          engagement_score,
+          performance_grade,
+          working_time,
+          total_time
+        FROM performance_scores 
+        WHERE employee_id = $1 
+        ORDER BY score_date DESC, created_at DESC
+        LIMIT 1
+      `;
+      
+      const result = await pool.query(query, [employeeId]);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error getting latest score:', error);
+      throw new Error('Error retrieving latest score: ' + error.message);
+    }
+  }
+
+  // Get employee scores with options (for dashboard)
+  static async getEmployeeScores(employeeId, options = {}) {
+    try {
+      const { limit = 30, offset = 0, scoreType = 'daily' } = options;
+      
+      const query = `
+        SELECT 
+          score_date as date,
+          overall_score as final_score,
+          productivity_score,
+          engagement_score,
+          performance_grade,
+          working_time,
+          idle_time,
+          distracted_time,
+          absent_time,
+          total_time
+        FROM performance_scores 
+        WHERE employee_id = $1 
+        ORDER BY score_date DESC, created_at DESC
+        LIMIT $2 OFFSET $3
+      `;
+      
+      const result = await pool.query(query, [employeeId, limit, offset]);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting employee scores:', error);
+      throw new Error('Error retrieving employee scores: ' + error.message);
+    }
+  }
 }
 
 module.exports = PerformanceScore;

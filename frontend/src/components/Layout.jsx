@@ -27,22 +27,17 @@ export function Layout({ children }) {
     if (isAdmin) {
       return [
         { name: 'Admin Dashboard', href: '/admin-dashboard', icon: Shield },
-        { name: 'Profile', href: '/profile', icon: User },
       ];
-    } else if (isHRManager) {
+    } else if(isEmployee){
       return [
-        { name: 'HR Dashboard', href: '/hr-dashboard', icon: Monitor },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Users', href: '/users', icon: Users },
-        { name: 'Blockchain', href: '/blockchain', icon: Shield },
-        { name: 'Profile', href: '/profile', icon: User },
+        { name: 'Dashboard', href: '/employee-dashboard', icon: Monitor },
+        { name: 'Analytics', href: '/employee-analytics', icon: BarChart3 },
+        
       ];
     } else {
       return [
-        { name: 'Dashboard', href: '/dashboard', icon: Monitor },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Blockchain', href: '/blockchain', icon: Shield },
-        { name: 'Profile', href: '/profile', icon: User },
+        { name: 'Dashboard', href: '/organization-dashboard', icon: Monitor },
+        { name: 'Analytics', href: '/organization-analytics', icon: BarChart3 },
       ];
     }
   };
