@@ -86,7 +86,7 @@ const organizationLogin = async (req, res) => {
       formatSuccessResponse({
         user: organizationData,
         token,
-        role: 'organization'
+        role: 'hr_manager' // Map to hr_manager for frontend compatibility
       }, 'Organization login successful')
     );
 
