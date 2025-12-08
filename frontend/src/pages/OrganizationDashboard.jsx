@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { organizationAPI } from '../services/api';
-import { Users, TrendingUp, BarChart3, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Users, TrendingUp, BarChart3, Plus, Edit, Trash2, Eye, Building, Target, Clock, Award, ChevronRight, UserPlus, Sparkles } from 'lucide-react';
 
 export function OrganizationDashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -58,16 +58,33 @@ export function OrganizationDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-white text-xl">Loading dashboard...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 animate-ping opacity-20"></div>
+            </div>
+          </div>
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-white mb-2 animate-pulse">Preparing Your Dashboard</h2>
+            <p className="text-gray-400">Loading organizational insights...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-red-500 text-xl">{error}</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div className="glass-effect-red p-8 rounded-2xl text-center">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 text-red-400">!</div>
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Error Loading Dashboard</h2>
+          <p className="text-red-300">{error}</p>
+        </div>
       </div>
     );
   }
@@ -77,196 +94,494 @@ export function OrganizationDashboard() {
   const positionBreakdown = stats.positionBreakdown || {};
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 md:p-6 overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-10 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-1/4 right-10 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-float animation-delay-3000"></div>
+        <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-full blur-3xl animate-float animation-delay-6000"></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+                           linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
+        }}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {dashboard?.organization?.name || 'Organization Dashboard'}
-          </h1>
-          <p className="text-gray-400">Manage your employees and track performance</p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            icon={<Users className="w-8 h-8" />}
-            title="Total Employees"
-            value={stats.totalEmployees || 0}
-            color="blue"
-          />
-          <StatCard
-            icon={<TrendingUp className="w-8 h-8" />}
-            title="Departments"
-            value={Object.keys(departmentBreakdown).length}
-            color="green"
-          />
-          <StatCard
-            icon={<BarChart3 className="w-8 h-8" />}
-            title="Active Positions"
-            value={Object.keys(positionBreakdown).length}
-            color="purple"
-          />
-          <StatCard
-            icon={<Users className="w-8 h-8" />}
-            title="Avg Performance"
-            value={analytics?.averageScore ? `${parseFloat(analytics.averageScore).toFixed(1)}%` : 'N/A'}
-            color="orange"
-          />
-        </div>
-
-        {/* Department & Position Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Department Breakdown</h2>
-            <div className="space-y-3">
-              {Object.entries(departmentBreakdown).map(([dept, count]) => (
-                <div key={dept} className="flex justify-between items-center">
-                  <span className="text-gray-300">{dept}</span>
-                  <span className="text-white font-semibold bg-gray-700 px-3 py-1 rounded">
-                    {count}
-                  </span>
+        <div className="mb-8 animate-slide-down">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative">
+              <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent">
+                {dashboard?.organization?.name || 'Organization Dashboard'}
+              </h1>
+              <p className="text-gray-400">Welcome to your management dashboard</p>
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="group relative flex items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden"
+              >
+                {/* Button glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                <UserPlus className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="font-semibold relative z-10">Add Employee</span>
+                
+                {/* Button particles */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute w-2 h-2 bg-white rounded-full animate-sparkle" style={{ top: '20%', left: '20%' }}></div>
+                  <div className="absolute w-1 h-1 bg-cyan-300 rounded-full animate-sparkle" style={{ top: '40%', left: '80%', animationDelay: '0.2s' }}></div>
                 </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards with 3D Floating Effect */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative">
+          {/* 3D Shadow Layer */}
+          <div className="absolute inset-0 -bottom-6 z-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div 
+                  key={i}
+                  className="h-48 bg-gradient-to-t from-black/30 to-transparent rounded-2xl blur-xl opacity-40"
+                  style={{
+                    transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)',
+                    animationDelay: `${i * 200}ms`
+                  }}
+                ></div>
               ))}
             </div>
           </div>
+          
+          {/* Actual Cards */}
+          <div className="relative z-10">
+            <FloatingCard delay={0}>
+              <QuantumParticleEffect color="blue" />
+              <StatCard
+                icon={<Users className="w-8 h-8" />}
+                title="Total Employees"
+                value={stats.totalEmployees || 0}
+                color="from-blue-500 to-cyan-500"
+              />
+            </FloatingCard>
+          </div>
+          <div className="relative z-10">
+            <FloatingCard delay={200}>
+              <QuantumParticleEffect color="green" />
+              <StatCard
+                icon={<TrendingUp className="w-8 h-8" />}
+                title="Departments"
+                value={Object.keys(departmentBreakdown).length}
+                color="from-green-500 to-emerald-500"
+              />
+            </FloatingCard>
+          </div>
+          <div className="relative z-10">
+            <FloatingCard delay={400}>
+              <QuantumParticleEffect color="purple" />
+              <StatCard
+                icon={<BarChart3 className="w-8 h-8" />}
+                title="Active Positions"
+                value={Object.keys(positionBreakdown).length}
+                color="from-purple-500 to-pink-500"
+              />
+            </FloatingCard>
+          </div>
+          <div className="relative z-10">
+            <FloatingCard delay={600}>
+              <QuantumParticleEffect color="orange" />
+              <StatCard
+                icon={<Award className="w-8 h-8" />}
+                title="Avg Performance"
+                value={analytics?.averageScore ? `${parseFloat(analytics.averageScore).toFixed(1)}%` : 'N/A'}
+                color="from-orange-500 to-yellow-500"
+              />
+            </FloatingCard>
+          </div>
+        </div>
 
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Position Breakdown</h2>
-            <div className="space-y-3">
-              {Object.entries(positionBreakdown).map(([pos, count]) => (
-                <div key={pos} className="flex justify-between items-center">
-                  <span className="text-gray-300">{pos}</span>
-                  <span className="text-white font-semibold bg-gray-700 px-3 py-1 rounded">
-                    {count}
-                  </span>
-                </div>
-              ))}
+        {/* Departments & Positions Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 relative">
+          {/* 3D Shadows */}
+          <div className="absolute inset-0 -bottom-4 z-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+              <div className="bg-gradient-to-t from-black/30 to-transparent rounded-2xl blur-xl opacity-40" 
+                   style={{ transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)' }}></div>
+              <div className="bg-gradient-to-t from-black/30 to-transparent rounded-2xl blur-xl opacity-40" 
+                   style={{ transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)' }}></div>
             </div>
+          </div>
+          
+          {/* Actual Cards */}
+          <div className="relative z-10">
+            <FloatingCard>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Departments</h2>
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 flex items-center justify-center animate-pulse-slow">
+                    <Building className="w-5 h-5 text-blue-400" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {Object.entries(departmentBreakdown).map(([dept, count], index) => (
+                    <div 
+                      key={dept}
+                      className="group relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <div className="relative flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-800/50 to-gray-900/50 border border-gray-700/30 hover:border-blue-500/40 transition-all duration-300 cursor-pointer hover:translate-x-2 hover:scale-101">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-sm font-bold text-blue-300">{index + 1}</span>
+                          </div>
+                          <span className="text-gray-300">{dept}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold bg-gradient-to-r from-blue-500/20 to-blue-600/20 px-3 py-1 rounded-lg">{count}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FloatingCard>
+          </div>
+          
+          <div className="relative z-10">
+            <FloatingCard>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Position Distribution</h2>
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center animate-pulse-slow">
+                    <Users className="w-5 h-5 text-purple-400" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {Object.entries(positionBreakdown).map(([pos, count], index) => (
+                    <div 
+                      key={pos}
+                      className="group relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <div className="relative flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-800/50 to-gray-900/50 border border-gray-700/30 hover:border-purple-500/40 transition-all duration-300 cursor-pointer hover:translate-x-2 hover:scale-101">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-sm font-bold text-purple-300">{index + 1}</span>
+                          </div>
+                          <span className="text-gray-300">{pos}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-3 py-1 rounded-lg">{count}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transform group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FloatingCard>
           </div>
         </div>
 
         {/* Performance Analytics */}
         {analytics && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Performance Overview (Last 30 Days)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-gray-400 text-sm mb-1">Average Overall Score</div>
-                <div className="text-3xl font-bold text-white">
-                  {parseFloat(analytics.averageScore || 0).toFixed(1)}%
+          <div className="relative mb-8">
+            {/* 3D Shadow */}
+            <div className="absolute inset-0 -bottom-4 z-0">
+              <div className="h-full bg-gradient-to-t from-black/40 to-transparent rounded-2xl blur-xl opacity-40"
+                   style={{ transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)' }}></div>
+            </div>
+            
+            {/* Actual Card */}
+            <div className="relative z-10">
+              <FloatingCard>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                      Performance Analytics
+                    </h2>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      Last 30 days
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      { title: 'Overall Score', value: analytics.averageScore, color: 'from-blue-500 to-cyan-500', borderColor: 'blue' },
+                      { title: 'Productivity', value: analytics.averageProductivity, color: 'from-green-500 to-emerald-500', borderColor: 'green' },
+                      { title: 'Engagement', value: analytics.averageEngagement, color: 'from-purple-500 to-pink-500', borderColor: 'purple' }
+                    ].map((item, index) => (
+                      <div key={index} className="relative group">
+                        {/* Card glow effect */}
+                        <div className={`absolute inset-0 bg-gradient-to-r ${item.color}/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-700`}></div>
+                        
+                        {/* Main card */}
+                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm border border-gray-700/40 hover:border-gray-600/60 transition-all duration-300 overflow-hidden">
+                          
+                          {/* Animated background lines */}
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer" style={{ animationDelay: `${index * 0.5}s` }}></div>
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="text-gray-400 text-sm mb-2">{item.title}</div>
+                            <div className="text-4xl font-bold text-white mb-4 animate-count-up">
+                              {parseFloat(item.value || 0).toFixed(1)}%
+                            </div>
+                            <div className="relative h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                              <div 
+                                className={`absolute inset-0 bg-gradient-to-r ${item.color} rounded-full transition-all duration-1500 ease-out`}
+                                style={{ width: `${item.value || 0}%` }}
+                              ></div>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-gray-400 text-sm mb-1">Average Productivity</div>
-                <div className="text-3xl font-bold text-green-400">
-                  {parseFloat(analytics.averageProductivity || 0).toFixed(1)}%
-                </div>
-              </div>
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-gray-400 text-sm mb-1">Average Engagement</div>
-                <div className="text-3xl font-bold text-blue-400">
-                  {parseFloat(analytics.averageEngagement || 0).toFixed(1)}%
-                </div>
-              </div>
+              </FloatingCard>
             </div>
           </div>
         )}
 
-        {/* Employees Table */}
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Employees</h2>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Add Employee
-            </button>
+        {/* Employees Section */}
+        <div className="relative">
+          {/* 3D Shadow */}
+          <div className="absolute inset-0 -bottom-4 z-0">
+            <div className="h-full bg-gradient-to-t from-black/40 to-transparent rounded-2xl blur-xl opacity-40"
+                 style={{ transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)' }}></div>
           </div>
+          
+          {/* Actual Card */}
+          <div className="relative z-10">
+            <FloatingCard>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Employee Management</h2>
+                    <p className="text-gray-400">Manage your team members and their performance</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 backdrop-blur-sm">
+                      <span className="text-sm font-semibold text-blue-300">
+                        {employees.length} Team Members
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Email</th>
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Department</th>
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Position</th>
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map((emp) => (
-                  <tr key={emp.id} className="border-b border-gray-700 hover:bg-gray-750">
-                    <td className="py-3 px-4 text-white">{emp.name}</td>
-                    <td className="py-3 px-4 text-gray-300">{emp.email}</td>
-                    <td className="py-3 px-4 text-gray-300">{emp.department || 'N/A'}</td>
-                    <td className="py-3 px-4 text-gray-300">{emp.position || 'N/A'}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setSelectedEmployee(emp)}
-                          className="p-2 text-blue-400 hover:bg-gray-700 rounded transition-colors"
-                          title="View Performance"
+                <div className="overflow-x-auto rounded-xl">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-700/50">
+                        <th className="text-left py-4 px-6 text-gray-400 font-semibold">Employee</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-semibold">Role</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-semibold">Department</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-semibold">Status</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employees.map((emp, index) => (
+                        <tr 
+                          key={emp.id} 
+                          className="border-b border-gray-700/30 hover:bg-white/5 transition-all duration-300 group animate-fade-in-up"
+                          style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEmployee(emp.id)}
-                          className="p-2 text-red-400 hover:bg-gray-700 rounded transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                  <div className="text-lg font-bold text-blue-300">
+                                    {emp.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                  </div>
+                                </div>
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
+                              </div>
+                              <div>
+                                <div className="text-white font-semibold">{emp.name}</div>
+                                <div className="text-gray-400 text-sm">{emp.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-700/50 border border-gray-600/50 group-hover:border-blue-500/50 transition-colors duration-300">
+                              <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                              <span className="text-gray-300">{emp.position || 'N/A'}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="text-gray-300">{emp.department || 'N/A'}</div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                              <span className="text-green-300 text-sm font-medium">Active</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setSelectedEmployee(emp)}
+                                className="group relative p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+                                title="View Performance"
+                              >
+                                <Eye className="w-4 h-4 text-blue-400 group-hover:text-blue-300 relative z-10" />
+                                <div className="absolute inset-0 bg-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteEmployee(emp.id)}
+                                className="group relative p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-400/40 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-400 group-hover:text-red-300 relative z-10" />
+                                <div className="absolute inset-0 bg-red-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </FloatingCard>
           </div>
         </div>
+      </div>
 
-        {/* Create Employee Modal */}
-        {showCreateModal && (
-          <CreateEmployeeModal
-            onClose={() => setShowCreateModal(false)}
-            onSuccess={() => {
-              setShowCreateModal(false);
-              fetchDashboardData();
-            }}
-          />
-        )}
+      {/* Create Employee Modal */}
+      {showCreateModal && (
+        <CreateEmployeeModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            fetchDashboardData();
+          }}
+        />
+      )}
 
-        {/* Employee Performance Modal */}
-        {selectedEmployee && (
-          <EmployeePerformanceModal
-            employee={selectedEmployee}
-            onClose={() => setSelectedEmployee(null)}
-          />
-        )}
+      {/* Employee Performance Modal */}
+      {selectedEmployee && (
+        <EmployeePerformanceModal
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function FloatingCard({ children, className = '', delay = 0 }) {
+  return (
+    <div 
+      className={`relative group ${className}`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-cyan-500/5 rounded-2xl blur-2xl group-hover:blur-3xl transition-all duration-700 opacity-0 group-hover:opacity-100"></div>
+      
+      {/* Main card with floating animation */}
+      <div className="relative bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm border border-gray-700/40 rounded-2xl overflow-hidden hover:border-gray-600/60 transition-all duration-300 animate-card-float-3d group-hover:animate-card-float-hover">
+        {/* Card shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" 
+             style={{ transform: 'translateX(-100%)', animation: 'shimmer 2s infinite' }}></div>
+        
+        {children}
       </div>
     </div>
   );
 }
 
 function StatCard({ icon, title, value, color }) {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-400',
-    green: 'bg-green-500/10 text-green-400',
-    purple: 'bg-purple-500/10 text-purple-400',
-    orange: 'bg-orange-500/10 text-orange-400'
+  return (
+    <div className="p-6 relative z-10">
+      <div className="flex items-start justify-between mb-4">
+        <div className={`relative w-14 h-14 rounded-xl bg-gradient-to-br ${color}/20 border ${color.split(' ')[0]}/30 flex items-center justify-center group`}>
+          {/* Icon glow effect */}
+          <div className={`absolute inset-0 ${color.split(' ')[0]}/20 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+          <div className={`relative ${color.split(' ')[0].replace('from-', 'text-')} group-hover:scale-110 transition-transform duration-300`}>
+            {icon}
+          </div>
+        </div>
+      </div>
+      <div className="mb-1">
+        <div className="text-3xl font-bold text-white animate-count-up">{value}</div>
+        <div className="text-gray-400 text-sm mt-2">{title}</div>
+      </div>
+    </div>
+  );
+}
+
+function QuantumParticleEffect({ color }) {
+  const particles = [];
+  const colorMap = {
+    blue: 'from-blue-400 to-cyan-400',
+    green: 'from-green-400 to-emerald-400',
+    purple: 'from-purple-400 to-pink-400',
+    orange: 'from-orange-400 to-yellow-400'
   };
 
+  // Create 15 particles with random positions and delays
+  for (let i = 0; i < 15; i++) {
+    particles.push({
+      id: i,
+      size: Math.random() * 3 + 1,
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      delay: Math.random() * 10,
+      duration: Math.random() * 5 + 5,
+      opacity: Math.random() * 0.4 + 0.1
+    });
+  }
+
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <div className={`inline-flex p-3 rounded-lg mb-4 ${colorClasses[color]}`}>
-        {icon}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map(particle => (
+        <div
+          key={particle.id}
+          className={`absolute rounded-full bg-gradient-to-r ${colorMap[color]}`}
+          style={{
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            top: `${particle.top}%`,
+            left: `${particle.left}%`,
+            opacity: particle.opacity,
+            filter: 'blur(1px)',
+            animation: `particle-drift ${particle.duration}s ease-in-out infinite`,
+            animationDelay: `${particle.delay}s`,
+            transform: `translate(${Math.sin(particle.id) * 20}px, ${Math.cos(particle.id) * 20}px)`
+          }}
+        />
+      ))}
+      
+      {/* Particle trails */}
+      <div className="absolute inset-0">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={`trail-${i}`}
+            className={`absolute rounded-full bg-gradient-to-r ${colorMap[color]}`}
+            style={{
+              width: '100%',
+              height: '1px',
+              top: `${30 + i * 20}%`,
+              left: '-100%',
+              opacity: 0.05,
+              animation: `particle-trail 8s linear infinite`,
+              animationDelay: `${i * 2.5}s`,
+              filter: 'blur(2px)'
+            }}
+          />
+        ))}
       </div>
-      <h3 className="text-gray-400 text-sm mb-1">{title}</h3>
-      <p className="text-3xl font-bold text-white">{value}</p>
     </div>
   );
 }
@@ -300,76 +615,130 @@ function CreateEmployeeModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
-        <h2 className="text-2xl font-bold text-white mb-4">Add Employee</h2>
-        
-        {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-2 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-400 mb-2">Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-400 mb-2">Email *</label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-md animate-modal-enter">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl"></div>
+        <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl overflow-hidden">
+          {/* Modal Header */}
+          <div className="p-6 border-b border-gray-700/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Add Team Member</h2>
+                <p className="text-gray-400 text-sm mt-1">Invite a new employee to your organization</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
+              >
+                <div className="w-5 h-5 text-gray-400">×</div>
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-gray-400 mb-2">Department</label>
-            <input
-              type="text"
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+          {/* Modal Body */}
+          <form onSubmit={handleSubmit} className="p-6">
+            {error && (
+              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 animate-shake">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <div className="text-red-400">!</div>
+                  </div>
+                  <p className="text-red-300 text-sm">{error}</p>
+                </div>
+              </div>
+            )}
 
-          <div>
-            <label className="block text-gray-400 mb-2">Position</label>
-            <input
-              type="text"
-              value={formData.position}
-              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+            <div className="space-y-5">
+              <div className="group">
+                <label className="block text-sm font-medium text-gray-400 mb-2 group-hover:text-blue-300 transition-colors">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-gray-900/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300"
+                  placeholder="John Doe"
+                />
+              </div>
 
-          <div className="flex gap-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create'}
-            </button>
-          </div>
-        </form>
+              <div className="group">
+                <label className="block text-sm font-medium text-gray-400 mb-2 group-hover:text-blue-300 transition-colors">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-gray-900/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300"
+                  placeholder="john@company.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="group">
+                  <label className="block text-sm font-medium text-gray-400 mb-2 group-hover:text-blue-300 transition-colors">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full bg-gray-900/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300"
+                    placeholder="Engineering"
+                  />
+                </div>
+
+                <div className="group">
+                  <label className="block text-sm font-medium text-gray-400 mb-2 group-hover:text-blue-300 transition-colors">
+                    Position
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    className="w-full bg-gray-900/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300"
+                    placeholder="Developer"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 mt-8 pt-6 border-t border-gray-700/50">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Creating...
+                  </span>
+                ) : (
+                  'Invite Employee'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -397,73 +766,118 @@ function EmployeePerformanceModal({ employee, onClose }) {
   }, [employee.id]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-4">{employee.name} - Performance</h2>
-        
-        <div className="space-y-4 mb-6">
-          <div>
-            <span className="text-gray-400">Email:</span>
-            <span className="text-white ml-2">{employee.email}</span>
-          </div>
-          <div>
-            <span className="text-gray-400">Department:</span>
-            <span className="text-white ml-2">{employee.department || 'N/A'}</span>
-          </div>
-          <div>
-            <span className="text-gray-400">Position:</span>
-            <span className="text-white ml-2">{employee.position || 'N/A'}</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center text-gray-400 py-8">Loading performance data...</div>
-        ) : performanceData?.performanceScores?.length > 0 ? (
-          <div>
-            <h3 className="text-xl font-bold text-white mb-3">Recent Performance Scores</h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {performanceData.performanceScores.map((score) => (
-                <div key={score.id} className="bg-gray-700 rounded p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="text-white font-medium">
-                      {new Date(score.score_date).toLocaleDateString()}
-                    </div>
-                    <div className="text-2xl font-bold text-blue-400">
-                      {parseFloat(score.overall_score || 0).toFixed(1)}%
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-gray-400">Productivity:</span>
-                      <span className="text-white ml-2">{parseFloat(score.productivity_score || 0).toFixed(1)}%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Engagement:</span>
-                      <span className="text-white ml-2">{parseFloat(score.engagement_score || 0).toFixed(1)}%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Grade:</span>
-                      <span className="text-white ml-2">{score.performance_grade}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Total Time:</span>
-                      <span className="text-white ml-2">{score.total_time}min</span>
-                    </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-4xl max-h-[90vh] animate-modal-enter">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-pink-500/20 rounded-3xl blur-2xl"></div>
+        <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl overflow-hidden h-full flex flex-col">
+          {/* Modal Header */}
+          <div className="p-6 border-b border-gray-700/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
+                  <div className="text-2xl font-bold text-blue-300">
+                    {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </div>
                 </div>
-              ))}
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{employee.name}</h2>
+                  <p className="text-gray-400">{employee.position} • {employee.department}</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
+              >
+                <div className="w-5 h-5 text-gray-400">×</div>
+              </button>
             </div>
           </div>
-        ) : (
-          <div className="text-center text-gray-400 py-8">No performance data available</div>
-        )}
 
-        <button
-          onClick={onClose}
-          className="w-full mt-6 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          Close
-        </button>
+          {/* Modal Body */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+                  <div className="mt-4 text-gray-400">Loading performance data...</div>
+                </div>
+              </div>
+            ) : performanceData?.performanceScores?.length > 0 ? (
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white mb-6">Performance History</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {performanceData.performanceScores.map((score, index) => (
+                    <div 
+                      key={score.id}
+                      className="group relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
+                      <div className="relative p-5 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 hover:border-blue-500/30 transition-all duration-300">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="text-white font-medium">
+                            {new Date(score.score_date).toLocaleDateString()}
+                          </div>
+                          <div className="text-3xl font-bold text-blue-400">
+                            {parseFloat(score.overall_score || 0).toFixed(1)}%
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-400">Productivity</span>
+                              <span className="text-green-300">{parseFloat(score.productivity_score || 0).toFixed(1)}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-1000"
+                                style={{ width: `${score.productivity_score || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-400">Engagement</span>
+                              <span className="text-purple-300">{parseFloat(score.engagement_score || 0).toFixed(1)}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000"
+                                style={{ width: `${score.engagement_score || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                            <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                              <span className="text-sm text-blue-300">{score.performance_grade}</span>
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {score.total_time} min
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64">
+                <div className="w-20 h-20 rounded-full bg-gray-800/50 border border-gray-700/50 flex items-center justify-center mb-4">
+                  <BarChart3 className="w-10 h-10 text-gray-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">No Data Available</h3>
+                <p className="text-gray-400 text-center">No performance records found for this employee.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

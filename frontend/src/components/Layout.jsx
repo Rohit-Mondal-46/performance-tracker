@@ -66,7 +66,7 @@ export function Layout({ children }) {
               </div>
               {!sidebarCollapsed && (
                 <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900 dark:text-white transition-opacity duration-500 gradient-text">
-                  ProMonitor
+                  VISTA
                 </span>
               )}
             </div>

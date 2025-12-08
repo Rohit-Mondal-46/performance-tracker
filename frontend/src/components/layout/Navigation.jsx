@@ -18,7 +18,7 @@ export function Navigation() {
               <div className="absolute inset-0 bg-blue-600/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-              ProMonitor
+              VISTA
             </span>
           </div>
 
@@ -56,7 +56,7 @@ export function Navigation() {
               )}
             </button>
             <Link to="/role-selection">
-              <RippleButton variant="primary">Get Started</RippleButton>
+              <RippleButton variant="primary">Login</RippleButton>
             </Link>
           </div>
 
@@ -117,7 +117,7 @@ export function Navigation() {
             to="/role-selection"
             className="block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-lg font-medium transition-colors text-center"
           >
-            Get Started
+            Login
           </Link>
         </div>
       </div>

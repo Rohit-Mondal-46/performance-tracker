@@ -40,7 +40,7 @@ export function BenefitsSection() {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-8 px-4 lg:px-0">
                 Why Choose
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
-                  ProMonitor?
+                  VISTA?
                 </span>
               </h2>
               
