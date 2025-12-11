@@ -180,5 +180,13 @@ export const employeeAPI = {
     api.post('/performance/employee/scores', data),
 };
 
+// ========================
+// CONTACT ENDPOINTS
+// ========================
+export const contactAPI = {
+  sendContactRequest: (data) => 
+    api.post('/contact', data),
+};
+
 // Export default api instance for custom requests
 export default api;

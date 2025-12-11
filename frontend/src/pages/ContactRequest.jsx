@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Building, MapPin, Briefcase, Send, CheckCircle, Sparkles, Home, ArrowLeft } from 'lucide-react';
-// import { contactAPI } from '../services/api';
+import { contactAPI } from '../services/api';
 
 export function ContactRequest() {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ export function ContactRequest() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [submittedEmail, setSubmittedEmail] = useState('');
 
   const industries = [
     'Technology',
@@ -57,7 +58,11 @@ export function ContactRequest() {
       const response = await contactAPI.sendContactRequest(formData);
       
       if (response.data.success) {
+        // Save email before resetting form
+        setSubmittedEmail(formData.email);
         setSuccess(true);
+        
+        // Reset form after successful submission
         setFormData({
           organizationName: '',
           email: '',
@@ -74,7 +79,7 @@ export function ContactRequest() {
       }
     } catch (err) {
       console.error('Error sending contact request:', err);
-      setError('Failed to send request. Please try again later.');
+      setError(err.response?.data?.message || 'Failed to send request. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -142,7 +147,7 @@ export function ContactRequest() {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-1">Request Sent Successfully!</h3>
                   <p className="text-gray-300">
-                    Thank you for your interest. Our team will contact you at <span className="text-white font-semibold">{formData.email}</span> within 24 hours.
+                    Thank you for your interest. Our team will contact you at <span className="text-white font-semibold">{submittedEmail}</span> within 24 hours.
                   </p>
                 </div>
               </div>
