@@ -102,5 +102,30 @@ export const employeeAPI = {
     api.post('/performance/employee/scores', data),
 };
 
+// ========================
+// ACTIVITY ENDPOINTS
+// ========================
+export const activityAPI = {
+  // Ingest 10-minute activity batch
+  ingestActivityBatch: (data) => 
+    api.post('/activities/ingest', data),
+  
+  // Get calculated scores
+  getMyCalculatedScores: () => 
+    api.get('/activities/scores'),
+  
+  // Get daily scores
+  getMyDailyScores: () => 
+    api.get('/activities/daily-scores'),
+  
+  // Get performance trends
+  getMyPerformanceTrends: () => 
+    api.get('/activities/trends'),
+  
+  // Get latest activity
+  getMyLatestActivity: () => 
+    api.get('/activities/latest'),
+};
+
 // Export default api instance for custom requests
 export default api;
