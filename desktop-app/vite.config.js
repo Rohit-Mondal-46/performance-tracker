@@ -5,16 +5,17 @@ import path from "path";
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  base: "./",
+  base: "./", // Use relative paths for Electron
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"), // cleaner imports
     },
   },
   define: {
-    'process.env': {} // <--- polyfill for FaceAPI
+    'process.env': {}, // polyfill for FaceAPI
   },
   build: {
+    outDir: 'dist',
     rollupOptions: {
       // Prevent bundling MediaPipe packages (WASM/JS load at runtime)
       external: ["@mediapipe/holistic", "@mediapipe/hands"],
@@ -22,6 +23,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // optional, prevent warnings for large chunks
   },
   server: {
+    port: 5173,
+    strictPort: true,
     fs: {
       // Allow access to project folder and node_modules
       allow: [

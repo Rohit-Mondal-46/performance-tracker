@@ -1,88 +1,8 @@
-// import { app, BrowserWindow, ipcMain, session } from "electron";
-// import path from "path";
-// import { fileURLToPath } from "url";
-
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
-// let mainWindow;
-
-// const createWindow = () => {
-//   mainWindow = new BrowserWindow({
-//     width: 1000,
-//     height: 800,
-//     minWidth: 900,
-//     minHeight: 700,
-//     webPreferences: {
-//       preload: path.join(__dirname, "preload.js"),
-//       contextIsolation: true,
-//       nodeIntegration: false,
-//       webSecurity: true,
-//       allowRunningInsecureContent: false,
-//       experimentalFeatures: false,
-//     },
-//   });
-
-//   // Set up CSP headers - FIXED to allow external scripts
-//   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-//     callback({
-//       responseHeaders: {
-//         ...details.responseHeaders,
-//         'Content-Security-Policy': [
-//           "default-src 'self'; " +
-//           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
-//           "style-src 'self' 'unsafe-inline'; " +
-//           "img-src 'self' data: blob:; " +
-//           "font-src 'self'; " +
-//           "connect-src 'self' https://cdn.jsdelivr.net; " +
-//           "worker-src 'self' blob:; " +
-//           "child-src 'self'; " +
-//           "object-src 'none'; " +
-//           "media-src 'self';"
-//         ]
-//       }
-//     });
-//   });
-
-//   // Development mode: Vite dev server
-//   if (process.env.VITE_DEV_SERVER_URL) {
-//     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-//     mainWindow.webContents.openDevTools();
-//   } else {
-//     // Production mode: load built index.html
-//     mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
-//   }
-
-//   mainWindow.on("closed", () => {
-//     mainWindow = null;
-//   });
-// };
-
-// app.whenReady().then(() => {
-//   createWindow();
-
-//   app.on("activate", () => {
-//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
-//   });
-
-//   // IPC handlers
-//   ipcMain.handle("ping", () => "pong");
-  
-//   // Handle tracking data from renderer
-//   ipcMain.on("tracking-data", (event, data) => {
-//     console.log("Received tracking data:", data);
-//     event.sender.send("tracking-response", { status: "received", data });
-//   });
-// });
-
-// app.on("window-all-closed", () => {
-//   if (process.platform !== "darwin") app.quit();
-// });
-
-
+//desktop-app/electron/main.js
 import { app, BrowserWindow, ipcMain, session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
+import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -99,29 +19,39 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false, // ← DISABLE FOR DEVELOPMENT
-      allowRunningInsecureContent: true, // ← ALLOW FOR DEVELOPMENT
-      experimentalFeatures: false,
-      webgl: true,
+      webSecurity: false, // development only
+      allowRunningInsecureContent: true,
     },
   });
 
-  // REMOVE CSP entirely for development
+  // disable CORS + CSP in dev
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({ responseHeaders: details.responseHeaders });
   });
 
-  // Development mode
+  // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
+    console.log('🚀 Loading dev server:', process.env.VITE_DEV_SERVER_URL);
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
+    const indexPath = path.join(__dirname, "..", "dist", "index.html");
+    console.log('📦 Loading production build from:', indexPath);
+    mainWindow.loadFile(indexPath).catch(err => {
+      console.error('❌ Failed to load index.html:', err);
+    });
   }
 
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+  // Add error handlers for debugging
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('❌ Page failed to load:', errorCode, errorDescription);
   });
+
+  mainWindow.webContents.on('console-message', (_event, _level, message) => {
+    console.log(`[Renderer Console] ${message}`);
+  });
+
+  mainWindow.on("closed", () => (mainWindow = null));
 };
 
 app.whenReady().then(() => {
@@ -131,7 +61,70 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 
+  // Simple ping
   ipcMain.handle("ping", () => "pong");
+
+  // =====================================================
+  // 🔐 AUTH LOGIC (ELECTRON SIDE)
+  // =====================================================
+
+  // ------ 1) LOGIN ------
+  ipcMain.handle("auth:login", async (event, creds) => {
+    try {
+      console.log('🔐 Electron: Attempting login for:', creds.email);
+      
+      const res = await axios.post("http://localhost:3000/api/auth/employee/login", {
+        email: creds.email,
+        password: creds.password,
+      });
+
+      console.log('📥 Electron: Backend response:', res.data);
+
+      // Backend returns { success: true, message: '...', data: { token, user, role } }
+      if (res.data && res.data.success && res.data.data) {
+        const { token, user, role } = res.data.data;
+
+        // Store JWT securely inside Electron cookies
+        await session.defaultSession.cookies.set({
+          url: "http://localhost",
+          name: "authToken",
+          value: token,
+          httpOnly: true,
+          secure: false,
+          sameSite: "lax",
+        });
+
+        console.log('✅ Electron: Login successful, user:', user);
+        
+        return { 
+          success: true, 
+          user: { ...user, role: role || user.role || 'employee' }
+        };
+      }
+
+      console.error('❌ Electron: Invalid response structure:', res.data);
+      return { success: false, message: res.data?.message || "Invalid credentials" };
+    } catch (err) {
+      console.error("❌ Electron: Login failed:", err.message);
+      const errorMessage = err.response?.data?.message || err.message || "Invalid credentials";
+      return { success: false, message: errorMessage };
+    }
+  });
+
+  // ------ 2) CHECK AUTH / GET TOKEN ------
+  ipcMain.handle("auth:getToken", async () => {
+    const cookies = await session.defaultSession.cookies.get({ name: "authToken" });
+    if (cookies.length === 0) return null;
+    return cookies[0].value;
+  });
+
+  // ------ 3) LOGOUT ------
+  ipcMain.handle("auth:logout", async () => {
+    await session.defaultSession.cookies.remove("http://localhost", "authToken");
+    return { success: true };
+  });
+
+  // Example: Receive tracking data
   ipcMain.on("tracking-data", (event, data) => {
     console.log("Received tracking data:", data);
     event.sender.send("tracking-response", { status: "received", data });
