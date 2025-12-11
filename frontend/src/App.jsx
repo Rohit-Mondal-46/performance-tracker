@@ -11,6 +11,7 @@ import { EmployeeDashboard } from './pages/EmployeeDashboard';
 import { OrganizationAnalytics } from './pages/OrganizationAnalytics';
 import { EmployeeAnalytics } from './pages/EmployeeAnalytics';
 import { Landing } from './pages/Landing';
+import { ContactRequest } from './pages/ContactRequest';
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isOrganization, isEmployee } = useAuth();
@@ -94,6 +95,10 @@ function AppRoutes() {
             <EmployeeAnalytics />
           </ProtectedRoute>
         }
+      />
+        <Route
+        path="/contact"
+        element={<ContactRequest />}
       />
      
       <Route path="/" element={<Landing />} />
