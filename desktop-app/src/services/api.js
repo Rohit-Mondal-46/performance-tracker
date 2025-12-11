@@ -72,7 +72,8 @@ export const authAPI = {
 export const employeeAPI = {
   // Profile Management
   getMyProfile: () => 
-    api.get('/employee/profile'),
+    api.get('/employee/profile')
+      .then(response => response.data),
   
   updateMyProfile: (data) => 
     api.put('/employee/profile', data),
