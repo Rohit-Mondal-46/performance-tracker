@@ -4,7 +4,7 @@ export const testimonials = [
     role: 'Product Manager',
     company: 'TechCorp',
     avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-    content: 'ProMonitor has revolutionized how we track productivity. The AI insights are incredibly accurate and have helped our team improve focus by 40%.',
+    content: 'VISTA has revolutionized how we track productivity. The AI insights are incredibly accurate and have helped our team improve focus by 40%.',
     rating: 5
   },
   {

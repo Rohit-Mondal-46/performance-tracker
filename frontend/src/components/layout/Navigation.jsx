@@ -18,7 +18,7 @@ export function Navigation() {
               <div className="absolute inset-0 bg-blue-600/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-              ProMonitor
+              VISTA
             </span>
           </div>
 
@@ -37,13 +37,21 @@ export function Navigation() {
               Testimonials
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a
+            {/* Updated: Changed from <a> tag to Link for routing */}
+            <Link
+              to="/contact"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group"
+            >
+              Our Services
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            {/* <a
               href="#pricing"
               className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105 relative group"
             >
               Pricing
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-            </a>
+            </a> */}
             <button
               onClick={toggle}
               className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-300 hover:scale-110 relative group"
@@ -56,7 +64,7 @@ export function Navigation() {
               )}
             </button>
             <Link to="/role-selection">
-              <RippleButton variant="primary">Get Started</RippleButton>
+              <RippleButton variant="primary">Login</RippleButton>
             </Link>
           </div>
 
@@ -86,7 +94,7 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - Updated the Our Services link here too */}
       <div
         className={`md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ${
           isMenuOpen
@@ -107,17 +115,18 @@ export function Navigation() {
           >
             Testimonials
           </a>
-          <a
-            href="#pricing"
+          {/* Updated mobile menu link */}
+          <Link
+            to="/contact"
             className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2"
           >
-            Pricing
-          </a>
+            Our Services
+          </Link>
           <Link
             to="/role-selection"
             className="block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-lg font-medium transition-colors text-center"
           >
-            Get Started
+            Login
           </Link>
         </div>
       </div>
