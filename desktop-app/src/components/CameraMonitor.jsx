@@ -576,12 +576,18 @@
 
 
 
-
 // components/CameraMonitor.jsx - ENHANCED WITH ALL FEATURES
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import { drawResults } from "../utils/faceUtils";
 import useHolistic from "../hooks/useHolistic";
+
+// --- PDF Generation Imports ---
+// 1. Import the jsPDF library
+import jsPDF from 'jspdf';
+// 2. IMPORTANT: Import the autotable plugin. This line adds the .autoTable() method to jsPDF.
+import 'jspdf-autotable';
+// --------------------------------
 
 const CameraMonitor = ({ onActivityChange }) => {
   const canvasRef = useRef(null);
@@ -832,31 +838,67 @@ const CameraMonitor = ({ onActivityChange }) => {
     }
   }, [videoRef, isInitialized]);
 
-  // Export data function
+  // Export data function - MODIFIED FOR PDF
   const exportData = useCallback(() => {
     const totalTime = Object.values(sessionStats).reduce((sum, time) => sum + time, 0);
-    const report = {
-      sessionStart: new Date(sessionStartRef.current - totalTime).toISOString(),
-      sessionEnd: new Date().toISOString(),
-      totalDuration: Math.round(totalTime / 1000),
-      activities: Object.entries(sessionStats).map(([activity, duration]) => ({
-        activity,
-        duration: Math.round(duration / 1000),
-        percentage: totalTime > 0 ? ((duration / totalTime) * 100).toFixed(1) : 0
-      })),
-      detailedLog: activityLog.map(log => ({
-        ...log,
-        duration: Math.round(log.duration / 1000)
-      }))
-    };
     
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `activity-report-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Create a new PDF document
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text('Activity Report', 14, 22);
+    
+    // Add session information
+    doc.setFontSize(12);
+    doc.text(`Session Start: ${new Date(sessionStartRef.current - totalTime).toLocaleString()}`, 14, 35);
+    doc.text(`Session End: ${new Date().toLocaleString()}`, 14, 42);
+    doc.text(`Total Duration: ${formatTime(totalTime)}`, 14, 49);
+    
+    // Prepare data for the activities table
+    const activitiesData = Object.entries(sessionStats)
+      .filter(([_, duration]) => duration > 0)
+      .sort(([_, a], [__, b]) => b - a)
+      .map(([activity, duration]) => [
+        activity,
+        formatTime(duration),
+        totalTime > 0 ? ((duration / totalTime) * 100).toFixed(1) + '%' : '0%'
+      ]);
+    
+    // Add activities table
+    doc.autoTable({
+      head: [['Activity', 'Duration', 'Percentage']],
+      body: activitiesData,
+      startY: 60,
+      theme: 'striped',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+    
+    // Add detailed log section
+    const finalY = doc.lastAutoTable.finalY || 60;
+    doc.setFontSize(14);
+    doc.text('Detailed Activity Log', 14, finalY + 10);
+    
+    // Prepare data for the detailed log table
+    const logData = activityLog.map(log => [
+      log.timestamp,
+      log.activity,
+      formatTime(log.duration)
+    ]);
+    
+    // Add detailed log table
+    doc.autoTable({
+      head: [['Time', 'Activity', 'Duration']],
+      body: logData,
+      startY: finalY + 20,
+      theme: 'striped',
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [41, 128, 185] }
+    });
+    
+    // Save the PDF
+    doc.save(`activity-report-${Date.now()}.pdf`);
   }, [sessionStats, activityLog]);
 
   // Format time
@@ -1021,7 +1063,7 @@ const CameraMonitor = ({ onActivityChange }) => {
             onClick={exportData}
             className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center gap-1"
           >
-            📊 Export
+            📄 Export PDF
           </button>
         </div>
         <div className="space-y-1 text-xs">
