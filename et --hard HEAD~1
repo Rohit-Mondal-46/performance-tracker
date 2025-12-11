@@ -1,0 +1,261 @@
+[33mcommit 9157cf072766843e05f50344fbdb4b4597643a25[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mNewbranch[m[33m)[m
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Mon Dec 8 10:49:23 2025 +0530
+
+    app done
+
+[33mcommit 8a0757fd66e3035b115d75b89e99cbf6a50190fa[m
+Merge: 5ae940e 43586bd
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Sun Dec 7 00:56:11 2025 +0530
+
+    Merge branch 'main' of https://github.com/Rohit-Mondal-46/performance-tracker into Newbranch
+
+[33mcommit 5ae940e76c9e6f4f3116be516e151c9f34921fdc[m
+Merge: 2a67748 fb5cb91
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Sun Dec 7 00:47:08 2025 +0530
+
+    Merge branch 'Shivam' of https://github.com/Rohit-Mondal-46/performance-tracker into Newbranch
+
+[33mcommit 2a67748968f3ecf84ed676f42b9dac3253cefb7d[m
+Merge: 2c26f0e f6a8a59
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Sun Dec 7 00:46:40 2025 +0530
+
+    added
+
+[33mcommit 43586bd80299fb811dccc850180a16ed97a96925[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Sun Dec 7 00:10:47 2025 +0530
+
+    connected frontend with backend and all the three dashboards have real data/stats
+
+[33mcommit fb5cb91172fc247fe9c5b30a423934a50bbca8e0[m
+Author: divineshiva003 <raishivam.in2k3@gmail.com>
+Date:   Fri Dec 5 23:08:38 2025 +0530
+
+    Revert "Dapp Authentication added"
+    
+    This reverts commit 13c0b604e0bed3694c9813ec9749620f3882a21e.
+
+[33mcommit 13c0b604e0bed3694c9813ec9749620f3882a21e[m
+Author: divineshiva003 <raishivam.in2k3@gmail.com>
+Date:   Fri Dec 5 23:03:34 2025 +0530
+
+    Dapp Authentication added
+
+[33mcommit f6a8a59c29dbda4ae9d7b530183d686f3d61a736[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Fri Dec 5 20:55:59 2025 +0530
+
+    dependency and routing issue resolved
+
+[33mcommit 2c26f0edbc99557d538c7a4299241a6e5391e47a[m[33m ([m[1;32mDeskTopApp[m[33m)[m
+Merge: af6e911 4592dcf
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Thu Dec 4 14:51:43 2025 +0530
+
+    Merge branch 'main' of https://github.com/Rohit-Mondal-46/performance-tracker into DeskTopApp
+
+[33mcommit af6e91154128231e40cdca46aa13a6473d435324[m
+Merge: eb72f5a 7c4c338
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Thu Dec 4 14:51:24 2025 +0530
+
+    initial setup
+
+[33mcommit 5827e4270b38cffe164eae35853c0cd1efa27c94[m
+Merge: 84c554f 4592dcf
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Thu Dec 4 13:57:02 2025 +0530
+
+    Merge branch 'main' of https://github.com/Rohit-Mondal-46/performance-tracker
+
+[33mcommit 84c554fb23f32fb01606c2efa3acf827d455b374[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Thu Dec 4 12:13:41 2025 +0530
+
+    useless
+
+[33mcommit 4592dcfade4e283cf7e32fde2e679fd3f9236f2a[m
+Merge: 7c4c338 7b36ce5
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Thu Dec 4 12:12:26 2025 +0530
+
+    Merge pull request #6 from Rohit-Mondal-46/Sahil1
+    
+    Refactor App component for routing and auth context
+
+[33mcommit eb72f5a142b38ebe2fe0741f0a76bf181c8ad5a4[m
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Fri Oct 31 22:28:47 2025 +0530
+
+    dummy
+
+[33mcommit 7c4c338572d5d7e0e7c5a98e04745c07663138f2[m
+Merge: 68bb9a3 41eb0c0
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Fri Oct 31 21:31:34 2025 +0530
+
+    Merge branch 'main' of https://github.com/Rohit-Mondal-46/performance-tracker
+
+[33mcommit 68bb9a30b7078f951bbf0f04dfce34e7f2271f18[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Fri Oct 31 21:26:00 2025 +0530
+
+    performance logic modified
+
+[33mcommit 41eb0c07d336081090e5ec5e4ce37f7303091fbe[m
+Author: Sahil Ghosh <115718483+SahilGhosh12345@users.noreply.github.com>
+Date:   Fri Oct 31 20:33:56 2025 +0530
+
+    Refactor App component with routing and auth
+
+[33mcommit 7b36ce504ca6780643bbda6fcd907eaf9ce4de79[m
+Author: Sahil Ghosh <115718483+SahilGhosh12345@users.noreply.github.com>
+Date:   Fri Oct 31 20:32:25 2025 +0530
+
+    Refactor App component for routing and auth context
+
+[33mcommit 72679b49f205b90a2fd00975a79efb83096f91b0[m
+Merge: 0c479ca e3adf96
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Fri Oct 31 20:10:32 2025 +0530
+
+    Merge pull request #5 from Rohit-Mondal-46/Sahil1
+    
+    Frontend
+
+[33mcommit 0c479ca477f40165df0e791a524fa5d95e0810c7[m
+Merge: aedc92e 00ec7ac
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Wed Oct 29 21:35:44 2025 +0530
+
+    Merge pull request #4 from Rohit-Mondal-46/DeskTopApp
+    
+    Desk top app
+
+[33mcommit 00ec7ac85366882e654d714769b0b3af18cea5c6[m
+Merge: e7f9dcb aedc92e
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Wed Oct 29 21:35:29 2025 +0530
+
+    Merge branch 'main' into DeskTopApp
+
+[33mcommit e7f9dcbd7844e6f0069ac479edcef1c2e13444f9[m[33m ([m[1;31morigin/DeskTopApp[m[33m)[m
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Wed Oct 29 21:31:12 2025 +0530
+
+    model added
+
+[33mcommit e3adf966636aee9048011fb0a28539af4a9278bc[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Tue Oct 21 18:18:43 2025 +0530
+
+    profile page is working.
+
+[33mcommit bebfaaf9d66d9297b5452c3852f44ddedbe3ac75[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Thu Oct 9 20:29:30 2025 +0530
+
+    admin page is done.
+
+[33mcommit dd2f0563bb3c8ee28de6ccb3a7b8ec9743cd6013[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Thu Oct 9 18:41:24 2025 +0530
+
+    role selection and login
+
+[33mcommit 72b8e52664fab882f723bba5fc9fe384b43d7bfd[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Tue Oct 7 19:18:41 2025 +0530
+
+    minor routing changes & file structure fix
+
+[33mcommit d4abbe9813de3a24bdd807bffd8630186f330d97[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Tue Oct 7 18:39:19 2025 +0530
+
+    new start -- landing page done
+
+[33mcommit aedc92e4429d9f5a17a41eab6bc9b5b4b9553a3e[m
+Merge: c14b317 49b1370
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Wed Sep 17 12:27:01 2025 +0530
+
+    Merge pull request #3 from Rohit-Mondal-46/Shivam
+    
+    Performance Logic added
+
+[33mcommit c14b317d832df6b3111ba53b0f1ec6df0d2e5c24[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Mon Sep 15 20:52:21 2025 +0530
+
+    readme updated
+
+[33mcommit 49b1370b1fac3e80b29e7c1b1f693aae52e6f9a1[m
+Author: divineshiva003 <raishivam.in2k3@gmail.com>
+Date:   Mon Sep 15 00:34:57 2025 +0530
+
+    Performance Logic added
+
+[33mcommit ce0aae5bf1525675e4da244bc2e17d5e4944849c[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Sun Sep 14 19:02:34 2025 +0530
+
+    using package instead of self function
+
+[33mcommit 198ae918c2f96e9cda10f4c5a47bf4d96eca9f32[m
+Merge: 1b1fe84 b5ea1d5
+Author: Rohit Mondal <142654843+Rohit-Mondal-46@users.noreply.github.com>
+Date:   Sun Sep 14 01:46:59 2025 +0530
+
+    Merge pull request #2 from Rohit-Mondal-46/feature/backend-initial-setup
+    
+    authentication done for all 3 roles
+
+[33mcommit b5ea1d56ed4c39da2d3fea4dbc91f02c5629c0a5[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Sun Sep 14 01:45:12 2025 +0530
+
+    authentication done for all 3 roles
+
+[33mcommit 1b1fe845d45bbc8dd66a4cefc09f41f6a41eac52[m
+Merge: 1747722 22d206e
+Author: Sahil Ghosh <115718483+SahilGhosh12345@users.noreply.github.com>
+Date:   Mon Aug 25 20:21:50 2025 +0530
+
+    Merge pull request #1 from Rohit-Mondal-46/sahil
+    
+    admin manual login setup
+
+[33mcommit 22d206e6e74e8f622ee14e6b3189c9eb44ad94ff[m
+Author: Sahil Ghosh <sahilghosh90870@gmail.com>
+Date:   Mon Aug 25 20:19:33 2025 +0530
+
+    admin manual login setup
+
+[33mcommit 1747722b236d51025286e8b498c6ef0c232455ad[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Wed Aug 20 20:58:27 2025 +0530
+
+    changed name of the app
+
+[33mcommit 102f12aae0a87f9817d7469f3975b0695c99442e[m
+Author: Assistance26 <liza261204@gmail.com>
+Date:   Wed Aug 20 03:37:20 2025 +0530
+
+    ALL AI Feature Integrated
+
+[33mcommit 36bbcb18fbb2db26675baed008cc38c791f0a270[m[33m ([m[1;32mmain[m[33m)[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Sun Aug 17 22:39:49 2025 +0530
+
+    Desktop app setup
+
+[33mcommit 1e6cc56ce727a9d74259bfa0d82a81ee67e9cbec[m
+Author: Rohit Mondal <rohitmondal.22@nshm.edu.in>
+Date:   Thu Aug 14 20:42:18 2025 +0530
+
+    setup
