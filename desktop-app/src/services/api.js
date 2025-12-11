@@ -2,6 +2,11 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Helper to detect if we're running in Electron
+const isElectron = () => {
+  return typeof window !== 'undefined' && window.electron !== undefined;
+};
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,8 +17,17 @@ const api = axios.create({
 
 // Request interceptor to add token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
+  async (config) => {
+    let token = null;
+    
+    if (isElectron()) {
+      // Get token from Electron secure storage
+      token = await window.electron.auth.getToken();
+    } else {
+      // Get token from localStorage (web)
+      token = localStorage.getItem('token');
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
