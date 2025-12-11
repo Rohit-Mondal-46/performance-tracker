@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import { drawResults } from "../utils/faceUtils";
 import useHolistic from "../hooks/useHolistic";
+import useActivityTracking from "../hooks/useActivityTracking";
 
 // --- PDF Generation Imports ---
 // 1. Import the jsPDF library
@@ -37,6 +38,7 @@ const CameraMonitor = ({ onActivityChange }) => {
     Reading: 0,
     'Looking Away': 0
   });
+  const [syncNotification, setSyncNotification] = useState(null);
   
   const lastActivityRef = useRef(null);
   const sessionStartRef = useRef(Date.now());
@@ -370,9 +372,44 @@ const CameraMonitor = ({ onActivityChange }) => {
                            (currentActivity === 'Sitting' && !isLookingAway) ? 'Reading' : 
                            currentActivity;
 
+  // Handle successful data sync
+  const handleSyncSuccess = useCallback((data) => {
+    setSyncNotification({ type: 'success', message: 'Activity data synced successfully!' });
+    setTimeout(() => setSyncNotification(null), 3000);
+  }, []);
+
+  // Handle sync error
+  const handleSyncError = useCallback((error) => {
+    const message = error.response?.data?.message || 'Failed to sync activity data';
+    setSyncNotification({ type: 'error', message });
+    setTimeout(() => setSyncNotification(null), 5000);
+  }, []);
+
+  // Activity tracking hook - sends data every 10 minutes
+  const { sendNow, getCurrentStats } = useActivityTracking(
+    enhancedActivity,
+    isInitialized && !error, // Only track when camera is initialized and no errors
+    handleSyncSuccess,
+    handleSyncError
+  );
+
   return (
     <div className="flex flex-col items-center p-4">
       <h2 className="text-xl font-semibold mb-4">Live Activity Monitor</h2>
+      
+      {/* Sync Notification */}
+      {syncNotification && (
+        <div className={`mb-4 px-4 py-2 rounded-lg shadow-lg ${
+          syncNotification.type === 'success' 
+            ? 'bg-green-100 text-green-800 border border-green-300' 
+            : 'bg-red-100 text-red-800 border border-red-300'
+        }`}>
+          <div className="flex items-center gap-2">
+            {syncNotification.type === 'success' ? '✅' : '❌'}
+            <span className="text-sm font-medium">{syncNotification.message}</span>
+          </div>
+        </div>
+      )}
       
       <div className="relative rounded-lg overflow-hidden shadow-lg bg-gray-800 w-96 h-72">
         <video
@@ -527,6 +564,13 @@ const CameraMonitor = ({ onActivityChange }) => {
         >
           Restart Camera
         </button>
+        <button
+          onClick={sendNow}
+          className="px-4 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+          title="Send activity data now"
+        >
+          Send Now
+        </button>
       </div>
 
       {/* Debug Information */}
@@ -539,6 +583,12 @@ const CameraMonitor = ({ onActivityChange }) => {
             <p>Face Detection: {faceDetection ? 'Active' : 'Inactive'}</p>
             <p>Gaze: {gazeDirection} {isLookingAway ? '(Away)' : '(Focused)'}</p>
             <p>Activities Logged: {activityLog.length}</p>
+            <p className="mt-2 pt-2 border-t border-gray-300">
+              <strong>Backend Sync:</strong> Data sent every 10 minutes
+            </p>
+            <p className="text-blue-600">
+              Next sync: {Math.round((getCurrentStats()?.timeRemaining || 0) / 1000)}s
+            </p>
           </div>
         </div>
       )}

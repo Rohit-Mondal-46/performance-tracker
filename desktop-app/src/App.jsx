@@ -7,50 +7,30 @@ import CameraMonitor from "./components/CameraMonitor";
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
-console.log('🎨 App.jsx loaded');
-
 // Dashboard Page Component
 function DashboardPage() {
-  console.log('📊 DashboardPage rendering');
   const { user, logout } = useAuth(); 
   const navigate = useNavigate();
 
   // State
-  const [activeOrg, setActiveOrg] = useState("Org A");
+  const [activeOrg] = useState("Org A");
   const [currentPage, setCurrentPage] = useState("home");
   const [currentActivity, setCurrentActivity] = useState("");
-  const organizations = ["Org A", "Org B", "Org C", "Org D"];
-  
-  console.log('👤 User in DashboardPage:', user);
-
-  // Handlers
-  const handleSwitchOrg = (org) => {
-    setActiveOrg(org);
-    console.log(`Switched to organization: ${org}`);
-  };
-
-  const handleGoHome = () => {
-    setCurrentPage("home");
-    console.log("Navigated to home");
-  };
 
   const handleNext = () => {
     if (currentPage === "home") {
       setCurrentPage("dashboard");
-      console.log("Navigated to dashboard");
     }
   };
 
   const handlePrevious = () => {
     if (currentPage === "dashboard") {
       setCurrentPage("home");
-      console.log("Navigated to home");
     }
   };
 
   const handleActivityChange = (activity) => {
     setCurrentActivity(activity);
-    // console.log(`Activity detected: ${activity}`);
   };
 
   const handleLogout = () => {

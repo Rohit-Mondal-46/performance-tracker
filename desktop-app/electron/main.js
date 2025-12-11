@@ -31,12 +31,10 @@ const createWindow = () => {
 
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
-    console.log('🚀 Loading dev server:', process.env.VITE_DEV_SERVER_URL);
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
     const indexPath = path.join(__dirname, "..", "dist", "index.html");
-    console.log('📦 Loading production build from:', indexPath);
     mainWindow.loadFile(indexPath).catch(err => {
       console.error('❌ Failed to load index.html:', err);
     });
@@ -45,10 +43,6 @@ const createWindow = () => {
   // Add error handlers for debugging
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     console.error('❌ Page failed to load:', errorCode, errorDescription);
-  });
-
-  mainWindow.webContents.on('console-message', (_event, _level, message) => {
-    console.log(`[Renderer Console] ${message}`);
   });
 
   mainWindow.on("closed", () => (mainWindow = null));
@@ -71,14 +65,10 @@ app.whenReady().then(() => {
   // ------ 1) LOGIN ------
   ipcMain.handle("auth:login", async (event, creds) => {
     try {
-      console.log('🔐 Electron: Attempting login for:', creds.email);
-      
       const res = await axios.post("http://localhost:3000/api/auth/employee/login", {
         email: creds.email,
         password: creds.password,
       });
-
-      console.log('📥 Electron: Backend response:', res.data);
 
       // Backend returns { success: true, message: '...', data: { token, user, role } }
       if (res.data && res.data.success && res.data.data) {
@@ -93,8 +83,6 @@ app.whenReady().then(() => {
           secure: false,
           sameSite: "lax",
         });
-
-        console.log('✅ Electron: Login successful, user:', user);
         
         return { 
           success: true, 
@@ -102,7 +90,6 @@ app.whenReady().then(() => {
         };
       }
 
-      console.error('❌ Electron: Invalid response structure:', res.data);
       return { success: false, message: res.data?.message || "Invalid credentials" };
     } catch (err) {
       console.error("❌ Electron: Login failed:", err.message);
@@ -126,7 +113,6 @@ app.whenReady().then(() => {
 
   // Example: Receive tracking data
   ipcMain.on("tracking-data", (event, data) => {
-    console.log("Received tracking data:", data);
     event.sender.send("tracking-response", { status: "received", data });
   });
 });
