@@ -3,32 +3,11 @@ const CalculatedScore = require('../models/CalculatedScore');
 const ActivityBasedScoring = require('../utils/activityBasedScoring');
 const { formatSuccessResponse, formatErrorResponse } = require('../utils/helpers');
 
-/**
- * ============================================================================
- * ACTIVITY INGESTION CONTROLLER
- * ============================================================================
- * 
- * Handles incoming activity data from desktop app and triggers scoring pipeline
- */
 
-/**
- * Ingest 10-minute activity batch from desktop app
- * 
- * POST /api/activities/ingest
- * Body: {
- *   interval_start: "2025-12-10T10:00:00Z",
- *   interval_end: "2025-12-10T10:10:00Z",
- *   typing: 245,
- *   writing: 40,
- *   reading: 120,
- *   phone: 30,
- *   gesturing: 15,
- *   looking_away: 50,
- *   idle: 80
- * }
- */
 const ingestActivityBatch = async (req, res) => {
   try {
+    console.log('📥 Received activity batch:', JSON.stringify(req.body, null, 2));
+    
     const {
       interval_start,
       interval_end,
@@ -44,6 +23,8 @@ const ingestActivityBatch = async (req, res) => {
     // Get employee info from authenticated user
     const employeeId = req.user.id;
     const organizationId = req.user.organizationId;
+    
+    console.log('👤 Employee ID:', employeeId, 'Organization ID:', organizationId);
 
     // Validate required fields
     if (!interval_start || !interval_end) {
@@ -77,7 +58,7 @@ const ingestActivityBatch = async (req, res) => {
     }
 
     // Validate incoming interval data (must be within 10-minute limits)
-    const intervalValidation = ActivityBasedScoring.validateActivityInputs({
+    const activityInputs = {
       typing: typing || 0,
       writing: writing || 0,
       reading: reading || 0,
@@ -85,13 +66,20 @@ const ingestActivityBatch = async (req, res) => {
       gesturing: gesturing || 0,
       looking_away: looking_away || 0,
       idle: idle || 0
-    });
+    };
+    
+    console.log('🔍 Activity inputs to validate:', activityInputs);
+    
+    const intervalValidation = ActivityBasedScoring.validateActivityInputs(activityInputs);
 
     if (intervalValidation.length > 0) {
+      console.log('❌ Validation failed:', intervalValidation);
       return res.status(400).json(
         formatErrorResponse(`Invalid activity inputs: ${intervalValidation.join(', ')}`, 400)
       );
     }
+    
+    console.log('✅ Validation passed');
 
     // Prepare activity data
     const activityData = {
