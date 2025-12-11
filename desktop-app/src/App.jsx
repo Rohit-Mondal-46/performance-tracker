@@ -1,69 +1,29 @@
-// import React, { useState } from "react";
-// import Navbar from "./components/Navbar";
-// import CameraMonitor from "./components/CameraMonitor";
-// import Dashboard from "./components/Dashboard";
-// import VoiceControl from "./components/VoiceControl";
-// import GestureControl from "./components/GestureControl";
-// import OrgSwitcher from "./components/OrgSwitcher";
-
-// const App = () => {
-//   // State
-//   const [activeOrg, setActiveOrg] = useState("Org A");
-//   const [currentPage, setCurrentPage] = useState("home");
-
-//   // Handlers
-//   const handleSwitchOrg = (org) => setActiveOrg(org);
-//   const handleGoHome = () => setCurrentPage("home");
-//   const handleNext = () => setCurrentPage("dashboard");
-//   const handlePrevious = () => setCurrentPage("home");
-
-//   return (
-//     <div className="h-screen w-screen flex flex-col bg-gray-50">
-//       <Navbar />
-
-//       <div className="flex flex-1 p-4 gap-4">
-//         {/* Sidebar / Controls */}
-//         <div className="w-64 flex flex-col gap-4">
-//           <OrgSwitcher activeOrg={activeOrg} onSwitchOrg={handleSwitchOrg} />
-//           <VoiceControl onSwitchOrg={() => handleSwitchOrg("Org B")} onGoHome={handleGoHome} />
-//           <GestureControl onNext={handleNext} onPrevious={handlePrevious} />
-//         </div>
-
-//         {/* Main content */}
-//         <div className="flex-1 flex flex-col gap-4">
-//           {currentPage === "home" && (
-//             <>
-//               <CameraMonitor activeOrg={activeOrg} />
-//               <Dashboard activeOrg={activeOrg} />
-//             </>
-//           )}
-//           {currentPage === "dashboard" && <Dashboard activeOrg={activeOrg} />}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default App;
-
-
-
-
-// app.jsx
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import CameraMonitor from "./components/CameraMonitor";
 import Dashboard from "./components/Dashboard";
 import OrgSwitcher from "./components/OrgSwitcher";
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
-const App = () => {
+console.log('🎨 App.jsx loaded');
+
+// Dashboard Page Component
+function DashboardPage() {
+  console.log('📊 DashboardPage rendering');
+  const { user, logout } = useAuth(); 
+  const navigate = useNavigate();
+
   // State
   const [activeOrg, setActiveOrg] = useState("Org A");
   const [currentPage, setCurrentPage] = useState("home");
   const [currentActivity, setCurrentActivity] = useState("");
-
-  // Organization data
   const organizations = ["Org A", "Org B", "Org C", "Org D"];
+  
+  console.log('👤 User in DashboardPage:', user);
 
   // Handlers
   const handleSwitchOrg = (org) => {
@@ -92,12 +52,17 @@ const App = () => {
 
   const handleActivityChange = (activity) => {
     setCurrentActivity(activity);
-    console.log(`Activity detected: ${activity}`);
+    // console.log(`Activity detected: ${activity}`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
-      <Navbar />
+      <Navbar user={user} onLogout={handleLogout} />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar / Controls */}
@@ -222,14 +187,35 @@ const App = () => {
       </div>
     </div>
   );
+}
+
+// Main App component with routing
+const App = () => {
+  console.log('🚀 App component rendering');
+  
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;
 
 
-
-
-
+// OLD CODE KEPT FOR REFERENCE
 // import React, { useState } from "react";
 // import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 // import { AuthProvider, useAuth } from './contexts/AuthContext';
