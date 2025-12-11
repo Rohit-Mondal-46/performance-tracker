@@ -35,13 +35,11 @@ const storage = {
 };
 
 export function AuthProvider({ children }) {
-  console.log('🔐 AuthProvider initializing...');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Check for existing session on mount
   useEffect(() => {
-    console.log('🔍 AuthProvider useEffect running...');
     const initAuth = async () => {
       try {
         const token = await storage.getItem('token');
@@ -66,7 +64,6 @@ export function AuthProvider({ children }) {
       } catch (error) {
         console.error('Init auth error:', error);
       } finally {
-        console.log('✅ Auth initialization complete, loading:', false);
         setLoading(false);
       }
     };
@@ -76,10 +73,6 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      console.log('=== LOGIN ATTEMPT ===');
-      console.log('Email:', email);
-      console.log('Is Electron:', isElectron());
-      
       // In Electron, use IPC for login
       if (isElectron()) {
         const result = await window.electron.auth.login({ email, password });
@@ -92,7 +85,6 @@ export function AuthProvider({ children }) {
           
           await storage.setItem('user', JSON.stringify(userWithRole));
           setUser(userWithRole);
-          console.log('✅ ELECTRON LOGIN SUCCESS:', userWithRole);
           
           return { success: true, user: userWithRole };
         }
@@ -115,7 +107,6 @@ export function AuthProvider({ children }) {
         await storage.setItem('user', JSON.stringify(userWithRole));
         
         setUser(userWithRole);
-        console.log('✅ WEB LOGIN SUCCESS:', userWithRole);
         
         return { success: true, user: userWithRole };
       }
