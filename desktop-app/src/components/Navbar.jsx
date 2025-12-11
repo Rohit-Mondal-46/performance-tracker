@@ -37,33 +37,54 @@ const Navbar = ({ user, onLogout }) => {
     : `https://ui-avatars.com/api/?name=User&background=9ca3af&color=fff`;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 lg:px-8">
+    <header className="bg-white shadow-md border-b border-gray-100 px-4 sm:px-6 lg:px-8 relative">
+      {/* Gradient accent bar */}
+      <div className="absolute top-0 left-0 right-0 h-1 gradient-primary"></div>
+      
       <div className="flex justify-between items-center h-16">
-        {/* Left side: App Title */}
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Performance Monitor</h1>
+        {/* Left side: App Title with Icon */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-md">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Performance Monitor
+            </h1>
+            <p className="text-xs text-gray-500 hidden sm:block">Real-time Activity Tracking</p>
+          </div>
+        </div>
         
         {/* Right side: User Info and Dropdown Menu */}
         <div className="relative" ref={dropdownRef}>
           {/* User menu button */}
           <button
             onClick={handleDropdownToggle}
-            className="flex items-center space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-haspopup="true"
             aria-expanded={isDropdownOpen}
           >
-            {/* User Avatar */}
-            <img
-              className="h-8 w-8 rounded-full"
-              src={avatarUrl}
-              alt="User avatar"
-            />
+            {/* User Avatar with online indicator */}
+            <div className="relative">
+              <img
+                className="h-9 w-9 rounded-full ring-2 ring-indigo-100"
+                src={avatarUrl}
+                alt="User avatar"
+              />
+              <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-400 ring-2 ring-white"></span>
+            </div>
             {/* User Name/Email (hidden on small screens) */}
-            <span className="hidden md:block text-sm font-medium text-gray-700">
-              {user?.name || user?.email || 'User'}
-            </span>
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-semibold text-gray-800">
+                {user?.name || user?.email || 'User'}
+              </p>
+              <p className="text-xs text-gray-500">Employee</p>
+            </div>
             {/* Dropdown Icon */}
             <svg
-              className="hidden md:block h-4 w-4 text-gray-400"
+              className={`hidden md:block h-4 w-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
@@ -80,34 +101,27 @@ const Navbar = ({ user, onLogout }) => {
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div
-              className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+              className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-xl bg-white ring-1 ring-gray-200 focus:outline-none z-50 animate-slide-in"
               role="menu"
               aria-orientation="vertical"
               aria-labelledby="user-menu"
             >
-              <div className="py-1" role="none">
-                {/* Profile Link */}
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  role="menuitem"
-                >
-                  Your Profile
-                </a>
-                {/* Settings Link */}
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  role="menuitem"
-                >
-                  Settings
-                </a>
+              <div className="p-2" role="none">
+                {/* User Info Header */}
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800">{user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                </div>
+
                 {/* Logout Button */}
                 <button
                   onClick={handleLogoutClick}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
                   role="menuitem"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   Sign out
                 </button>
               </div>

@@ -553,23 +553,17 @@ const CameraMonitor = ({ onActivityChange }) => {
       {/* Controls */}
       <div className="mt-4 flex gap-2">
         <button
-          onClick={() => setShowDebug(!showDebug)}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300"
-        >
-          {showDebug ? 'Hide Debug' : 'Show Debug'}
-        </button>
-        <button
           onClick={restart}
-          className="px-4 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors duration-200 shadow-md hover:shadow-lg"
         >
           Restart Camera
         </button>
         <button
           onClick={sendNow}
-          className="px-4 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+          className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
           title="Send activity data now"
         >
-          Send Now
+          Sync Now
         </button>
       </div>
 
