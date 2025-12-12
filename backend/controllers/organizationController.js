@@ -304,6 +304,181 @@ const getOrganizationDashboard = async (req, res) => {
   }
 };
 
+// Get organization analytics (aggregated performance data)
+const getOrganizationAnalytics = async (req, res) => {
+  try {
+    const organizationId = req.user.id;
+    const days = parseInt(req.query.days) || 30;
+
+    const CalculatedScore = require('../models/CalculatedScore');
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get aggregated scores for all employees in the organization
+    const scores = await CalculatedScore.getOrganizationAggregatedScores(organizationId, startDate, endDate);
+
+    if (scores.length === 0) {
+      return res.status(200).json(
+        formatSuccessResponse({
+          analytics: {
+            average_score: 0,
+            average_productivity: 0,
+            average_engagement: 0,
+            average_working_time: 0,
+            average_unproductive_time: 0,
+            total_employees: 0,
+            grade_distribution: {}
+          }
+        }, 'No analytics data available for the specified period')
+      );
+    }
+
+    // Calculate averages
+    const totals = scores.reduce((acc, score) => ({
+      overall: acc.overall + (parseFloat(score.avg_overall_score) || 0),
+      productivity: acc.productivity + (parseFloat(score.avg_productivity_score) || 0),
+      engagement: acc.engagement + (parseFloat(score.avg_engagement_score) || 0),
+      working: acc.working + (parseFloat(score.total_working) || 0),
+      distracted: acc.distracted + (parseFloat(score.total_distracted) || 0),
+      idle: acc.idle + (parseFloat(score.total_idle) || 0)
+    }), { overall: 0, productivity: 0, engagement: 0, working: 0, distracted: 0, idle: 0 });
+
+    const avgOverall = totals.overall / scores.length;
+    const avgProductivity = totals.productivity / scores.length;
+    const avgEngagement = totals.engagement / scores.length;
+    const avgWorking = totals.working / scores.length;
+    const avgUnproductive = (totals.distracted + totals.idle) / scores.length;
+
+    // Grade distribution
+    const gradeDistribution = scores.reduce((acc, score) => {
+      const grade = score.performance_grade || 'F';
+      acc[grade] = (acc[grade] || 0) + 1;
+      return acc;
+    }, {});
+
+    const analyticsData = {
+      analytics: {
+        average_score: Math.round(avgOverall * 100) / 100,
+        average_productivity: Math.round(avgProductivity * 100) / 100,
+        average_engagement: Math.round(avgEngagement * 100) / 100,
+        average_working_time: Math.round(avgWorking / 60 * 100) / 100, // Convert to minutes
+        average_unproductive_time: Math.round(avgUnproductive / 60 * 100) / 100, // Convert to minutes
+        total_employees: new Set(scores.map(s => s.employee_id)).size,
+        grade_distribution: gradeDistribution,
+        days_analyzed: days
+      }
+    };
+
+    res.status(200).json(
+      formatSuccessResponse(analyticsData, 'Organization analytics retrieved successfully')
+    );
+
+  } catch (error) {
+    console.error('Get organization analytics error:', error);
+    res.status(500).json(
+      formatErrorResponse('Internal server error while fetching organization analytics')
+    );
+  }
+};
+
+// Get employee performance scores (for organization to view)
+const getEmployeePerformanceScores = async (req, res) => {
+  try {
+    const { id: employeeId } = req.params;
+    const organizationId = req.user.id;
+    const limit = parseInt(req.query.limit) || 30;
+
+    // Verify employee belongs to this organization
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json(
+        formatErrorResponse('Employee not found', 404)
+      );
+    }
+
+    if (employee.organization_id !== organizationId) {
+      return res.status(403).json(
+        formatErrorResponse('Access denied. Employee does not belong to your organization', 403)
+      );
+    }
+
+    const CalculatedScore = require('../models/CalculatedScore');
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - limit);
+
+    const scores = await CalculatedScore.getByEmployeeDateRange(employeeId, startDate, endDate);
+
+    res.status(200).json(
+      formatSuccessResponse({
+        employee: {
+          id: employee.id,
+          name: employee.name,
+          department: employee.department,
+          position: employee.position
+        },
+        scores: scores,
+        count: scores.length
+      }, 'Employee performance scores retrieved successfully')
+    );
+
+  } catch (error) {
+    console.error('Get employee performance scores error:', error);
+    res.status(500).json(
+      formatErrorResponse('Internal server error while fetching employee performance scores')
+    );
+  }
+};
+
+// Get employee performance trends (for organization to view)
+const getEmployeePerformanceTrends = async (req, res) => {
+  try {
+    const { id: employeeId } = req.params;
+    const organizationId = req.user.id;
+    const days = parseInt(req.query.days) || 30;
+
+    // Verify employee belongs to this organization
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json(
+        formatErrorResponse('Employee not found', 404)
+      );
+    }
+
+    if (employee.organization_id !== organizationId) {
+      return res.status(403).json(
+        formatErrorResponse('Access denied. Employee does not belong to your organization', 403)
+      );
+    }
+
+    const CalculatedScore = require('../models/CalculatedScore');
+
+    const trends = await CalculatedScore.getPerformanceTrends(employeeId, days);
+
+    res.status(200).json(
+      formatSuccessResponse({
+        employee: {
+          id: employee.id,
+          name: employee.name,
+          department: employee.department,
+          position: employee.position
+        },
+        trends: trends,
+        days: days
+      }, 'Employee performance trends retrieved successfully')
+    );
+
+  } catch (error) {
+    console.error('Get employee performance trends error:', error);
+    res.status(500).json(
+      formatErrorResponse('Internal server error while fetching employee performance trends')
+    );
+  }
+};
+
 module.exports = {
   createEmployee,
   getMyEmployees,
@@ -312,5 +487,8 @@ module.exports = {
   deleteEmployee,
   getMyProfile,
   updateMyProfile,
-  getOrganizationDashboard
+  getOrganizationDashboard,
+  getOrganizationAnalytics,
+  getEmployeePerformanceScores,
+  getEmployeePerformanceTrends
 };

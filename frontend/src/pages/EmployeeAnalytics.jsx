@@ -14,10 +14,10 @@ export function EmployeeAnalytics() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const trendsRes = await employeeAPI.getPerformanceTrends(timeRange);
+      const trendsRes = await employeeAPI.getMyPerformanceTrends(timeRange);
 
       if (trendsRes.data.success) {
-        setTrends(trendsRes.data.data.trends);
+        setTrends(trendsRes.data.data.trends || []);
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
@@ -40,20 +40,26 @@ export function EmployeeAnalytics() {
 
   // Calculate statistics
   const avgScore = trends.length > 0 
-    ? trends.reduce((sum, t) => sum + parseFloat(t.overall_score || 0), 0) / trends.length 
+    ? trends.reduce((sum, t) => sum + parseFloat(t.avg_overall || 0), 0) / trends.length 
     : 0;
   const avgProductivity = trends.length > 0
-    ? trends.reduce((sum, t) => sum + parseFloat(t.productivity_score || 0), 0) / trends.length
+    ? trends.reduce((sum, t) => sum + parseFloat(t.avg_productivity || 0), 0) / trends.length
     : 0;
   const avgEngagement = trends.length > 0
-    ? trends.reduce((sum, t) => sum + parseFloat(t.engagement_score || 0), 0) / trends.length
+    ? trends.reduce((sum, t) => sum + parseFloat(t.avg_engagement || 0), 0) / trends.length
     : 0;
   const avgWorkingTime = trends.length > 0
-    ? trends.reduce((sum, t) => sum + parseFloat(t.working_time || 0), 0) / trends.length
+    ? trends.reduce((sum, t) => sum + (parseFloat(t.total_working || 0) / 60), 0) / trends.length
     : 0;
 
-  // Current grade (latest performance)
-  const currentGrade = trends.length > 0 ? trends[0].performance_grade : null;
+  // Current grade - fetch from latest score
+  const currentGrade = trends.length > 0 ? 
+    (trends[trends.length - 1].avg_overall >= 90 ? 'A+' :
+     trends[trends.length - 1].avg_overall >= 80 ? 'A' :
+     trends[trends.length - 1].avg_overall >= 70 ? 'B' :
+     trends[trends.length - 1].avg_overall >= 60 ? 'C' :
+     trends[trends.length - 1].avg_overall >= 50 ? 'D' : 'F') 
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
@@ -111,11 +117,10 @@ export function EmployeeAnalytics() {
           {trends.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
               <AreaChart data={[...trends].reverse().slice(-30).map(t => ({
-                date: new Date(t.score_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                overall: parseFloat(t.overall_score || 0),
-                productivity: parseFloat(t.productivity_score || 0),
-                engagement: parseFloat(t.engagement_score || 0),
-                grade: t.performance_grade
+                date: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                overall: parseFloat(t.avg_overall || 0),
+                productivity: parseFloat(t.avg_productivity || 0),
+                engagement: parseFloat(t.avg_engagement || 0)
               }))}>
                 <defs>
                   <linearGradient id="colorOverall" x1="0" y1="0" x2="0" y2="1">
@@ -162,7 +167,7 @@ export function EmployeeAnalytics() {
                 </div>
                 <div className="text-2xl text-gray-400 mb-2">Your Current Grade</div>
                 <div className="text-lg text-gray-500">
-                  Based on latest performance score: {parseFloat(trends[0].overall_score || 0).toFixed(1)}%
+                  Based on latest performance score: {parseFloat(trends[trends.length - 1].avg_overall || 0).toFixed(1)}%
                 </div>
                 <div className="mt-6 grid grid-cols-2 gap-4 max-w-md mx-auto">
                   <div className="bg-gray-700 rounded-lg p-4">
@@ -193,9 +198,9 @@ export function EmployeeAnalytics() {
           {trends.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={[...trends].reverse().slice(-14).map(t => ({
-                date: new Date(t.score_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                productivity: parseFloat(t.productivity_score || 0),
-                engagement: parseFloat(t.engagement_score || 0)
+                date: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                productivity: parseFloat(t.avg_productivity || 0),
+                engagement: parseFloat(t.avg_engagement || 0)
               }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="date" stroke="#9ca3af" />
@@ -223,9 +228,9 @@ export function EmployeeAnalytics() {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart 
                 data={[...trends].reverse().slice(-10).map(t => ({
-                  date: new Date(t.score_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                  working: parseFloat(t.working_time || 0),
-                  unproductive: parseFloat(t.unproductive_time || 0)
+                  date: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                  working: (parseFloat(t.total_working || 0) / 60).toFixed(0),
+                  unproductive: ((parseFloat(t.total_distracted || 0) + parseFloat(t.total_idle || 0)) / 60).toFixed(0)
                 }))}
                 layout="vertical"
               >

@@ -201,10 +201,9 @@ export function OrganizationAnalytics() {
                     <PieChart>
                       <Pie
                         data={['A+', 'A', 'B', 'C', 'D', 'F'].map(grade => {
-                          const gradeKey = `grade_${grade.toLowerCase().replace('+', '_plus')}`;
                           return {
                             name: `Grade ${grade}`,
-                            value: parseInt(analytics[gradeKey] || 0)
+                            value: parseInt(analytics.grade_distribution?.[grade] || 0)
                           };
                         }).filter(d => d.value > 0)}
                         cx="50%"
@@ -236,9 +235,8 @@ export function OrganizationAnalytics() {
                   </ResponsiveContainer>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 content-center">
                     {['A+', 'A', 'B', 'C', 'D', 'F'].map((grade, index) => {
-                      const gradeKey = `grade_${grade.toLowerCase().replace('+', '_plus')}`;
-                      const count = parseInt(analytics[gradeKey] || 0);
-                      const total = parseInt(analytics.total_scores || 1);
+                      const count = parseInt(analytics.grade_distribution?.[grade] || 0);
+                      const total = Object.values(analytics.grade_distribution || {}).reduce((sum, val) => sum + parseInt(val || 0), 0) || 1;
                       const percentage = ((count / total) * 100).toFixed(1);
                       
                       return (
