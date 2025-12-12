@@ -741,11 +741,11 @@ function EmployeePerformanceModal({ employee, onClose }) {
                   <div className="mt-4 text-gray-400">Loading performance data...</div>
                 </div>
               </div>
-            ) : performanceData?.performanceScores?.length > 0 ? (
+            ) : performanceData?.scores?.length > 0 ? (
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-white mb-6">Performance History</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {performanceData.performanceScores.map((score) => (
+                  {performanceData.scores.map((score) => (
                     <div 
                       key={score.id}
                       className="group relative"

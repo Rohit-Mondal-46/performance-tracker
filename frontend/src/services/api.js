@@ -110,6 +110,17 @@ export const organizationAPI = {
   deleteEmployee: (id) => 
     api.delete(`/organization/employees/${id}`),
   
+  // Employee Performance (Organization viewing employee data)
+  getEmployeePerformanceScores: (employeeId, limit = 30) => 
+    api.get(`/organization/employees/${employeeId}/scores`, {
+      params: { limit }
+    }),
+  
+  getEmployeePerformanceTrends: (employeeId, days = 30) => 
+    api.get(`/organization/employees/${employeeId}/trends`, {
+      params: { days }
+    }),
+  
   // Profile Management
   getMyProfile: () => 
     api.get('/organization/profile'),
@@ -117,9 +128,14 @@ export const organizationAPI = {
   updateMyProfile: (data) => 
     api.put('/organization/profile', data),
   
-  // Dashboard
+  // Dashboard & Analytics
   getDashboard: () => 
     api.get('/organization/dashboard'),
+  
+  getOrganizationAnalytics: (days = 30) => 
+    api.get('/organization/analytics', {
+      params: { days }
+    }),
 };
 
 // ========================
