@@ -9,11 +9,13 @@
     "build": "vite build",
     "start": "electron .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder",
+    "dist": "npm run electron:build"
   },
   "build": {
     "appId": "com.yourapp.desktop",
-    "productName": "DesktopApp",
+    "productName": "Vista",
+    "icon": "build/icon.ico",
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -38,6 +40,7 @@
     "@mediapipe/hands": "^0.4.1675469240",
     "@mediapipe/holistic": "^0.5.1675471629",
     "@tensorflow/tfjs": "^4.22.0",
+    "axios": "^1.13.2",
     "face-api.js": "^0.22.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.31",
