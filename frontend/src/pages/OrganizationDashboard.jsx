@@ -5,7 +5,6 @@ import { Users, TrendingUp, BarChart3, Plus, Edit, Trash2, Eye, Building, Target
 export function OrganizationDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [employees, setEmployees] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -18,20 +17,16 @@ export function OrganizationDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [dashboardRes, employeesRes, analyticsRes] = await Promise.all([
+      const [dashboardRes, employeesRes] = await Promise.all([
         organizationAPI.getDashboard(),
-        organizationAPI.getMyEmployees(),
-        organizationAPI.getOrganizationAnalytics(30)
+        organizationAPI.getMyEmployees()
       ]);
 
       if (dashboardRes.data.success) {
         setDashboard(dashboardRes.data.data);
       }
       if (employeesRes.data.success) {
-        setEmployees(employeesRes.data.data.employees);
-      }
-      if (analyticsRes.data.success) {
-        setAnalytics(analyticsRes.data.data.analytics);
+        setEmployees(employeesRes.data.data.employees || []);
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -197,8 +192,8 @@ export function OrganizationDashboard() {
               <QuantumParticleEffect color="orange" />
               <StatCard
                 icon={<Award className="w-8 h-8" />}
-                title="Avg Performance"
-                value={analytics?.averageScore ? `${parseFloat(analytics.averageScore).toFixed(1)}%` : 'N/A'}
+                title="Active Employees"
+                value={employees.length}
                 color="from-orange-500 to-yellow-500"
               />
             </FloatingCard>
@@ -288,69 +283,6 @@ export function OrganizationDashboard() {
             </FloatingCard>
           </div>
         </div>
-
-        {/* Performance Analytics */}
-        {analytics && (
-          <div className="relative mb-8">
-            {/* 3D Shadow */}
-            <div className="absolute inset-0 -bottom-4 z-0">
-              <div className="h-full bg-gradient-to-t from-black/40 to-transparent rounded-2xl blur-xl opacity-40"
-                   style={{ transform: 'perspective(1000px) rotateX(60deg) translateZ(-20px)' }}></div>
-            </div>
-            
-            {/* Actual Card */}
-            <div className="relative z-10">
-              <FloatingCard>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                      Performance Analytics
-                    </h2>
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      Last 30 days
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      { title: 'Overall Score', value: analytics.averageScore, color: 'from-blue-500 to-cyan-500', borderColor: 'blue' },
-                      { title: 'Productivity', value: analytics.averageProductivity, color: 'from-green-500 to-emerald-500', borderColor: 'green' },
-                      { title: 'Engagement', value: analytics.averageEngagement, color: 'from-purple-500 to-pink-500', borderColor: 'purple' }
-                    ].map((item, index) => (
-                      <div key={index} className="relative group">
-                        {/* Card glow effect */}
-                        <div className={`absolute inset-0 bg-gradient-to-r ${item.color}/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-700`}></div>
-                        
-                        {/* Main card */}
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm border border-gray-700/40 hover:border-gray-600/60 transition-all duration-300 overflow-hidden">
-                          
-                          {/* Animated background lines */}
-                          <div className="absolute inset-0 opacity-5">
-                            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer" style={{ animationDelay: `${index * 0.5}s` }}></div>
-                          </div>
-                          
-                          <div className="relative z-10">
-                            <div className="text-gray-400 text-sm mb-2">{item.title}</div>
-                            <div className="text-4xl font-bold text-white mb-4 animate-count-up">
-                              {parseFloat(item.value || 0).toFixed(1)}%
-                            </div>
-                            <div className="relative h-2 bg-gray-700/50 rounded-full overflow-hidden">
-                              <div 
-                                className={`absolute inset-0 bg-gradient-to-r ${item.color} rounded-full transition-all duration-1500 ease-out`}
-                                style={{ width: `${item.value || 0}%` }}
-                              ></div>
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </FloatingCard>
-            </div>
-          </div>
-        )}
 
         {/* Employees Section */}
         <div className="relative">
@@ -813,7 +745,7 @@ function EmployeePerformanceModal({ employee, onClose }) {
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-white mb-6">Performance History</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {performanceData.performanceScores.map((score, index) => (
+                  {performanceData.performanceScores.map((score) => (
                     <div 
                       key={score.id}
                       className="group relative"

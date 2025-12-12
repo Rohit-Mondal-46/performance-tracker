@@ -141,38 +141,50 @@ const getEmployeeDashboard = async (req, res) => {
     // Remove password from response
     const employeeData = removePasswordFromUser(employee);
 
-    // Import PerformanceScore model at the top of your file
-    const PerformanceScore = require('../models/PerformanceScore');
+    // Use CalculatedScore model
+    const CalculatedScore = require('../models/CalculatedScore');
 
-    // Get performance data
-    const averages = await PerformanceScore.getAverageScores(employeeId, 30);
-    const latestScore = await PerformanceScore.getLatestScore(employeeId);
-    const recentScores = await PerformanceScore.getEmployeeScores(employeeId, { 
-      scoreType: 'daily', 
-      limit: 7 
-    });
+    // Get performance data for last 30 days
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
 
-    // Calculate additional metrics
-    const totalDays = parseInt(averages.total_days) || 0;
-    const avgFinalScore = parseFloat(averages.avg_final_score) || 0;
-    const avgProductivity = parseFloat(averages.avg_productivity) || 0;
-    const avgEngagement = parseFloat(averages.avg_engagement) || 0;
-
-    // Performance trend (comparing last 7 days vs previous 7 days)
-    let performanceTrend = 'stable';
-    if (recentScores.length >= 7) {
-      const lastWeekAvg = recentScores.slice(0, 7).reduce((sum, score) => sum + score.final_score, 0) / 7;
-      const prevWeekScores = await PerformanceScore.getEmployeeScores(employeeId, { 
-        scoreType: 'daily', 
-        limit: 7,
-        offset: 7
-      });
+    const scores = await CalculatedScore.getByEmployeeDateRange(employeeId, startDate, endDate);
+    
+    // Calculate averages
+    let avgProductivity = 0;
+    let avgEngagement = 0;
+    let avgOverall = 0;
+    
+    if (scores.length > 0) {
+      const totals = scores.reduce((acc, score) => ({
+        productivity: acc.productivity + (parseFloat(score.productivity_score) || 0),
+        engagement: acc.engagement + (parseFloat(score.engagement_score) || 0),
+        overall: acc.overall + (parseFloat(score.overall_score) || 0)
+      }), { productivity: 0, engagement: 0, overall: 0 });
       
-      if (prevWeekScores.length > 0) {
-        const prevWeekAvg = prevWeekScores.reduce((sum, score) => sum + score.final_score, 0) / prevWeekScores.length;
-        if (lastWeekAvg > prevWeekAvg + 2) performanceTrend = 'improving';
-        else if (lastWeekAvg < prevWeekAvg - 2) performanceTrend = 'declining';
-      }
+      avgProductivity = totals.productivity / scores.length;
+      avgEngagement = totals.engagement / scores.length;
+      avgOverall = totals.overall / scores.length;
+    }
+
+    // Get latest score
+    const latestScore = scores.length > 0 ? scores[scores.length - 1] : null;
+
+    // Get last 7 days for trend
+    const last7Days = scores.slice(-7);
+    
+    // Calculate performance trend
+    let performanceTrend = 'stable';
+    if (scores.length >= 14) {
+      const lastWeekScores = scores.slice(-7);
+      const prevWeekScores = scores.slice(-14, -7);
+      
+      const lastWeekAvg = lastWeekScores.reduce((sum, s) => sum + (parseFloat(s.overall_score) || 0), 0) / lastWeekScores.length;
+      const prevWeekAvg = prevWeekScores.reduce((sum, s) => sum + (parseFloat(s.overall_score) || 0), 0) / prevWeekScores.length;
+      
+      if (lastWeekAvg > prevWeekAvg + 2) performanceTrend = 'improving';
+      else if (lastWeekAvg < prevWeekAvg - 2) performanceTrend = 'declining';
     }
 
     const dashboardData = {
@@ -184,42 +196,42 @@ const getEmployeeDashboard = async (req, res) => {
         position: employeeData.position || 'Not specified'
       },
       metrics: {
-        performanceRating: Math.round(avgFinalScore * 100) / 100,
+        performanceRating: Math.round(avgOverall * 100) / 100,
         productivityScore: Math.round(avgProductivity * 100) / 100,
         engagementScore: Math.round(avgEngagement * 100) / 100,
-        totalActiveDays: totalDays,
-        lastActivity: latestScore?.date || employeeData.created_at,
+        totalActiveDays: scores.length,
+        lastActivity: latestScore?.score_date || employeeData.created_at,
         performanceTrend: performanceTrend
       },
       recentPerformance: {
         latestScore: latestScore ? {
-          date: latestScore.date,
-          finalScore: latestScore.final_score,
+          date: latestScore.score_date,
+          finalScore: latestScore.overall_score,
           productivityScore: latestScore.productivity_score,
           engagementScore: latestScore.engagement_score
         } : null,
-        last7Days: recentScores.map(score => ({
-          date: score.date,
-          score: score.final_score
+        last7Days: last7Days.map(score => ({
+          date: score.score_date,
+          score: score.overall_score
         })),
         monthlyAverage: {
-          finalScore: avgFinalScore,
+          finalScore: avgOverall,
           productivity: avgProductivity,
           engagement: avgEngagement,
-          daysTracked: totalDays
+          daysTracked: scores.length
         }
       },
       // Performance status based on score ranges
       performanceStatus: {
-        rating: avgFinalScore >= 80 ? 'excellent' : 
-                avgFinalScore >= 60 ? 'good' : 
-                avgFinalScore >= 40 ? 'needs_improvement' : 'poor',
-        message: avgFinalScore >= 80 ? 'Outstanding performance!' : 
-                 avgFinalScore >= 60 ? 'Good work, keep it up!' : 
-                 avgFinalScore >= 40 ? 'Room for improvement' : 'Focus needed',
-        color: avgFinalScore >= 80 ? 'green' : 
-               avgFinalScore >= 60 ? 'blue' : 
-               avgFinalScore >= 40 ? 'yellow' : 'red'
+        rating: avgOverall >= 80 ? 'excellent' : 
+                avgOverall >= 60 ? 'good' : 
+                avgOverall >= 40 ? 'needs_improvement' : 'poor',
+        message: avgOverall >= 80 ? 'Outstanding performance!' : 
+                 avgOverall >= 60 ? 'Good work, keep it up!' : 
+                 avgOverall >= 40 ? 'Room for improvement' : 'Focus needed',
+        color: avgOverall >= 80 ? 'green' : 
+               avgOverall >= 60 ? 'blue' : 
+               avgOverall >= 40 ? 'yellow' : 'red'
       }
     };
 

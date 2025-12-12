@@ -88,12 +88,6 @@ export const adminAPI = {
   // Dashboard
   getDashboardStats: () => 
     api.get('/admin/dashboard'),
-  
-  // Performance Analytics
-  getOrganizationAnalytics: (organizationId, days = 30) => 
-    api.get(`/performance/admin/organizations/${organizationId}/analytics`, {
-      params: { days }
-    }),
 };
 
 // ========================
@@ -126,22 +120,6 @@ export const organizationAPI = {
   // Dashboard
   getDashboard: () => 
     api.get('/organization/dashboard'),
-  
-  // Performance Data
-  getEmployeePerformanceScores: (employeeId, limit = 30) => 
-    api.get(`/performance/organization/employees/${employeeId}/scores`, {
-      params: { limit }
-    }),
-  
-  getEmployeePerformanceTrends: (employeeId, days = 30) => 
-    api.get(`/performance/organization/employees/${employeeId}/trends`, {
-      params: { days }
-    }),
-  
-  getOrganizationAnalytics: (days = 30) => 
-    api.get('/performance/organization/analytics', {
-      params: { days }
-    }),
 };
 
 // ========================
@@ -150,7 +128,7 @@ export const organizationAPI = {
 export const employeeAPI = {
   // Profile Management
   getMyProfile: () => 
-    api.get('/employee/profile'),
+    api.get('/employee/profile').then(response => response.data),
   
   updateMyProfile: (data) => 
     api.put('/employee/profile', data),
@@ -165,19 +143,50 @@ export const employeeAPI = {
   getMySettings: () => 
     api.get('/employee/settings'),
   
-  // Performance Data
-  getMyPerformanceScores: (limit = 30) => 
-    api.get('/performance/employee/scores', {
+  // Activity & Performance Data (from /activities routes)
+  getMyCalculatedScores: (limit = 30) => 
+    api.get('/activities/scores', {
       params: { limit }
     }),
   
-  getPerformanceTrends: (days = 30) => 
-    api.get('/performance/employee/trends', {
+  getMyDailyScores: (days = 30) => 
+    api.get('/activities/daily-scores', {
       params: { days }
     }),
   
-  createPerformanceScore: (data) => 
-    api.post('/performance/employee/scores', data),
+  getMyPerformanceTrends: (days = 30) => 
+    api.get('/activities/trends', {
+      params: { days }
+    }),
+  
+  getMyLatestActivity: () => 
+    api.get('/activities/latest'),
+};
+
+// ========================
+// ACTIVITY ENDPOINTS (for activity ingestion)
+// ========================
+export const activityAPI = {
+  ingestActivityBatch: (data) => 
+    api.post('/activities/ingest', data),
+  
+  getMyCalculatedScores: (limit = 30) => 
+    api.get('/activities/scores', {
+      params: { limit }
+    }),
+  
+  getMyDailyScores: (days = 30) => 
+    api.get('/activities/daily-scores', {
+      params: { days }
+    }),
+  
+  getMyPerformanceTrends: (days = 30) => 
+    api.get('/activities/trends', {
+      params: { days }
+    }),
+  
+  getMyLatestActivity: () => 
+    api.get('/activities/latest'),
 };
 
 // ========================
