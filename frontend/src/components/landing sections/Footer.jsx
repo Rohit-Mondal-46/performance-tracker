@@ -22,7 +22,7 @@ export function Footer() {
                 <Monitor className="h-8 w-8 text-blue-400 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
                 <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <span className="ml-2 text-xl font-bold">ProMonitor</span>
+              <span className="ml-2 text-xl font-bold">VISTA</span>
             </div>
             <p className="text-sm sm:text-base text-gray-400 mb-6 max-w-md">
               The future of workplace productivity monitoring. Secure, intelligent, and privacy-focused.
@@ -68,7 +68,7 @@ export function Footer() {
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2025 ProMonitor. All rights reserved.
+            © 2025 VISTA. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center md:justify-end space-x-6 mt-4 md:mt-0">
             {legalLinks.map((item, index) => (

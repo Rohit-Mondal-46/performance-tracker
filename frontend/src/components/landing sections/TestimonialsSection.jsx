@@ -21,7 +21,7 @@ export function TestimonialsSection() {
             Trusted by Leading Teams
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 px-4">
-            See what our customers are saying about ProMonitor
+            See what our customers are saying about VISTA
           </p>
         </Card3D>
 

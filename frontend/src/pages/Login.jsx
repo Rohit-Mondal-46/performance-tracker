@@ -130,9 +130,9 @@ export function Login() {
               Demo Credentials:
             </p>
             <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              <p><strong>Admin:</strong> admin@promonitor.com / admin123</p>
-              <p><strong>HR Manager:</strong> hr@promonitor.com / hr123</p>
-              <p><strong>Employee:</strong> employee@promonitor.com / employee123</p>
+              <p><strong>Admin:</strong> admin@VISTA.com / a*******3</p>
+              <p><strong>HR Manager:</strong> hr@VISTA.com / h******3</p>
+              <p><strong>Employee:</strong> employee@VISTA.com / e********3</p>
             </div>
           </div>
 

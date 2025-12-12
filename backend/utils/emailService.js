@@ -102,6 +102,43 @@ const getEmailTemplate = (type, data) => {
         </html>
       `;
 
+    case 'service_request':
+      return `
+        <html>
+          <head><style>${baseStyle}</style></head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🚀 New Service Request</h1>
+                <p>A new organization is interested in Performance Tracker</p>
+              </div>
+              <div class="content">
+                <h2>New Organization Inquiry</h2>
+                <p>You have received a new service request from a potential client. Please review the details below:</p>
+                
+                <div class="credentials">
+                  <h3>📋 Organization Details</h3>
+                  <p><strong>Organization Name:</strong> ${data.organizationName}</p>
+                  <p><strong>Contact Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+                  ${data.industry ? `<p><strong>Industry:</strong> ${data.industry}</p>` : ''}
+                  ${data.location ? `<p><strong>Location:</strong> ${data.location}</p>` : ''}
+                  <p><strong>Request Date:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <p>⏰ <strong>Action Required:</strong> Please respond to this inquiry within 24 hours to maintain customer satisfaction.</p>
+                
+                <p>You can reach out to them directly at <a href="mailto:${data.email}">${data.email}</a></p>
+                
+                <div class="footer">
+                  <p>Performance Tracker Admin System</p>
+                  <p>This is an automated notification from your Performance Tracker application.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
     default:
       return `
         <html>
@@ -175,6 +212,40 @@ const sendEmployeeCredentials = async (employeeData, password, organizationName)
   }
 };
 
+// Send service request notification to admin
+const sendServiceRequestToAdmin = async (requestData) => {
+  try {
+    const transporter = createTransporter();
+    
+    // Admin email should be in environment variables
+    const adminEmail = process.env.EMAIL_USER;
+    
+    if (!adminEmail) {
+      throw new Error('Admin email not configured');
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: adminEmail,
+      subject: '🚀 New Service Request - Performance Tracker',
+      html: getEmailTemplate('service_request', {
+        organizationName: requestData.organizationName,
+        email: requestData.email,
+        industry: requestData.industry,
+        location: requestData.location
+      }),
+      replyTo: requestData.email // Allow admin to reply directly to the requester
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Service request notification sent to admin (${adminEmail})`);
+    return result;
+  } catch (error) {
+    console.error(`❌ Error sending service request notification:`, error);
+    throw new Error(`Failed to send admin notification: ${error.message}`);
+  }
+};
+
 // Test email configuration
 const testEmailConfiguration = async () => {
   try {
@@ -191,5 +262,6 @@ const testEmailConfiguration = async () => {
 module.exports = {
   sendOrganizationCredentials,
   sendEmployeeCredentials,
+  sendServiceRequestToAdmin,
   testEmailConfiguration
 };

@@ -8,7 +8,7 @@ export function HowItWorksSection() {
     {
       step: 1,
       title: 'Quick Setup',
-      description: 'Install ProMonitor and grant camera permissions. Our AI starts learning your work patterns immediately.',
+      description: 'Install VISTA and grant camera permissions. Our AI starts learning your work patterns immediately.',
       color: 'from-blue-500 to-blue-600',
       icon: Monitor
     },
@@ -33,7 +33,7 @@ export function HowItWorksSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <Card3D className="text-center mb-16" hoverEffect="lift">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 px-4">
-            How ProMonitor Works
+            How VISTA Works
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 px-4">
             Simple setup, powerful insights, complete privacy

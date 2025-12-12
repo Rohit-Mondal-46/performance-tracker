@@ -48,7 +48,7 @@ export function CTASection() {
                 Ready to Transform Your Productivity?
               </h2>
               <p className="text-base sm:text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto px-4">
-                Join thousands of teams already using ProMonitor to boost
+                Join thousands of teams already using VISTA to boost
                 productivity and achieve better work-life balance.
               </p>
 

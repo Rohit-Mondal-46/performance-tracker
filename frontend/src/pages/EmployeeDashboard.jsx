@@ -26,14 +26,14 @@ export function EmployeeDashboard() {
       setLoading(true);
       const [dashboardRes, scoresRes] = await Promise.all([
         employeeAPI.getDashboard(),
-        employeeAPI.getMyPerformanceScores(30)
+        employeeAPI.getMyCalculatedScores(30)
       ]);
 
       if (dashboardRes.data.success) {
         setDashboard(dashboardRes.data.data);
       }
       if (scoresRes.data.success) {
-        setPerformanceScores(scoresRes.data.data.performanceScores);
+        setPerformanceScores(scoresRes.data.data.scores || []);
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
