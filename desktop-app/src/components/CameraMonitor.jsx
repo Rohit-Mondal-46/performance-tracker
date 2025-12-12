@@ -592,7 +592,6 @@
 
 // export default CameraMonitor;
 
-
 // components/CameraMonitor.jsx - ENHANCED WITH ALL FEATURES
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
@@ -613,8 +612,11 @@ const CameraMonitor = ({ onActivityChange }) => {
   const [faceApiLoaded, setFaceApiLoaded] = useState(false);
   const [debugInfo, setDebugInfo] = useState(null);
   const [showDebug, setShowDebug] = useState(false);
-  const [cameraStatus, setCameraStatus] = useState("initializing");
+  const [cameraStatus, setCameraStatus] = useState("waiting"); // Changed from "initializing" to "waiting"
   const [mediaPipeStatus, setMediaPipeStatus] = useState("checking");
+  
+  // NEW: State to track if camera has been started
+  const [cameraStarted, setCameraStarted] = useState(false);
   
   // NEW: Pause/Resume tracking state
   const [isTrackingPaused, setIsTrackingPaused] = useState(false);
@@ -718,7 +720,7 @@ const CameraMonitor = ({ onActivityChange }) => {
     restart,
     mediaPipeStatus: holisticStatus,
     isUsingFallback
-  } = useHolistic(handleResults, handleActivityChange);
+  } = useHolistic(handleResults, handleActivityChange, cameraStarted); // Pass cameraStarted to control initialization
 
   useEffect(() => {
     setMediaPipeStatus(holisticStatus);
@@ -871,6 +873,12 @@ const CameraMonitor = ({ onActivityChange }) => {
     }
   }, [videoRef, isInitialized]);
 
+  // NEW: Function to start camera
+  const startCamera = useCallback(() => {
+    setCameraStarted(true);
+    setCameraStatus("initializing");
+  }, []);
+
   // NEW: Toggle pause/resume tracking
   const toggleTracking = useCallback(() => {
     if (isTrackingPaused) {
@@ -971,7 +979,7 @@ const CameraMonitor = ({ onActivityChange }) => {
     switch (cameraStatus) {
       case "ready": return "Camera ready";
       case "initializing": return "Initializing camera...";
-      case "waiting": return "Waiting for camera access...";
+      case "waiting": return "Camera not started";
       case "error": return "Camera error";
       default: return "Checking camera...";
     }
@@ -1000,7 +1008,8 @@ const CameraMonitor = ({ onActivityChange }) => {
     }
   };
 
-  const enhancedActivity = isTrackingPaused ? 'Paused' : 
+  const enhancedActivity = !cameraStarted ? 'Not Started' :
+                          isTrackingPaused ? 'Paused' : 
                           (isLookingAway ? 'Looking Away' : 
                            (currentActivity === 'Sitting' && !isLookingAway) ? 'Reading' : 
                            currentActivity);
@@ -1021,7 +1030,7 @@ const CameraMonitor = ({ onActivityChange }) => {
   // Activity tracking hook - sends data every 10 minutes
   const { sendNow, getCurrentStats } = useActivityTracking(
     enhancedActivity,
-    isInitialized && !error && !isTrackingPaused, // Only track when camera is initialized, no errors, and not paused
+    isInitialized && !error && !isTrackingPaused && cameraStarted, // Only track when camera is started, initialized, no errors, and not paused
     handleSyncSuccess,
     handleSyncError
   );
@@ -1045,30 +1054,42 @@ const CameraMonitor = ({ onActivityChange }) => {
       )}
       
       <div className="relative rounded-lg overflow-hidden shadow-lg bg-gray-800 w-96 h-72">
-        <video
-          ref={videoRef}
-          className="absolute top-0 left-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          playsInline
-          style={{ zIndex: 1 }}
-          onError={(e) => {
-            console.error("Video error:", e);
-            setCameraStatus("error");
-          }}
-        />
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-80"
-          style={{ zIndex: 2, mixBlendMode: 'screen' }}
-        />
-        <canvas
-          ref={faceCanvasRef}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-          style={{ zIndex: 3 }}
-        />
+        {cameraStarted ? (
+          <>
+            <video
+              ref={videoRef}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+              autoPlay
+              muted
+              playsInline
+              style={{ zIndex: 1 }}
+              onError={(e) => {
+                console.error("Video error:", e);
+                setCameraStatus("error");
+              }}
+            />
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-80"
+              style={{ zIndex: 2, mixBlendMode: 'screen' }}
+            />
+            <canvas
+              ref={faceCanvasRef}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 3 }}
+            />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center" style={{ zIndex: 1 }}>
+            <div className="text-center text-white">
+              <div className="text-6xl mb-4">📷</div>
+              <h3 className="text-xl font-semibold mb-2">Camera Not Started</h3>
+              <p className="text-sm mb-4">Click the "Start Camera" button to begin activity monitoring</p>
+            </div>
+          </div>
+        )}
 
-        {(!isInitialized || !videoRef.current?.srcObject) && !error && (
+        {cameraStarted && !isInitialized && !error && (
           <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center" style={{ zIndex: 10 }}>
             <div className="text-center text-white">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
@@ -1077,7 +1098,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           </div>
         )}
 
-        {error && (
+        {cameraStarted && error && (
           <div className="absolute inset-0 bg-red-900 bg-opacity-90 flex items-center justify-center p-4">
             <div className="text-center text-white">
               <h3 className="text-lg font-semibold mb-2">Camera Error</h3>
@@ -1103,16 +1124,20 @@ const CameraMonitor = ({ onActivityChange }) => {
           </div>
           <div className={`px-2 py-1 rounded text-xs font-medium ${
             cameraStatus === 'ready' ? 'bg-green-500 text-white' : 
-            cameraStatus === 'error' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-black'
+            cameraStatus === 'error' ? 'bg-red-500 text-white' : 
+            cameraStatus === 'waiting' ? 'bg-gray-500 text-white' :
+            'bg-yellow-500 text-black'
           }`}>
             {getCameraStatusMessage()}
           </div>
-          {/* NEW: Tracking status indicator */}
-          <div className={`px-2 py-1 rounded text-xs font-medium ${
-            isTrackingPaused ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'
-          }`}>
-            {isTrackingPaused ? 'Tracking Paused' : 'Tracking Active'}
-          </div>
+          {/* Tracking status indicator */}
+          {cameraStarted && (
+            <div className={`px-2 py-1 rounded text-xs font-medium ${
+              isTrackingPaused ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'
+            }`}>
+              {isTrackingPaused ? 'Tracking Paused' : 'Tracking Active'}
+            </div>
+          )}
         </div>
 
         {faceDetection && !isTrackingPaused && (
@@ -1121,7 +1146,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           </div>
         )}
         
-        {/* NEW: Pause overlay */}
+        {/* Pause overlay */}
         {isTrackingPaused && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 5 }}>
             <div className="text-center text-white">
@@ -1145,6 +1170,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           enhancedActivity === 'Sitting' ? 'bg-gray-100 text-gray-800' :
           enhancedActivity === 'Looking Away' ? 'bg-orange-100 text-orange-800' :
           enhancedActivity === 'Paused' ? 'bg-gray-200 text-gray-700' :
+          enhancedActivity === 'Not Started' ? 'bg-gray-200 text-gray-700' :
           'bg-gray-100 text-gray-800'
         }`}>
           <div className="flex items-center justify-center gap-2">
@@ -1156,6 +1182,7 @@ const CameraMonitor = ({ onActivityChange }) => {
             {enhancedActivity === 'Sitting' && '🪑'}
             {enhancedActivity === 'Looking Away' && '👀'}
             {enhancedActivity === 'Paused' && '⏸️'}
+            {enhancedActivity === 'Not Started' && '⏹️'}
             <span>{enhancedActivity || 'Analyzing...'}</span>
           </div>
         </div>
@@ -1210,35 +1237,44 @@ const CameraMonitor = ({ onActivityChange }) => {
               <span className="text-gray-600 w-16 text-right">{formatTime(totalPausedTime)}</span>
             </div>
           )}
+          {Object.values(sessionStats).reduce((sum, d) => sum + d, 0) === 0 && (
+            <div className="text-center text-gray-500 py-2">
+              No activity data yet. Start the camera to begin tracking.
+            </div>
+          )}
         </div>
       </div>
 
       {/* Controls */}
       <div className="mt-4 flex gap-2">
-        <button
-          onClick={restart}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors duration-200 shadow-md hover:shadow-lg"
-        >
-          Restart Camera
-        </button>
-        {/* NEW: Pause/Resume button */}
-        <button
-          onClick={toggleTracking}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 shadow-md hover:shadow-lg ${
-            isTrackingPaused 
-              ? 'bg-green-500 text-white hover:bg-green-600' 
-              : 'bg-orange-500 text-white hover:bg-orange-600'
-          }`}
-        >
-          {isTrackingPaused ? '▶️ Resume Tracking' : '⏸️ Pause Tracking'}
-        </button>
-        <button
-          onClick={sendNow}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
-          title="Send activity data now"
-        >
-          Sync Now
-        </button>
+        {!cameraStarted ? (
+          <button
+            onClick={startCamera}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+          >
+            🎥 Start Camera
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={toggleTracking}
+              className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 shadow-md hover:shadow-lg ${
+                isTrackingPaused 
+                  ? 'bg-green-500 text-white hover:bg-green-600' 
+                  : 'bg-orange-500 text-white hover:bg-orange-600'
+              }`}
+            >
+              {isTrackingPaused ? '▶️ Resume Tracking' : '⏸️ Pause Tracking'}
+            </button>
+            <button
+              onClick={sendNow}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+              title="Send activity data now"
+            >
+              Sync Now
+            </button>
+          </>
+        )}
       </div>
 
       {/* Debug Information */}
@@ -1246,6 +1282,7 @@ const CameraMonitor = ({ onActivityChange }) => {
         <div className="mt-4 p-3 bg-gray-100 rounded-lg w-96 text-xs">
           <h4 className="font-semibold mb-2">Debug Info:</h4>
           <div className="space-y-1">
+            <p>Camera Started: {cameraStarted ? 'Yes' : 'No'}</p>
             <p>Camera: {cameraStatus}</p>
             <p>MediaPipe: {mediaPipeStatus}</p>
             <p>Face Detection: {faceDetection ? 'Active' : 'Inactive'}</p>
