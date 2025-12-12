@@ -44,14 +44,12 @@ const Navbar = ({ user, onLogout }) => {
       <div className="flex justify-between items-center h-16">
         {/* Left side: App Title with Icon */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-md">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+          <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-md p-1.5">
+            <img src="./icon.ico" alt="Vista Icon" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Vista
+              VISTA
             </h1>
             <p className="text-xs text-gray-500 hidden sm:block">Real-time Activity Tracking</p>
           </div>
@@ -112,6 +110,29 @@ const Navbar = ({ user, onLogout }) => {
                   <p className="text-sm font-semibold text-gray-800">{user?.name || 'User'}</p>
                   <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                 </div>
+
+                {/* Open Dashboard Button */}
+                <button
+                  onClick={async () => {
+                    try {
+                      if (window.electron && window.electron.openExternal) {
+                        await window.electron.openExternal('http://localhost:5173/employee-dashboard');
+                      } else {
+                        window.open('http://localhost:5173/employee-dashboard', '_blank');
+                      }
+                    } catch (error) {
+                      console.error('Failed to open URL:', error);
+                    }
+                    setIsDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-150"
+                  role="menuitem"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Open Dashboard
+                </button>
 
                 {/* Logout Button */}
                 <button

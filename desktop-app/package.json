@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "com.yourapp.desktop",
-    "productName": "Vista",
+    "productName": "VISTA",
     "icon": "build/icon.ico",
     "files": [
       "dist/**/*",

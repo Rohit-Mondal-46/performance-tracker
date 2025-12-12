@@ -1,5 +1,5 @@
 //desktop-app/electron/main.js
-import { app, BrowserWindow, ipcMain, session } from "electron";
+import { app, BrowserWindow, ipcMain, session, shell } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
@@ -109,6 +109,17 @@ app.whenReady().then(() => {
   ipcMain.handle("auth:logout", async () => {
     await session.defaultSession.cookies.remove("http://localhost", "authToken");
     return { success: true };
+  });
+
+  // ------ 4) OPEN EXTERNAL URL IN BROWSER ------
+  ipcMain.handle("shell:openExternal", async (event, url) => {
+    try {
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Failed to open external URL:", error);
+      return { success: false, error: error.message };
+    }
   });
 
   // Example: Receive tracking data

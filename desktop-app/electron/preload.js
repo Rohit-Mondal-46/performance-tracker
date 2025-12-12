@@ -80,7 +80,10 @@ contextBridge.exposeInMainWorld("electron", {
     login: (credentials) => ipcRenderer.invoke("auth:login", credentials),
     logout: () => ipcRenderer.invoke("auth:logout"),
     getToken: () => ipcRenderer.invoke("auth:getToken"),
-  }
+  },
+
+  // Open external URL in browser
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
 });
 
 // Automatically start loading MediaPipe when DOM is ready
