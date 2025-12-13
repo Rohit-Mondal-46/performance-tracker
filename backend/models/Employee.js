@@ -86,7 +86,7 @@ class Employee {
   static async getAllEmployees() {
     try {
       const result = await pool.query(
-        `SELECT e.id, e.name, e.email, e.department, e.position, e.created_at, o.name as organization_name 
+        `SELECT e.id, e.name, e.email, e.department, e.position, e.created_at, e.organization_id, o.name as organization_name 
          FROM employees e 
          LEFT JOIN organizations o ON e.organization_id = o.id 
          ORDER BY e.created_at DESC`
