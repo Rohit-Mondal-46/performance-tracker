@@ -124,7 +124,7 @@ export function Login() {
             </p>
           </div>
 
-          {/* Demo credentials */}
+          {/* Demo credentials
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 border border-blue-200 dark:border-blue-800">
             <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
               Demo Credentials:
@@ -134,7 +134,7 @@ export function Login() {
               <p><strong>HR Manager:</strong> hr@VISTA.com / h******3</p>
               <p><strong>Employee:</strong> employee@VISTA.com / e********3</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
