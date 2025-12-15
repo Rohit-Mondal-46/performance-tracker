@@ -161,24 +161,35 @@ export function AdminDashboard() {
             </button>
           </div>
 
-          {/* Search Box for Organizations */}
-          <div className="relative mb-6 group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-hover:text-blue-400 transition-colors duration-300" />
-            <input
-              type="text"
-              placeholder="Search organizations by name, email, industry, or location..."
-              value={orgSearch}
-              onChange={(e) => setOrgSearch(e.target.value)}
-              className="w-full pl-12 pr-12 py-3 bg-gradient-to-r from-gray-700/50 to-gray-800/50 backdrop-blur-sm text-white rounded-xl border-2 border-gray-600/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300 group-hover:border-gray-500/50"
-            />
-            {orgSearch && (
-              <button
-                onClick={() => setOrgSearch('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+          {/* Search Box for Organizations - IMPROVED DESIGN */}
+          <div className="relative mb-6 group animate-fade-in">
+            <div className="relative flex items-center">
+              <div className="absolute left-0 pl-4 pointer-events-none">
+                <Search className="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors duration-300" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search organizations..."
+                value={orgSearch}
+                onChange={(e) => setOrgSearch(e.target.value)}
+                className="w-full pl-12 pr-12 py-3.5 bg-gray-800/40 backdrop-blur-xl text-white rounded-xl border-2 border-gray-700/50 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all duration-300 group-hover:border-gray-600/70 shadow-lg shadow-black/20"
+              />
+              {orgSearch && (
+                <button
+                  onClick={() => setOrgSearch('')}
+                  className="absolute right-0 pr-4 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-110 active:scale-95"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-2 px-4 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-400">Try searching by:</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">name</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">email</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">industry</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">location</span>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-gray-700/30">
@@ -299,24 +310,36 @@ export function AdminDashboard() {
             </div>
           </div>
           
-          {/* Search Box for Employees */}
-          <div className="relative mb-6 group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-hover:text-purple-400 transition-colors duration-300" />
-            <input
-              type="text"
-              placeholder="Search employees by name, email, organization, department, or position..."
-              value={empSearch}
-              onChange={(e) => setEmpSearch(e.target.value)}
-              className="w-full pl-12 pr-12 py-3 bg-gradient-to-r from-gray-700/50 to-gray-800/50 backdrop-blur-sm text-white rounded-xl border-2 border-gray-600/50 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 group-hover:border-gray-500/50"
-            />
-            {empSearch && (
-              <button
-                onClick={() => setEmpSearch('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+          {/* Search Box for Employees - IMPROVED DESIGN */}
+          <div className="relative mb-6 group animate-fade-in">
+            <div className="relative flex items-center">
+              <div className="absolute left-0 pl-4 pointer-events-none">
+                <Search className="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors duration-300" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search employees..."
+                value={empSearch}
+                onChange={(e) => setEmpSearch(e.target.value)}
+                className="w-full pl-12 pr-12 py-3.5 bg-gray-800/40 backdrop-blur-xl text-white rounded-xl border-2 border-gray-700/50 focus:border-purple-500/80 focus:ring-4 focus:ring-purple-500/20 outline-none transition-all duration-300 group-hover:border-gray-600/70 shadow-lg shadow-black/20"
+              />
+              {empSearch && (
+                <button
+                  onClick={() => setEmpSearch('')}
+                  className="absolute right-0 pr-4 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-110 active:scale-95"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-2 px-4 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-400">Try searching by:</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">name</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">email</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">organization</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">department</span>
+              <span className="text-xs text-gray-300 bg-gray-700/50 px-2 py-1 rounded-lg">position</span>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-gray-700/30">
@@ -446,6 +469,15 @@ export function AdminDashboard() {
           50% { background-position: 100% 50%; }
         }
         
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
         .animate-float {
           animation: float 6s ease-in-out infinite;
         }
@@ -465,6 +497,10 @@ export function AdminDashboard() {
         
         .animate-fade-in-down {
           animation: fade-in-down 0.6s ease-out forwards;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
         }
         
         .animate-gradient {
