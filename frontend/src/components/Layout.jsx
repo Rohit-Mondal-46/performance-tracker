@@ -22,7 +22,8 @@ export function Layout({ children }) {
   const { isDark, toggle } = useTheme();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-
+  console.log("current user: ", user);
+  
   const getNavigationItems = () => {
     if (isAdmin) {
       return [
@@ -134,7 +135,7 @@ export function Layout({ children }) {
                     {user?.name}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {user?.role === 'admin' ? 'Administrator' : user?.role === 'hr_manager' ? 'HR Manager' : 'Employee'}
+                    {user?.role === 'admin' ? 'Administrator' : user?.role === 'organization' ? 'Organization' : 'Employee'}
                   </p>
                 </div>
               )}
