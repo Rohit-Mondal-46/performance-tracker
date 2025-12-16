@@ -1,5 +1,6 @@
 import React from 'react';
 import { Monitor } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -7,11 +8,15 @@ export function Footer() {
       {/* Animated background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }}></div>
+        <div
+          className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '3s' }}
+        ></div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          
           {/* Logo and Brand */}
           <div className="flex items-center group">
             <div className="relative">
@@ -28,15 +33,28 @@ export function Footer() {
 
           {/* Navigation Links */}
           <div className="flex space-x-6">
-            <a href="#features" className="text-gray-400 hover:text-white text-sm transition-colors duration-300">
+            <a
+              href="#features"
+              className="text-gray-400 hover:text-white text-sm transition-colors duration-300"
+            >
               Features
             </a>
-            <a href="#testimonials" className="text-gray-400 hover:text-white text-sm transition-colors duration-300">
+
+            <a
+              href="#testimonials"
+              className="text-gray-400 hover:text-white text-sm transition-colors duration-300"
+            >
               Testimonials
             </a>
-            <a href="#services" className="text-gray-400 hover:text-white text-sm transition-colors duration-300">
-              Our Service
-            </a>
+
+            {/* Request Service → Contact Page */}
+            <Link
+              to="/contact"
+              className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:scale-105 relative group"
+            >
+              Request Service
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full"></span>
+            </Link>
           </div>
         </div>
       </div>
