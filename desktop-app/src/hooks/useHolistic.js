@@ -3,7 +3,7 @@
 // hooks/useHolistic.js - FIXED VERSION (Video Element Timing Fixed)
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const useHolistic = (onResults, onActivityChange) => {
+const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
   const videoRef = useRef(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
@@ -83,21 +83,24 @@ const useHolistic = (onResults, onActivityChange) => {
       if (!videoRef.current) {
         console.log("Waiting for video element...");
         await new Promise((resolve, reject) => {
-          const maxAttempts = 50; // 5 seconds max
+          const maxAttempts = 30; // 3 seconds max (reduced from 5)
           let attempts = 0;
           
           const checkVideo = setInterval(() => {
             attempts++;
+            console.log(`Checking for video element... attempt ${attempts}/${maxAttempts}`);
             if (videoRef.current) {
               clearInterval(checkVideo);
-              console.log("Video element found!");
+              console.log("✅ Video element found!");
               resolve();
             } else if (attempts >= maxAttempts) {
               clearInterval(checkVideo);
-              reject(new Error("Video element not mounted after 5 seconds"));
+              reject(new Error("Video element not mounted after 3 seconds. Please ensure camera is started."));
             }
           }, 100);
         });
+      } else {
+        console.log("✅ Video element already available");
       }
       
       // Wait for MediaPipe in Electron
@@ -362,11 +365,18 @@ const useHolistic = (onResults, onActivityChange) => {
 
   // Initialize on mount ONLY - with proper timing
   useEffect(() => {
+    // Don't initialize if camera hasn't been started yet
+    if (!cameraStarted) {
+      console.log("Waiting for camera to be started...");
+      setCurrentActivity("Not Started");
+      return;
+    }
+
     let mounted = true;
     
     const init = async () => {
-      // Wait a tick to ensure video element is in DOM
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for video element to be rendered in DOM
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       if (mounted) {
         await initialize();
@@ -379,7 +389,7 @@ const useHolistic = (onResults, onActivityChange) => {
       mounted = false;
       cleanup();
     };
-  }, []); // Empty dependency array - run ONCE on mount
+  }, [cameraStarted, initialize, cleanup]); // Re-run when cameraStarted changes
 
   return { 
     videoRef, 

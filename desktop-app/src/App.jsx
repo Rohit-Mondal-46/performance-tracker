@@ -6,7 +6,7 @@ import Navbar from "./components/Navbar";
 import CameraMonitor from "./components/CameraMonitor";
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import { employeeAPI } from './services/api';
+import { employeeAPI, activityAPI } from './services/api';
 
 // Dashboard Page Component
 function DashboardPage() {
@@ -16,7 +16,9 @@ function DashboardPage() {
   // State
   const [currentActivity, setCurrentActivity] = useState("");
   const [profileData, setProfileData] = useState(null);
+  const [todayData, setTodayData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingToday, setLoadingToday] = useState(true);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -41,10 +43,38 @@ function DashboardPage() {
     fetchProfile();
   }, []);
 
+  // Fetch today's performance data
+  useEffect(() => {
+    const fetchTodayData = async () => {
+      try {
+        const response = await activityAPI.getMyDailyScores();
+        
+        if (response && response.data) {
+          setTodayData(response.data.data);
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch today\'s data:', error);
+        // It's okay if there's no data for today yet
+        if (error.response?.status !== 404) {
+          console.error('Error details:', error.response?.data || error.message);
+        }
+      } finally {
+        setLoadingToday(false);
+      }
+    };
+
+    fetchTodayData();
+    
+    // Refresh today's data every 5 minutes
+    const interval = setInterval(fetchTodayData, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const handleActivityChange = (activity) => {
     setCurrentActivity(activity);
   };
-
+  
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -149,6 +179,105 @@ function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Performance Analytics */}
+          {loadingToday ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2 animate-pulse">
+              <div className="h-3 bg-gray-200 rounded w-24 mb-1.5"></div>
+              <div className="space-y-1">
+                <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                <div className="h-2.5 bg-gray-200 rounded w-4/5"></div>
+              </div>
+            </div>
+          ) : todayData?.daily_score ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
+              <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Today's Performance</h3>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Overall Score</span>
+                  <span className={`text-xs font-bold ${
+                    todayData.daily_score.overall_score >= 80 ? 'text-green-600' :
+                    todayData.daily_score.overall_score >= 60 ? 'text-blue-600' :
+                    todayData.daily_score.overall_score >= 40 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {parseFloat(todayData.daily_score.overall_score).toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Productivity</span>
+                  <span className="text-xs font-semibold text-indigo-600">
+                    {parseFloat(todayData.daily_score.productivity_score).toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Engagement</span>
+                  <span className="text-xs font-semibold text-purple-600">
+                    {parseFloat(todayData.daily_score.engagement_score).toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Grade</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                    todayData.daily_score.performance_grade === 'A' ? 'bg-green-100 text-green-700' :
+                    todayData.daily_score.performance_grade === 'B' ? 'bg-blue-100 text-blue-700' :
+                    todayData.daily_score.performance_grade === 'C' ? 'bg-yellow-100 text-yellow-700' :
+                    todayData.daily_score.performance_grade === 'D' ? 'bg-orange-100 text-orange-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {todayData.daily_score.performance_grade}
+                  </span>
+                </div>
+                <div className="pt-1 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Intervals</span>
+                    <span className="text-xs font-semibold text-gray-800">
+                      {todayData.daily_score.interval_count || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
+              <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Today's Performance</h3>
+              <p className="text-xs text-gray-500 text-center py-2">No activity data yet today</p>
+            </div>
+          )}
+
+          {/* Today's Activity Breakdown */}
+          {todayData?.daily_score && (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-md p-2 border border-blue-100">
+              <h3 className="font-semibold text-indigo-700 text-xs uppercase tracking-wide mb-1.5">Activity Breakdown</h3>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Working Time</span>
+                  <span className="text-xs font-medium text-green-700">
+                    {Math.floor(todayData.daily_score.working_total / 60)}m {todayData.daily_score.working_total % 60}s
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Distracted Time</span>
+                  <span className="text-xs font-medium text-orange-700">
+                    {Math.floor(todayData.daily_score.distracted_total / 60)}m {todayData.daily_score.distracted_total % 60}s
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Idle Time</span>
+                  <span className="text-xs font-medium text-gray-700">
+                    {Math.floor(todayData.daily_score.idle_total / 60)}m {todayData.daily_score.idle_total % 60}s
+                  </span>
+                </div>
+                <div className="pt-1 border-t border-indigo-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-gray-700">Total Time</span>
+                    <span className="text-xs font-bold text-indigo-700">
+                      {Math.floor(todayData.daily_score.grand_total / 60)}m {todayData.daily_score.grand_total % 60}s
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Camera Monitor Section - Right */}
