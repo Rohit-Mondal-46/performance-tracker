@@ -52,15 +52,7 @@ class ActivityBasedScoring {
     };
   }
 
-  /**
-   * Calculate productivity score (0-100)
-   * Rewards working time, penalizes idle time
-   * 
-   * @param {number} working_total - Total working activity count
-   * @param {number} idle_total - Total idle count
-   * @param {number} grand_total - Total of all activities
-   * @returns {number} Productivity score (0-100)
-   */
+
   static calculateProductivityScore(working_total, idle_total, grand_total) {
     if (grand_total === 0) return 0;
 

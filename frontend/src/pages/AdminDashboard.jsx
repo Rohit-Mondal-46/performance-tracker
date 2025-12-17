@@ -298,7 +298,7 @@ export function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white mb-2">Recent Employees</h2>
               <p className="text-gray-400">Latest employees across all organizations</p>
             </div>
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <button className="group flex items-center gap-2 bg-gradient-to-r from-gray-700/50 to-gray-800/50 hover:from-gray-600/50 hover:to-gray-700/50 text-gray-300 hover:text-white px-4 py-2 rounded-xl transition-all duration-300">
                 <Filter className="w-4 h-4" />
                 <span>Filter</span>
@@ -307,7 +307,7 @@ export function AdminDashboard() {
                 <Download className="w-4 h-4" />
                 <span>Export</span>
               </button>
-            </div>
+            </div> */}
           </div>
           
           {/* Search Box for Employees - IMPROVED DESIGN */}

@@ -69,7 +69,7 @@ export function EmployeeAnalytics() {
     ? trends.reduce((sum, t) => sum + parseFloat(t.avg_engagement || 0), 0) / trends.length
     : 0;
   const avgWorkingTime = trends.length > 0
-    ? trends.reduce((sum, t) => sum + (parseFloat(t.total_working || 0) / 60), 0) / trends.length
+    ? trends.reduce((sum, t) => sum + (parseFloat(t.total_working || 0)), 0) / trends.length
     : 0;
 
   // Current grade - fetch from latest score
@@ -161,9 +161,9 @@ export function EmployeeAnalytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { icon: <Target className="w-8 h-8" />, title: "Average Score", value: `${avgScore.toFixed(1)}%`, color: "blue" },
-            { icon: <TrendingUp className="w-8 h-8" />, title: "Productivity", value: `${avgProductivity.toFixed(1)}%`, color: "green" },
-            { icon: <Activity className="w-8 h-8" />, title: "Engagement", value: `${avgEngagement.toFixed(1)}%`, color: "purple" },
-            { icon: <Clock className="w-8 h-8" />, title: "Working Time", value: `${avgWorkingTime.toFixed(0)}min`, color: "orange" },
+            { icon: <TrendingUp className="w-8 h-8" />, title: "Average Productivity", value: `${avgProductivity.toFixed(1)}%`, color: "green" },
+            { icon: <Activity className="w-8 h-8" />, title: "Average Engagement", value: `${avgEngagement.toFixed(1)}%`, color: "purple" },
+            { icon: <Clock className="w-8 h-8" />, title: "Average Working Time", value: formatMinutes(avgWorkingTime), color: "orange" },
           ].map((stat, index) => (
             <motion.div
               key={index}
@@ -362,7 +362,7 @@ export function EmployeeAnalytics() {
                     className="bg-gray-900/50 rounded-xl p-4 border border-green-500/20"
                   >
                     <div className="text-green-400 text-2xl font-bold">
-                      {parseFloat(trends[0]?.productivity_score || 0).toFixed(1)}%
+                      {parseFloat(trends[trends.length - 1]?.avg_productivity || 0).toFixed(1)}%
                     </div>
                     <div className="text-gray-400 text-sm">Productivity</div>
                   </motion.div>
@@ -371,7 +371,7 @@ export function EmployeeAnalytics() {
                     className="bg-gray-900/50 rounded-xl p-4 border border-blue-500/20"
                   >
                     <div className="text-blue-400 text-2xl font-bold">
-                      {parseFloat(trends[0]?.engagement_score || 0).toFixed(1)}%
+                      {parseFloat(trends[trends.length - 1]?.avg_engagement || 0).toFixed(1)}%
                     </div>
                     <div className="text-gray-400 text-sm">Engagement</div>
                   </motion.div>
@@ -449,71 +449,7 @@ export function EmployeeAnalytics() {
         </motion.div>
 
         {/* Time Distribution Analysis */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          whileHover={{ y: -4 }}
-          className="bg-gradient-to-br from-gray-900/40 to-gray-900/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-2xl shadow-orange-500/10"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Time Distribution</h2>
-            <motion.div
-              animate={{ rotate: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="p-2 rounded-lg bg-gradient-to-r from-orange-600/20 to-red-600/20"
-            >
-              <Clock className="w-5 h-5 text-orange-400" />
-            </motion.div>
-          </div>
-          {trends.length > 0 ? (
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart 
-                data={[...trends].reverse().slice(-10).map(t => ({
-                  date: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                  working: (parseFloat(t.total_working || 0) / 60).toFixed(0),
-                  unproductive: ((parseFloat(t.total_distracted || 0) + parseFloat(t.total_idle || 0)) / 60).toFixed(0)
-                }))}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-                <YAxis dataKey="date" type="category" stroke="#9ca3af" fontSize={12} width={80} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(17, 24, 39, 0.8)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-                  }}
-                />
-                <Legend wrapperStyle={{ color: '#fff', fontSize: '12px' }} />
-                <Bar 
-                  dataKey="working" 
-                  stackId="a" 
-                  fill="#10b981" 
-                  name="Working Time (min)" 
-                  radius={[0, 8, 8, 0]}
-                  animationDuration={1500}
-                />
-                <Bar 
-                  dataKey="unproductive" 
-                  stackId="a" 
-                  fill="#ef4444" 
-                  name="Unproductive Time (min)" 
-                  radius={[0, 8, 8, 0]}
-                  animationDuration={1500}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-12 text-gray-400">
-              <div className="text-6xl mb-4">⏰</div>
-              No time distribution data available
-            </div>
-          )}
-        </motion.div>
+        
       </div>
     </div>
   );
@@ -600,4 +536,17 @@ function getGradeColor(grade) {
     'F': 'text-gradient bg-gradient-to-r from-red-400 to-pink-400'
   };
   return colors[grade] || 'text-gray-400';
+}
+
+function formatMinutes(minutes) {
+  const totalMinutes = parseInt(minutes || 0);
+  if (totalMinutes < 60) {
+    return `${totalMinutes}min`;
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (mins === 0) {
+    return `${hours}hr`;
+  }
+  return `${hours}hr ${mins}min`;
 }

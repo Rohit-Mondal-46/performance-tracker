@@ -351,9 +351,17 @@ const getOrganizationAnalytics = async (req, res) => {
     const avgWorking = totals.working / scores.length;
     const avgUnproductive = (totals.distracted + totals.idle) / scores.length;
 
-    // Grade distribution
-    const gradeDistribution = scores.reduce((acc, score) => {
-      const grade = score.performance_grade || 'F';
+    // Grade distribution - employee-wise (get most recent grade for each employee)
+    const employeeLatestGrades = new Map();
+    scores.forEach(score => {
+      const empId = score.employee_id;
+      // Since scores are ordered by date DESC, first occurrence is the latest
+      if (!employeeLatestGrades.has(empId)) {
+        employeeLatestGrades.set(empId, score.performance_grade || 'F');
+      }
+    });
+
+    const gradeDistribution = Array.from(employeeLatestGrades.values()).reduce((acc, grade) => {
       acc[grade] = (acc[grade] || 0) + 1;
       return acc;
     }, {});
@@ -363,8 +371,8 @@ const getOrganizationAnalytics = async (req, res) => {
         average_score: Math.round(avgOverall * 100) / 100,
         average_productivity: Math.round(avgProductivity * 100) / 100,
         average_engagement: Math.round(avgEngagement * 100) / 100,
-        average_working_time: Math.round(avgWorking / 60 * 100) / 100, // Convert to minutes
-        average_unproductive_time: Math.round(avgUnproductive / 60 * 100) / 100, // Convert to minutes
+        average_working_time: Math.round(avgWorking * 100) / 100, // Already in minutes
+        average_unproductive_time: Math.round(avgUnproductive * 100) / 100, // Already in minutes
         total_employees: new Set(scores.map(s => s.employee_id)).size,
         grade_distribution: gradeDistribution,
         days_analyzed: days

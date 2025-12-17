@@ -9,6 +9,7 @@ export function OrganizationDashboard() {
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchDashboardData();
@@ -87,6 +88,14 @@ export function OrganizationDashboard() {
   const stats = dashboard?.statistics || {};
   const departmentBreakdown = stats.departmentBreakdown || {};
   const positionBreakdown = stats.positionBreakdown || {};
+
+  // Filter employees based on search query
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (emp.department && emp.department.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (emp.position && emp.position.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 md:p-6 overflow-hidden">
@@ -176,17 +185,7 @@ export function OrganizationDashboard() {
               />
             </FloatingCard>
           </div>
-          <div className="relative z-10">
-            <FloatingCard delay={400}>
-              <QuantumParticleEffect color="purple" />
-              <StatCard
-                icon={<BarChart3 className="w-8 h-8" />}
-                title="Active Positions"
-                value={Object.keys(positionBreakdown).length}
-                color="from-purple-500 to-pink-500"
-              />
-            </FloatingCard>
-          </div>
+  
           <div className="relative z-10">
             <FloatingCard delay={600}>
               <QuantumParticleEffect color="orange" />
@@ -238,7 +237,6 @@ export function OrganizationDashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-bold bg-gradient-to-r from-blue-500/20 to-blue-600/20 px-3 py-1 rounded-lg">{count}</span>
-                          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" />
                         </div>
                       </div>
                     </div>
@@ -273,7 +271,6 @@ export function OrganizationDashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-bold bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-3 py-1 rounded-lg">{count}</span>
-                          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transform group-hover:translate-x-1 transition-all" />
                         </div>
                       </div>
                     </div>
@@ -304,10 +301,36 @@ export function OrganizationDashboard() {
                   <div className="flex items-center gap-4">
                     <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 backdrop-blur-sm">
                       <span className="text-sm font-semibold text-blue-300">
-                        {employees.length} Team Members
+                        {filteredEmployees.length} Team Members
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative mb-6 group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search employees by name, email, department, or position..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-12 py-3 bg-white text-gray-900 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300 group-hover:border-gray-300 placeholder:text-gray-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-900 transition-colors duration-300"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
 
                 <div className="overflow-x-auto rounded-xl">
@@ -322,7 +345,8 @@ export function OrganizationDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {employees.map((emp, index) => (
+                      {filteredEmployees.length > 0 ? (
+                        filteredEmployees.map((emp, index) => (
                         <tr 
                           key={emp.id} 
                           className="border-b border-gray-700/30 hover:bg-white/5 transition-all duration-300 group animate-fade-in-up"
@@ -380,7 +404,23 @@ export function OrganizationDashboard() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="py-12 text-center">
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                            </div>
+                            <div className="text-gray-400 text-lg">
+                              {searchQuery ? 'No employees found matching your search.' : 'No employees found.'}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                     </tbody>
                   </table>
                 </div>

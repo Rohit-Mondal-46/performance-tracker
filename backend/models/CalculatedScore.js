@@ -280,18 +280,20 @@ class CalculatedScore {
 
       const query = `
         SELECT 
-          score_date as date,
-          productivity_score as avg_productivity,
-          engagement_score as avg_engagement,
-          overall_score as avg_overall,
-          working_total as total_working,
-          distracted_total as total_distracted,
-          idle_total as total_idle,
+          score_date,
+          productivity_score,
+          engagement_score,
+          overall_score,
+          working_total,
+          grand_total,
+          distracted_total,
+          idle_total,
+          performance_grade,
           interval_count
         FROM calculated_scores
         WHERE employee_id = $1
           AND score_date >= $2
-        ORDER BY score_date ASC
+        ORDER BY score_date DESC
       `;
 
       const result = await pool.query(query, [employeeId, startDate]);

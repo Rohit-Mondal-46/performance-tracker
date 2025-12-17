@@ -14,6 +14,7 @@ export function OrganizationAnalytics() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState(30);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState('');
   const containerRef = useRef(null);
 
   const fetchData = useCallback(async () => {
@@ -82,6 +83,18 @@ export function OrganizationAnalytics() {
     };
   }, []);
 
+  // Filter employees based on search query
+  const filteredEmployees = employees.filter(emp =>
+    emp.name.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
+    emp.email.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
+    (emp.department && emp.department.toLowerCase().includes(employeeSearchQuery.toLowerCase()))
+  );
+
+  const handleEmployeeSelect = (empId, empName) => {
+    setSelectedEmployee(empId);
+    setEmployeeSearchQuery(empName);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
@@ -97,353 +110,507 @@ export function OrganizationAnalytics() {
 
   return (
     <div 
-      ref={containerRef}
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-6 relative overflow-hidden"
-    >
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400/30 rounded-full animate-float"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.5}s`,
-              animationDuration: `${3 + Math.random() * 7}s`,
-            }}
-          />
-        ))}
-        {/* Interactive particle glow near cursor */}
-        <div
-          className="absolute w-64 h-64 bg-blue-500/5 rounded-full blur-3xl transition-all duration-300 ease-out"
-          style={{
-            left: `${mousePosition.x - 128}px`,
-            top: `${mousePosition.y - 128}px`,
-            transform: 'translateZ(0)',
-          }}
-        />
+  ref={containerRef}
+  className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-6 relative overflow-hidden"
+>
+  {/* Animated background particles */}
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {Array.from({ length: 20 }).map((_, i) => (
+      <div
+        key={i}
+        className="absolute w-1 h-1 bg-blue-400/30 rounded-full animate-float"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${i * 0.5}s`,
+          animationDuration: `${3 + Math.random() * 7}s`,
+        }}
+      />
+    ))}
+    {/* Interactive particle glow near cursor */}
+    <div
+      className="absolute w-64 h-64 bg-blue-500/5 rounded-full blur-3xl transition-all duration-300 ease-out"
+      style={{
+        left: `${mousePosition.x - 128}px`,
+        top: `${mousePosition.y - 128}px`,
+        transform: 'translateZ(0)',
+      }}
+    />
+  </div>
+
+  <div className="max-w-7xl mx-auto relative z-10">
+    {/* Header with floating animation */}
+    <div className="mb-8 animate-float-slow">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="relative">
+          <h1 className="text-3xl font-bold text-white">Organization Analytics</h1>
+          <div className="absolute -top-1 -right-4">
+            <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+          </div>
+        </div>
       </div>
+      <p className="text-gray-400">Comprehensive performance insights for your team</p>
+    </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header with floating animation */}
-        <div className="mb-8 animate-float-slow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="relative">
-              <h1 className="text-3xl font-bold text-white">Organization Analytics</h1>
-              <div className="absolute -top-1 -right-4">
-                <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
-              </div>
-            </div>
-          </div>
-          <p className="text-gray-400">Comprehensive performance insights for your team</p>
+    {/* Time Range Selector with glow effect */}
+    <div className="mb-6 flex justify-end animate-fade-in">
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(Number(e.target.value))}
+          className="relative bg-gray-800/80 backdrop-blur-sm text-white rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700 hover:border-blue-500/50 transition-all duration-300"
+        >
+          <option value={7}>Last 7 days</option>
+          <option value={30}>Last 30 days</option>
+          <option value={90}>Last 90 days</option>
+        </select>
+      </div>
+    </div>
+
+    {/* Overall Performance Metrics with floating cards */}
+    {analytics && (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            icon={<Award className="w-8 h-8" />}
+            title="Average Score"
+            value={`${parseFloat(analytics.average_score || 0).toFixed(1)}%`}
+            color="blue"
+            index={0}
+          />
+          <StatCard
+            icon={<TrendingUp className="w-8 h-8" />}
+            title="Average Productivity"
+            value={`${parseFloat(analytics.average_productivity || 0).toFixed(1)}%`}
+            color="green"
+            index={1}
+          />
+          <StatCard
+            icon={<Activity className="w-8 h-8" />}
+            title="Average Engagement"
+            value={`${parseFloat(analytics.average_engagement || 0).toFixed(1)}%`}
+            color="purple"
+            index={2}
+          />
+          <StatCard
+            icon={<Clock className="w-8 h-8" />}
+            title="Avg Working Time"
+            value={formatMinutes(analytics.average_working_time)}
+            color="orange"
+            index={3}
+          />
         </div>
 
-        {/* Time Range Selector with glow effect */}
-        <div className="mb-6 flex justify-end animate-fade-in">
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
-            <select
-              value={timeRange}
-              onChange={(e) => setTimeRange(Number(e.target.value))}
-              className="relative bg-gray-800/80 backdrop-blur-sm text-white rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700 hover:border-blue-500/50 transition-all duration-300"
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Overall Performance Metrics with floating cards */}
-        {analytics && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                icon={<Award className="w-8 h-8" />}
-                title="Average Score"
-                value={`${parseFloat(analytics.average_score || 0).toFixed(1)}%`}
-                color="blue"
-                index={0}
-              />
-              <StatCard
-                icon={<TrendingUp className="w-8 h-8" />}
-                title="Average Productivity"
-                value={`${parseFloat(analytics.average_productivity || 0).toFixed(1)}%`}
-                color="green"
-                index={1}
-              />
-              <StatCard
-                icon={<Activity className="w-8 h-8" />}
-                title="Average Engagement"
-                value={`${parseFloat(analytics.average_engagement || 0).toFixed(1)}%`}
-                color="purple"
-                index={2}
-              />
-              <StatCard
-                icon={<Clock className="w-8 h-8" />}
-                title="Avg Working Time"
-                value={`${parseFloat(analytics.average_working_time || 0).toFixed(0)}min`}
-                color="orange"
-                index={3}
-              />
+        {/* Grade Distribution with enhanced 3D effect */}
+        <div className="animate-float-slow mb-8">
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-2xl shadow-black/30 hover:shadow-blue-900/20 transition-all duration-500 hover:border-blue-500/30 hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Performance Grade Distribution</h2>
+              <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
             </div>
-
-            {/* Grade Distribution with enhanced 3D effect */}
-            <div className="animate-float-slow mb-8">
-              <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-2xl shadow-black/30 hover:shadow-blue-900/20 transition-all duration-500 hover:border-blue-500/30 hover:translate-y-[-4px]">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Performance Grade Distribution</h2>
-                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={['A+', 'A', 'B', 'C', 'D', 'F'].map(grade => {
-                          return {
-                            name: `Grade ${grade}`,
-                            value: parseInt(analytics.grade_distribution?.[grade] || 0)
-                          };
-                        }).filter(d => d.value > 0)}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {['A+', 'A', 'B', 'C', 'D', 'F'].map((grade, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={getPieColor(grade)}
-                            className="hover:opacity-80 transition-opacity duration-300"
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(17, 24, 39, 0.9)', 
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(75, 85, 99, 0.5)', 
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
-                        }} 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={['A+', 'A', 'B', 'C', 'D', 'F'].map(grade => {
+                      return {
+                        name: `Grade ${grade}`,
+                        value: parseInt(analytics.grade_distribution?.[grade] || 0)
+                      };
+                    }).filter(d => d.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {['A+', 'A', 'B', 'C', 'D', 'F'].map((grade, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={getPieColor(grade)}
+                        className="hover:opacity-80 transition-opacity duration-300"
                       />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 content-center">
-                    {['A+', 'A', 'B', 'C', 'D', 'F'].map((grade, index) => {
-                      const count = parseInt(analytics.grade_distribution?.[grade] || 0);
-                      const total = Object.values(analytics.grade_distribution || {}).reduce((sum, val) => sum + parseInt(val || 0), 0) || 1;
-                      const percentage = ((count / total) * 100).toFixed(1);
-                      
-                      return (
-                        <div 
-                          key={grade} 
-                          className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-600/30 hover:border-gray-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-black/30 animate-fade-in"
-                          style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                          <div className={`text-3xl font-bold mb-2 animate-pulse ${getGradeColor(grade)}`}>
-                            {count}
-                          </div>
-                          <div className="text-gray-400 text-sm mb-1">Grade {grade}</div>
-                          <div className="text-gray-500 text-xs">{percentage}%</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(75, 85, 99, 0.5)', 
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+                    }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 content-center">
+                {['A+', 'A', 'B', 'C', 'D', 'F'].map((grade, index) => {
+                  const count = parseInt(analytics.grade_distribution?.[grade] || 0);
+                  const total = Object.values(analytics.grade_distribution || {}).reduce((sum, val) => sum + parseInt(val || 0), 0) || 1;
+                  const percentage = ((count / total) * 100).toFixed(1);
+                  
+                  return (
+                    <div 
+                      key={grade} 
+                      className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-600/30 hover:border-gray-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-black/30 animate-fade-in"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className={`text-3xl font-bold mb-2 animate-pulse ${getGradeColor(grade)}`}>
+                        {count}
+                      </div>
+                      <div className="text-gray-400 text-sm mb-1">Grade {grade}</div>
+                      <div className="text-gray-500 text-xs">{percentage}%</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Time Distribution with glowing bars */}
-            <div className="animate-float-slow mb-8">
-              <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-2xl shadow-black/30 hover:shadow-green-900/20 transition-all duration-500 hover:border-green-500/30 hover:translate-y-[-4px]">
-                <h2 className="text-xl font-bold text-white mb-6">Average Time Distribution</h2>
-                <div className="space-y-6">
-                  <TimeBar
-                    label="Working Time"
-                    value={parseFloat(analytics.average_working_time || 0)}
-                    total={480}
-                    color="green"
-                  />
-                  <TimeBar
-                    label="Unproductive Time (Idle + Distracted)"
-                    value={parseFloat(analytics.average_unproductive_time || 0)}
-                    total={480}
-                    color="red"
-                  />
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Employee Performance Comparison */}
+        {/* Employee List */}
         <div className="animate-float-slow">
           <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-2xl shadow-black/30 hover:shadow-purple-900/20 transition-all duration-500 hover:border-purple-500/30 hover:translate-y-[-4px]">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">Employee Performance Trends</h2>
+                <h2 className="text-xl font-bold text-white">Employee Performance</h2>
                 <div className="relative">
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-20 animate-pulse"></div>
                   <Users className="w-5 h-5 text-purple-400 relative" />
                 </div>
+                <span className="text-gray-400 text-sm">({filteredEmployees.length} employees)</span>
               </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
-                <select
-                  value={selectedEmployee || ''}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                  className="relative bg-gray-700/80 backdrop-blur-sm text-white rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500 border border-gray-600 hover:border-purple-500/50 transition-all duration-300"
-                >
-                  <option value="">Select an employee</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.name}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or department..."
+                  value={employeeSearchQuery}
+                  onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                  className="relative bg-white text-gray-900 rounded-lg px-4 py-2 pr-10 w-96 outline-none focus:ring-2 focus:ring-purple-500 border border-gray-200 hover:border-purple-500/50 transition-all duration-300 placeholder:text-gray-400"
+                />
+                {employeeSearchQuery && (
+                  <button
+                    onClick={() => setEmployeeSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors duration-300"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 
-            {selectedEmployee && employeeTrends.length > 0 ? (
-              <div className="space-y-8">
-                {/* Trend Chart with glowing effect */}
-                <div className="relative group">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                  <div className="relative bg-gray-700/30 backdrop-blur-sm rounded-xl p-6 border border-gray-600/30">
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart data={[...employeeTrends].reverse().slice(-30).map(t => ({
-                        date: new Date(t.score_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                        overall: parseFloat(t.overall_score || 0),
-                        productivity: parseFloat(t.productivity_score || 0),
-                        engagement: parseFloat(t.engagement_score || 0),
-                        grade: t.performance_grade
-                      }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
-                        <XAxis dataKey="date" stroke="#9ca3af" strokeOpacity={0.7} />
-                        <YAxis stroke="#9ca3af" strokeOpacity={0.7} domain={[0, 100]} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(75, 85, 99, 0.5)', 
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
-                          }}
-                          labelStyle={{ color: '#fff' }}
-                        />
-                        <Legend wrapperStyle={{ color: '#fff' }} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="overall" 
-                          stroke="url(#overallGradient)" 
-                          strokeWidth={3} 
-                          name="Overall Score" 
-                          dot={{ r: 4, fill: '#3b82f6' }}
-                          activeDot={{ r: 8, fill: '#60a5fa' }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="productivity" 
-                          stroke="url(#productivityGradient)" 
-                          strokeWidth={2} 
-                          name="Productivity" 
-                          strokeDasharray="5 5"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="engagement" 
-                          stroke="url(#engagementGradient)" 
-                          strokeWidth={2} 
-                          name="Engagement" 
-                          strokeDasharray="3 3"
-                        />
-                        <defs>
-                          <linearGradient id="overallGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#3b82f6" />
-                            <stop offset="100%" stopColor="#8b5cf6" />
-                          </linearGradient>
-                          <linearGradient id="productivityGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#10b981" />
-                            <stop offset="100%" stopColor="#34d399" />
-                          </linearGradient>
-                          <linearGradient id="engagementGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#a855f7" />
-                            <stop offset="100%" stopColor="#ec4899" />
-                          </linearGradient>
-                        </defs>
-                      </LineChart>
-                    </ResponsiveContainer>
+            {/* Employee Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Name</th>
+                    <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Email</th>
+                    <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Department</th>
+                    <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Position</th>
+                    <th className="text-center text-gray-400 text-sm font-medium py-3 px-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEmployees.length > 0 ? (
+                    filteredEmployees.map((emp, index) => (
+                      <tr 
+                        key={emp.id}
+                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors duration-200"
+                        style={{ animationDelay: `${index * 30}ms` }}
+                      >
+                        <td className="py-4 px-4">
+                          <div className="text-white font-medium">{emp.name}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="text-gray-300 text-sm">{emp.email}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="text-gray-300 text-sm">{emp.department || 'N/A'}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="text-gray-300 text-sm">{emp.position || 'N/A'}</div>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <button
+                            onClick={() => handleEmployeeSelect(emp.id, emp.name)}
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105"
+                          >
+                            View Trends
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center">
+                        <div className="text-gray-400">
+                          {employeeSearchQuery ? `No employees found matching "${employeeSearchQuery}"` : 'No employees available'}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+
+    {/* Performance Trends Modal */}
+    {selectedEmployee && (
+      <div 
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in pl-64"
+        onClick={() => setSelectedEmployee(null)}
+      >
+        <div 
+          className="bg-gray-900 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 p-6 flex items-center justify-between z-10">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-1">Performance Trends</h2>
+              <p className="text-gray-400">{selectedEmployee.name}</p>
+            </div>
+            <button
+              onClick={() => setSelectedEmployee(null)}
+              className="text-gray-400 hover:text-white transition-colors duration-300 p-2 hover:bg-gray-800 rounded-lg"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Modal Content */}
+          <div className="p-6">
+            {employeeTrends.length > 0 ? (
+              <div className="space-y-6">
+                {/* Performance Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-600/20 to-blue-700/10 backdrop-blur-sm rounded-xl p-5 border border-blue-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-blue-300 text-sm font-medium">Current Score</span>
+                      <Award className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-1">
+                      {parseFloat(employeeTrends[0]?.overall_score || 0).toFixed(1)}%
+                    </div>
+                    <div className={`text-sm font-medium px-2 py-1 rounded-lg inline-block ${
+                      employeeTrends[0]?.performance_grade === 'A+' || employeeTrends[0]?.performance_grade === 'A' 
+                        ? 'bg-green-500/20 text-green-300' 
+                        : employeeTrends[0]?.performance_grade === 'B' 
+                        ? 'bg-blue-500/20 text-blue-300'
+                        : employeeTrends[0]?.performance_grade === 'C'
+                        ? 'bg-yellow-500/20 text-yellow-300'
+                        : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      Grade {employeeTrends[0]?.performance_grade}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-600/20 to-green-700/10 backdrop-blur-sm rounded-xl p-5 border border-green-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-green-300 text-sm font-medium">Avg Productivity</span>
+                      <TrendingUp className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-1">
+                      {(employeeTrends.reduce((sum, t) => sum + parseFloat(t.productivity_score || 0), 0) / employeeTrends.length).toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-green-300">
+                      Best: {Math.max(...employeeTrends.map(t => parseFloat(t.productivity_score || 0))).toFixed(1)}%
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-600/20 to-purple-700/10 backdrop-blur-sm rounded-xl p-5 border border-purple-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-purple-300 text-sm font-medium">Avg Engagement</span>
+                      <Activity className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-1">
+                      {(employeeTrends.reduce((sum, t) => sum + parseFloat(t.engagement_score || 0), 0) / employeeTrends.length).toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-purple-300">
+                      Best: {Math.max(...employeeTrends.map(t => parseFloat(t.engagement_score || 0))).toFixed(1)}%
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-600/20 to-orange-700/10 backdrop-blur-sm rounded-xl p-5 border border-orange-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-orange-300 text-sm font-medium">Active Days</span>
+                      <Clock className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-1">
+                      {employeeTrends.length}
+                    </div>
+                    <div className="text-sm text-orange-300">
+                      {timeRange} day period
+                    </div>
                   </div>
                 </div>
 
-                {/* Radar Chart for Latest Performance */}
-                <div className="bg-gradient-to-br from-gray-700/30 to-gray-800/30 backdrop-blur-sm rounded-xl p-8 border border-gray-600/30 hover:border-blue-500/30 transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-bold text-white">Latest Performance Breakdown</h3>
-                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+                {/* Combined Performance & Time Chart */}
+                <div className="bg-gray-700/30 backdrop-blur-sm rounded-xl p-6 border border-gray-600/30">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-white mb-1">Performance & Working Time Trends</h3>
+                    <p className="text-sm text-gray-400">Daily scores and working hours over time</p>
                   </div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={[
-                      {
-                        metric: 'Overall',
-                        value: parseFloat(employeeTrends[0]?.overall_score || 0)
-                      },
-                      {
-                        metric: 'Productivity',
-                        value: parseFloat(employeeTrends[0]?.productivity_score || 0)
-                      },
-                      {
-                        metric: 'Engagement',
-                        value: parseFloat(employeeTrends[0]?.engagement_score || 0)
-                      }
-                    ]}>
-                      <PolarGrid stroke="#374151" strokeOpacity={0.3} />
-                      <PolarAngleAxis dataKey="metric" stroke="#9ca3af" strokeOpacity={0.7} />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9ca3af" strokeOpacity={0.7} />
-                      <Radar 
-                        name="Performance" 
-                        dataKey="value" 
-                        stroke="url(#radarGradient)" 
-                        fill="url(#radarFill)" 
-                        fillOpacity={0.6} 
-                        strokeWidth={2}
-                      />
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={[...employeeTrends].reverse().slice(-30).map(t => ({
+                      date: new Date(t.score_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                      overall: parseFloat(t.overall_score || 0),
+                      productivity: parseFloat(t.productivity_score || 0),
+                      engagement: parseFloat(t.engagement_score || 0),
+                      workingHours: (parseFloat(t.working_total || 0) / 60).toFixed(1),
+                      grade: t.performance_grade
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+                      <XAxis dataKey="date" stroke="#9ca3af" strokeOpacity={0.7} fontSize={12} />
+                      <YAxis yAxisId="left" stroke="#9ca3af" strokeOpacity={0.7} domain={[0, 100]} fontSize={12} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#9ca3af" strokeOpacity={0.7} fontSize={12} />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                          backgroundColor: 'rgba(17, 24, 39, 0.95)',
                           backdropFilter: 'blur(10px)',
                           border: '1px solid rgba(75, 85, 99, 0.5)', 
-                          borderRadius: '12px'
-                        }} 
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+                        }}
+                        labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '8px' }}
                       />
-                      <defs>
-                        <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3b82f6" />
-                          <stop offset="100%" stopColor="#8b5cf6" />
-                        </linearGradient>
-                        <linearGradient id="radarFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                        </linearGradient>
-                      </defs>
-                    </RadarChart>
+                      <Legend wrapperStyle={{ color: '#fff' }} />
+                      <Line 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="overall" 
+                        stroke="#3b82f6" 
+                        strokeWidth={3} 
+                        name="Overall Score (%)" 
+                        dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#1e3a8a' }}
+                        activeDot={{ r: 7, fill: '#60a5fa' }}
+                      />
+                      <Line 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="productivity" 
+                        stroke="#10b981" 
+                        strokeWidth={2} 
+                        name="Productivity (%)" 
+                        strokeDasharray="5 5"
+                        dot={{ r: 4, fill: '#10b981' }}
+                      />
+                      <Line 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="engagement" 
+                        stroke="#a855f7" 
+                        strokeWidth={2} 
+                        name="Engagement (%)" 
+                        strokeDasharray="3 3"
+                        dot={{ r: 4, fill: '#a855f7' }}
+                      />
+                      <Line 
+                        yAxisId="right"
+                        type="monotone" 
+                        dataKey="workingHours" 
+                        stroke="#f59e0b" 
+                        strokeWidth={2} 
+                        name="Working Hours" 
+                        dot={{ r: 4, fill: '#f59e0b' }}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
+                </div>
+
+                {/* Daily Performance Breakdown */}
+                <div className="bg-gray-700/30 backdrop-blur-sm rounded-xl p-6 border border-gray-600/30">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-white mb-1">Recent Daily Performance</h3>
+                    <p className="text-sm text-gray-400">Last 7 days detailed breakdown</p>
+                  </div>
+                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    {[...employeeTrends].slice(0, 7).map((day, index) => (
+                      <div 
+                        key={index}
+                        className="bg-gray-800/50 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.02]"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="text-white font-semibold">
+                              {new Date(day.score_date).toLocaleDateString('en-US', { 
+                                weekday: 'short',
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </div>
+                            <div className={`px-3 py-1 rounded-lg text-sm font-bold ${
+                              day.performance_grade === 'A+' || day.performance_grade === 'A' 
+                                ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                                : day.performance_grade === 'B' 
+                                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                : day.performance_grade === 'C'
+                                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                                : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            }`}>
+                              {day.performance_grade}
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            {parseFloat(day.overall_score || 0).toFixed(1)}%
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="bg-gray-900/50 rounded-lg p-3">
+                            <div className="text-xs text-gray-400 mb-1">Productivity</div>
+                            <div className="text-lg font-semibold text-green-400">
+                              {parseFloat(day.productivity_score || 0).toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="bg-gray-900/50 rounded-lg p-3">
+                            <div className="text-xs text-gray-400 mb-1">Engagement</div>
+                            <div className="text-lg font-semibold text-purple-400">
+                              {parseFloat(day.engagement_score || 0).toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="bg-gray-900/50 rounded-lg p-3">
+                            <div className="text-xs text-gray-400 mb-1">Working Time</div>
+                            <div className="text-lg font-semibold text-orange-400">
+                              {formatMinutes(day.working_total)}
+                            </div>
+                          </div>
+                          <div className="bg-gray-900/50 rounded-lg p-3">
+                            <div className="text-xs text-gray-400 mb-1">Total Time</div>
+                            <div className="text-lg font-semibold text-blue-400">
+                              {formatMinutes(day.grand_total)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-400 animate-pulse">
-                {selectedEmployee ? 'No performance data available for this period' : 'Select an employee to view their performance trends'}
+              <div className="text-center py-12 text-gray-400">
+                <div className="text-6xl mb-4">📊</div>
+                <p>No performance data available for this period</p>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    )}
+  </div>
+</div>
+  )}
 
 function StatCard({ icon, title, value, color, index }) {
   const colorClasses = {
@@ -559,4 +726,18 @@ function getPieColor(grade) {
     'F': '#ef4444'
   };
   return colors[grade] || '#6b7280';
+}
+
+function formatMinutes(minutes) {
+  const totalMinutes = parseInt(minutes || 0);
+  if (totalMinutes < 60) {
+    return `${totalMinutes}min`;
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (mins === 0) {
+    return `${hours}hr`;
+  }
+  return `${hours}hr ${mins}min`;
+
 }
