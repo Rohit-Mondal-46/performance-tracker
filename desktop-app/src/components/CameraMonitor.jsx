@@ -1,5 +1,6 @@
 // components/CameraMonitor.jsx - ENHANCED WITH ALL FEATURES
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import * as faceapi from "face-api.js";
 import { drawResults } from "../utils/faceUtils";
 import useHolistic from "../hooks/useHolistic";
 import useActivityTracking from "../hooks/useActivityTracking";
@@ -14,6 +15,7 @@ import 'jspdf-autotable';
 const CameraMonitor = ({ onActivityChange }) => {
   const canvasRef = useRef(null);
   const faceCanvasRef = useRef(null);
+  const [faceApiLoaded, setFaceApiLoaded] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [cameraStatus, setCameraStatus] = useState("waiting"); // Changed from "initializing" to "waiting"
   const [mediaPipeStatus, setMediaPipeStatus] = useState("checking");
@@ -25,6 +27,11 @@ const CameraMonitor = ({ onActivityChange }) => {
   const [isTrackingPaused, setIsTrackingPaused] = useState(false);
   const [pauseStartTime, setPauseStartTime] = useState(null);
   const [totalPausedTime, setTotalPausedTime] = useState(0);
+  
+  // Face detection state
+  const [faceDetection, setFaceDetection] = useState(null);
+  const [gazeDirection, setGazeDirection] = useState('center');
+  const [isLookingAway, setIsLookingAway] = useState(false);
   
   // Activity tracking state
   const [activityLog, setActivityLog] = useState([]);
@@ -42,6 +49,7 @@ const CameraMonitor = ({ onActivityChange }) => {
   
   const lastActivityRef = useRef(null);
   const sessionStartRef = useRef(Date.now());
+  const faceDetectionIntervalRef = useRef(null);
   
   const onActivityChangeRef = useRef(onActivityChange);
   useEffect(() => {
@@ -78,7 +86,9 @@ const CameraMonitor = ({ onActivityChange }) => {
     if (isTrackingPaused) return;
     
     const now = Date.now();
-    const enhancedActivity = activity;
+    const enhancedActivity = isLookingAway ? 'Looking Away' : 
+                             (activity === 'Sitting' && !isLookingAway) ? 'Reading' : 
+                             activity;
     
     // Track activity duration
     if (lastActivityRef.current && lastActivityRef.current !== enhancedActivity) {
@@ -105,7 +115,7 @@ const CameraMonitor = ({ onActivityChange }) => {
     lastActivityRef.current = enhancedActivity;
     setCurrentSession({ activity: enhancedActivity, startTime: now });
     onActivityChangeRef.current?.(enhancedActivity);
-  }, [isTrackingPaused]);
+  }, [isLookingAway, isTrackingPaused]);
 
   const { 
     videoRef,
@@ -113,16 +123,133 @@ const CameraMonitor = ({ onActivityChange }) => {
     isInitialized, 
     currentActivity, 
     restart,
-    mediaPipeStatus: holisticStatus
+    mediaPipeStatus: holisticStatus,
+    isUsingFallback
   } = useHolistic(handleResults, handleActivityChange, cameraStarted); // Pass cameraStarted to control initialization
 
   useEffect(() => {
     setMediaPipeStatus(holisticStatus);
   }, [holisticStatus]);
 
+  // Load face-api.js models
+  useEffect(() => {
+    const loadFaceModels = async () => {
+      if (faceApiLoaded) return;
+      
+      try {
+        console.log("Loading face-api models...");
+        
+        const isElectron = window && window.process && window.process.versions?.electron;
+        const modelPath = isElectron ? './public/models/face-api' : './models/face-api';
+        
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+          faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+          faceapi.nets.faceExpressionNet.loadFromUri(modelPath)
+        ]);
 
+        console.log("Face-api models loaded successfully!");
+        setFaceApiLoaded(true);
+      } catch (err) {
+        console.error("Error loading face-api models:", err);
+      }
+    };
 
+    loadFaceModels();
+  }, [faceApiLoaded]);
 
+  // Face detection and gaze tracking
+  useEffect(() => {
+    if (!faceApiLoaded || !isInitialized || !videoRef.current) return;
+    
+    // Skip face detection if tracking is paused
+    if (isTrackingPaused) return;
+
+    const detectFace = async () => {
+      try {
+        const video = videoRef.current;
+        if (!video || video.readyState !== 4) return;
+
+        const detections = await faceapi
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceExpressions();
+
+        if (detections) {
+          setFaceDetection(detections);
+          
+          // Analyze gaze direction from landmarks
+          const landmarks = detections.landmarks;
+          const nose = landmarks.getNose()[3]; // Nose tip
+          const leftEye = landmarks.getLeftEye();
+          const rightEye = landmarks.getRightEye();
+          
+          // Calculate eye center
+          const leftEyeCenter = {
+            x: leftEye.reduce((sum, p) => sum + p.x, 0) / leftEye.length,
+            y: leftEye.reduce((sum, p) => sum + p.y, 0) / leftEye.length
+          };
+          const rightEyeCenter = {
+            x: rightEye.reduce((sum, p) => sum + p.x, 0) / rightEye.length,
+            y: rightEye.reduce((sum, p) => sum + p.y, 0) / rightEye.length
+          };
+          
+          // Detect gaze direction
+          const faceWidth = detections.detection.box.width;
+          const horizontalOffset = ((leftEyeCenter.x + rightEyeCenter.x) / 2 - nose.x) / faceWidth;
+          const verticalOffset = ((leftEyeCenter.y + rightEyeCenter.y) / 2 - nose.y) / faceWidth;
+          
+          let direction = 'center';
+          if (Math.abs(horizontalOffset) > 0.1 || Math.abs(verticalOffset) > 0.15) {
+            setIsLookingAway(true);
+            if (horizontalOffset > 0.1) direction = 'right';
+            else if (horizontalOffset < -0.1) direction = 'left';
+            else if (verticalOffset > 0.15) direction = 'down';
+            else if (verticalOffset < -0.15) direction = 'up';
+          } else {
+            setIsLookingAway(false);
+          }
+          setGazeDirection(direction);
+          
+          // Draw on face canvas
+          if (faceCanvasRef.current) {
+            const canvas = faceCanvasRef.current;
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw face box
+            const box = detections.detection.box;
+            ctx.strokeStyle = isLookingAway ? '#ef4444' : '#22c55e';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+            
+            // Draw gaze indicator
+            ctx.fillStyle = isLookingAway ? '#ef4444' : '#22c55e';
+            ctx.font = '16px Arial';
+            ctx.fillText(
+              isLookingAway ? `Looking ${direction}` : 'Focused', 
+              box.x, 
+              box.y - 10
+            );
+          }
+        } else {
+          setFaceDetection(null);
+          setIsLookingAway(false);
+        }
+      } catch (err) {
+        console.warn("Face detection error:", err);
+      }
+    };
+
+    faceDetectionIntervalRef.current = setInterval(detectFace, 500);
+    return () => {
+      if (faceDetectionIntervalRef.current) {
+        clearInterval(faceDetectionIntervalRef.current);
+      }
+    };
+  }, [faceApiLoaded, isInitialized, videoRef, isTrackingPaused]);
 
   // Canvas sizing
   useEffect(() => {
@@ -265,7 +392,7 @@ const CameraMonitor = ({ onActivityChange }) => {
 
   const getMediaPipeStatusMessage = () => {
     switch (mediaPipeStatus) {
-      case "loaded": return "AI Ready";
+      case "loaded": return isUsingFallback ? "Basic Mode" : "AI Ready";
       case "loading": return "Loading AI...";
       case "partial": return "AI Partial";
       case "failed": return "AI Failed";
@@ -277,7 +404,7 @@ const CameraMonitor = ({ onActivityChange }) => {
 
   const getMediaPipeStatusColor = () => {
     switch (mediaPipeStatus) {
-      case "loaded": return "bg-green-500 text-white";
+      case "loaded": return isUsingFallback ? "bg-yellow-500 text-black" : "bg-green-500 text-white";
       case "loading": return "bg-blue-500 text-white";
       case "partial": return "bg-orange-500 text-white";
       case "failed":
@@ -287,8 +414,10 @@ const CameraMonitor = ({ onActivityChange }) => {
   };
 
   const enhancedActivity = !cameraStarted ? 'Not Started' :
-                          isTrackingPaused ? 'Paused' : "Reading";
-                          
+                          isTrackingPaused ? 'Paused' : 
+                          (isLookingAway ? 'Looking Away' : 
+                           (currentActivity === 'Sitting' && !isLookingAway) ? 'Reading' : 
+                           currentActivity);
 
   // Handle successful data sync
   const handleSyncSuccess = useCallback((data) => {
@@ -393,7 +522,11 @@ const CameraMonitor = ({ onActivityChange }) => {
           <div className={`px-2 py-1 rounded text-xs font-medium ${getMediaPipeStatusColor()}`}>
             {getMediaPipeStatusMessage()}
           </div>
-          
+          <div className={`px-2 py-1 rounded text-xs font-medium ${
+            faceApiLoaded ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'
+          }`}>
+            {faceApiLoaded ? 'Face Ready' : 'Loading Face'}
+          </div>
           <div className={`px-2 py-1 rounded text-xs font-medium ${
             cameraStatus === 'ready' ? 'bg-green-500 text-white' : 
             cameraStatus === 'error' ? 'bg-red-500 text-white' : 
@@ -412,7 +545,11 @@ const CameraMonitor = ({ onActivityChange }) => {
           )}
         </div>
 
-        
+        {faceDetection && !isTrackingPaused && (
+          <div className="absolute top-2 right-2 px-2 py-1 bg-black bg-opacity-60 text-white rounded text-xs" style={{ zIndex: 4 }}>
+            👁️ {isLookingAway ? `Looking ${gazeDirection}` : 'Focused'}
+          </div>
+        )}
         
         {/* Pause overlay */}
         {isTrackingPaused && (
@@ -553,6 +690,8 @@ const CameraMonitor = ({ onActivityChange }) => {
             <p>Camera Started: {cameraStarted ? 'Yes' : 'No'}</p>
             <p>Camera: {cameraStatus}</p>
             <p>MediaPipe: {mediaPipeStatus}</p>
+            <p>Face Detection: {faceDetection ? 'Active' : 'Inactive'}</p>
+            <p>Gaze: {gazeDirection} {isLookingAway ? '(Away)' : '(Focused)'}</p>
             <p>Tracking Status: {isTrackingPaused ? 'Paused' : 'Active'}</p>
             <p>Activities Logged: {activityLog.length}</p>
             <p className="mt-2 pt-2 border-t border-gray-300">
