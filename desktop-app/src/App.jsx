@@ -65,8 +65,8 @@ function DashboardPage() {
 
     fetchTodayData();
     
-    // Refresh today's data every 5 minutes
-    const interval = setInterval(fetchTodayData, 5 * 60 * 1000);
+    // Refresh today's data every 1 minutes
+    const interval = setInterval(fetchTodayData, 60 * 1000);
     
     return () => clearInterval(interval);
   }, []);

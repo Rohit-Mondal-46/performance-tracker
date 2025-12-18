@@ -4,15 +4,7 @@ import { activityAPI } from '../services/api';
 
 const INTERVAL_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 
-/**
- * Hook to track activities and send data to backend every 10 minutes
- * 
- * @param {string} currentActivity - The current activity being performed
- * @param {boolean} isActive - Whether tracking is active
- * @param {Function} onSuccess - Callback when data is sent successfully
- * @param {Function} onError - Callback when sending fails
- * @returns {Object} - Status and control functions
- */
+
 const useActivityTracking = (currentActivity, isActive = true, onSuccess = null, onError = null) => {
   const intervalStartRef = useRef(null);
   const activityTimesRef = useRef({

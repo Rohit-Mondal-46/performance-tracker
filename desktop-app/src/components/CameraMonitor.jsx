@@ -591,16 +591,16 @@ const CameraMonitor = ({ onActivityChange }) => {
             <span>{enhancedActivity || 'Analyzing...'}</span>
           </div>
         </div>
-        {currentSession && !isTrackingPaused && (
+        {/* {currentSession && !isTrackingPaused && (
           <p className="text-xs text-center text-gray-600 mt-2">
             Duration: {formatTime(Date.now() - currentSession.startTime)}
           </p>
-        )}
-        {isTrackingPaused && pauseStartTime && (
+        )} */}
+        {/* {isTrackingPaused && pauseStartTime && (
           <p className="text-xs text-center text-gray-600 mt-2">
             Paused for: {formatTime(Date.now() - pauseStartTime)}
           </p>
-        )}
+        )} */}
       </div>
 
       {/* Session Stats */}
