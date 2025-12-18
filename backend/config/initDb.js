@@ -22,6 +22,8 @@ const createTables = async () => {
         location VARCHAR(150),
         email VARCHAR(150) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        reset_token VARCHAR(255),
+        reset_token_expiry TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
@@ -36,6 +38,8 @@ const createTables = async () => {
         department VARCHAR(100),
         position VARCHAR(100),
         password VARCHAR(255) NOT NULL,
+        reset_token VARCHAR(255),
+        reset_token_expiry TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);

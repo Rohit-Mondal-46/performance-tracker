@@ -12,6 +12,8 @@ import { OrganizationAnalytics } from './pages/OrganizationAnalytics';
 import { EmployeeAnalytics } from './pages/EmployeeAnalytics';
 import { Landing } from './pages/Landing';
 import { ContactRequest } from './pages/ContactRequest';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isOrganization, isEmployee } = useAuth();
@@ -54,6 +56,14 @@ function AppRoutes() {
       <Route
         path="/login"
         element={user ? <Navigate to={getDashboardRoute()} replace /> : <Login />}
+      />
+      <Route
+        path="/forgot-password"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <ForgotPassword />}
+      />
+      <Route
+        path="/reset-password"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <ResetPassword />}
       />
       <Route
         path="/admin-dashboard"

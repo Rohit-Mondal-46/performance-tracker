@@ -56,6 +56,20 @@ export const authAPI = {
   
   logout: () => 
     api.post('/auth/logout'),
+
+  // Forgot password
+  employeeForgotPassword: (data) =>
+    api.post('/auth/employee/forgot-password', data),
+
+  organizationForgotPassword: (data) =>
+    api.post('/auth/organization/forgot-password', data),
+
+  // Reset password
+  employeeResetPassword: (data) =>
+    api.post('/auth/employee/reset-password', data),
+
+  organizationResetPassword: (data) =>
+    api.post('/auth/organization/reset-password', data),
 };
 
 // ========================
