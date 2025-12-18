@@ -1,4 +1,4 @@
-// App.jsx (Cleaned up version)
+// App.jsx (Updated - Theme toggle removed from here since it's in navbar)
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -16,6 +16,14 @@ import { ContactRequest } from './pages/ContactRequest';
 import PreLoader from './components/Loaders/PreLoader';
 import LoadingAnimation from './components/Loaders/LoadingAnimation';
 
+// Main Layout Wrapper
+function AppLayout({ children }) {
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      {children}
+    </div>
+  );
+}
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isOrganization, isEmployee, loading } = useAuth();
@@ -61,108 +69,110 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      {/* Root path - redirect to dashboard if already logged in */}
-      <Route
-        path="/"
-        element={
-          user ? (
-            <Navigate to={getDashboardRoute()} replace />
-          ) : (
-            <Landing />
-          )
-        }
-      />
+    <AppLayout>
+      <Routes>
+        {/* Root path - redirect to dashboard if already logged in */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Navigate to={getDashboardRoute()} replace />
+            ) : (
+              <Landing />
+            )
+          }
+        />
 
-      {/* Login page - redirect to dashboard if already logged in */}
-      <Route
-        path="/login"
-        element={
-          user ? (
-            <Navigate to={getDashboardRoute()} replace />
-          ) : (
-            <Login />
-          )
-        }
-      />
+        {/* Login page - redirect to dashboard if already logged in */}
+        <Route
+          path="/login"
+          element={
+            user ? (
+              <Navigate to={getDashboardRoute()} replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
 
-      {/* Role selection page - redirect to dashboard if already logged in */}
-      <Route
-        path="/role-selection"
-        element={
-          user ? (
-            <Navigate to={getDashboardRoute()} replace />
-          ) : (
-            <RoleSelection />
-          )
-        }
-      />
+        {/* Role selection page - redirect to dashboard if already logged in */}
+        <Route
+          path="/role-selection"
+          element={
+            user ? (
+              <Navigate to={getDashboardRoute()} replace />
+            ) : (
+              <RoleSelection />
+            )
+          }
+        />
 
-      {/* Admin dashboard */}
-      <Route
-        path="/admin-dashboard"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* Admin dashboard */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Organization dashboard */}
-      <Route
-        path="/organization-dashboard"
-        element={
-          <ProtectedRoute requiredRole="organization">
-            <OrganizationDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* Organization dashboard */}
+        <Route
+          path="/organization-dashboard"
+          element={
+            <ProtectedRoute requiredRole="organization">
+              <OrganizationDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Employee dashboard */}
-      <Route
-        path="/employee-dashboard"
-        element={
-          <ProtectedRoute requiredRole="employee">
-            <EmployeeDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* Employee dashboard */}
+        <Route
+          path="/employee-dashboard"
+          element={
+            <ProtectedRoute requiredRole="employee">
+              <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Organization analytics */}
-      <Route
-        path="/organization-analytics"
-        element={
-          <ProtectedRoute requiredRole="organization">
-            <OrganizationAnalytics />
-          </ProtectedRoute>
-        }
-      />
+        {/* Organization analytics */}
+        <Route
+          path="/organization-analytics"
+          element={
+            <ProtectedRoute requiredRole="organization">
+              <OrganizationAnalytics />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Employee analytics */}
-      <Route
-        path="/employee-analytics"
-        element={
-          <ProtectedRoute requiredRole="employee">
-            <EmployeeAnalytics />
-          </ProtectedRoute>
-        }
-      />
+        {/* Employee analytics */}
+        <Route
+          path="/employee-analytics"
+          element={
+            <ProtectedRoute requiredRole="employee">
+              <EmployeeAnalytics />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Contact page - accessible to everyone */}
-      <Route path="/contact" element={<ContactRequest />} />
+        {/* Contact page - accessible to everyone */}
+        <Route path="/contact" element={<ContactRequest />} />
 
-      {/* Catch-all route - redirect to appropriate dashboard or landing */}
-      <Route
-        path="*"
-        element={
-          user ? (
-            <Navigate to={getDashboardRoute()} replace />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-    </Routes>
+        {/* Catch-all route - redirect to appropriate dashboard or landing */}
+        <Route
+          path="*"
+          element={
+            user ? (
+              <Navigate to={getDashboardRoute()} replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+      </Routes>
+    </AppLayout>
   );
 }
 
@@ -189,9 +199,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen transition-colors">
-            <AppRoutes />
-          </div>
+          <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
