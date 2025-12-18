@@ -1,4 +1,5 @@
-import React from 'react';
+// App.jsx (Cleaned up version)
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -12,48 +13,16 @@ import { OrganizationAnalytics } from './pages/OrganizationAnalytics';
 import { EmployeeAnalytics } from './pages/EmployeeAnalytics';
 import { Landing } from './pages/Landing';
 import { ContactRequest } from './pages/ContactRequest';
+import PreLoader from './components/Loaders/PreLoader';
+import LoadingAnimation from './components/Loaders/LoadingAnimation';
 
-// Loading Spinner Component
-const LoadingSpinner = () => {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      <div className="relative">
-        {/* Outer ring */}
-        <div className="w-20 h-20 border-4 border-blue-200/30 rounded-full"></div>
-        
-        {/* Spinning ring */}
-        <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-blue-500 border-r-blue-500 rounded-full animate-spin"></div>
-        
-        {/* Inner ring */}
-        <div className="absolute top-2 left-2 w-16 h-16 border-4 border-blue-100/20 rounded-full"></div>
-        
-        {/* Pulsing dot */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-        </div>
-      </div>
-      
-      <div className="mt-8 text-center">
-        <h2 className="text-xl font-semibold text-white mb-2">Loading Application</h2>
-        <p className="text-gray-300">Please wait while we verify your session...</p>
-        
-        {/* Loading dots animation */}
-        <div className="flex justify-center space-x-1 mt-4">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isOrganization, isEmployee, loading } = useAuth();
 
-  // Show loading spinner while checking auth
+  // Show loading animation while checking auth
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingAnimation />;
   }
 
   if (!user) {
@@ -86,9 +55,9 @@ function AppRoutes() {
     return '/';
   };
 
-  // Show loading spinner while checking auth
+  // Show loading animation while checking auth
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingAnimation />;
   }
 
   return (
@@ -197,7 +166,25 @@ function AppRoutes() {
   );
 }
 
+// Main App component with pre-loader
 function App() {
+  const [appLoading, setAppLoading] = useState(true);
+
+  // This useEffect ensures we show a pre-loader immediately
+  useEffect(() => {
+    // Add a small delay to show the pre-loader
+    const timer = setTimeout(() => {
+      setAppLoading(false);
+    }, 100); // Very short delay to ensure React renders first
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show pre-loader while app is initializing
+  if (appLoading) {
+    return <PreLoader />;
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>

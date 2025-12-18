@@ -5,7 +5,7 @@ const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true
 
   // Check for existing session on mount
   useEffect(() => {
@@ -36,16 +36,17 @@ export function AuthProvider({ children }) {
         console.log('No saved session found');
       }
       
-      // Add a small delay for better UX (optional)
+      // Add a small delay for better UX and to ensure animation shows
       setTimeout(() => {
         setLoading(false);
-      }, 500);
+      }, 800); // Increased to 800ms to ensure animation is seen
     };
 
     initAuth();
   }, []);
 
   const login = async (email, password, role) => {
+    setLoading(true); // Set loading true when login starts
     try {
       console.log('=== LOGIN ATTEMPT ===');
       console.log('Email:', email, 'Role:', role);
@@ -83,18 +84,22 @@ export function AuthProvider({ children }) {
         setUser(userWithRole);
         console.log('✅ LOGIN SUCCESS:', userWithRole);
         
+        setLoading(false); // Set loading false after successful login
         return { success: true, user: userWithRole };
       }
       
+      setLoading(false); // Set loading false if login fails
       return { success: false, message: 'Login failed' };
     } catch (error) {
       console.error('❌ LOGIN FAILED:', error);
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setLoading(false); // Set loading false on error
       return { success: false, message };
     }
   };
 
   const logout = async () => {
+    setLoading(true); // Set loading true when logout starts
     try {
       await authAPI.logout();
     } catch (error) {
@@ -103,6 +108,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
+      setLoading(false); // Set loading false after logout
     }
   };
 
