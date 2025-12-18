@@ -18,8 +18,12 @@ export function AuthProvider({ children }) {
           // Verify token is still valid
           const response = await authAPI.getCurrentUser();
           if (response.data.success) {
-            setUser(JSON.parse(savedUser));
+            // Use the user data from localStorage
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            console.log('✅ Session restored for user:', parsedUser.email);
           } else {
+            console.log('❌ Session invalid, clearing storage');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
@@ -28,8 +32,14 @@ export function AuthProvider({ children }) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }
+      } else {
+        console.log('No saved session found');
       }
-      setLoading(false);
+      
+      // Add a small delay for better UX (optional)
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     };
 
     initAuth();
@@ -99,14 +109,6 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
   const isOrganization = user?.role === 'organization';
   const isEmployee = user?.role === 'employee';
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{
