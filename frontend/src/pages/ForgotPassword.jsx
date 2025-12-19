@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function ForgotPassword() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('employee'); // 'employee' or 'organization'
   const [loading, setLoading] = useState(false);
