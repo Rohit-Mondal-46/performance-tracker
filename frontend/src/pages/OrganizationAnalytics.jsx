@@ -40,9 +40,22 @@ export function OrganizationAnalytics() {
 
   const fetchEmployeeTrends = useCallback(async () => {
     try {
-      const response = await organizationAPI.getEmployeePerformanceTrends(selectedEmployee, timeRange);
+      const response = await organizationAPI.getEmployeePerformanceTrends(selectedEmployee.id, timeRange);
       if (response.data.success) {
-        setEmployeeTrends(response.data.data.trends);
+        // Map backend field names to frontend expected names
+        const mappedTrends = response.data.data.trends.map(trend => ({
+          score_date: trend.date,
+          productivity_score: trend.avg_productivity,
+          engagement_score: trend.avg_engagement,
+          overall_score: trend.avg_overall,
+          working_total: trend.total_working,
+          grand_total: trend.grand_total,
+          distracted_total: trend.distracted_total,
+          idle_total: trend.idle_total,
+          performance_grade: trend.performance_grade,
+          interval_count: trend.interval_count
+        }));
+        setEmployeeTrends(mappedTrends);
       }
     } catch (err) {
       console.error('Error fetching employee trends:', err);
@@ -91,8 +104,8 @@ export function OrganizationAnalytics() {
   );
 
   const handleEmployeeSelect = (empId, empName) => {
-    setSelectedEmployee(empId);
-    setEmployeeSearchQuery(empName);
+    const employee = employees.find(emp => emp.id === empId);
+    setSelectedEmployee(employee || { id: empId, name: empName });
   };
 
   if (loading) {
@@ -369,7 +382,7 @@ export function OrganizationAnalytics() {
         {selectedEmployee && (
           <div 
             className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in pl-64"
-            onClick={() => setSelectedEmployee(null)}
+            onClick={() => { setSelectedEmployee(null); setEmployeeTrends([]); }}
           >
             <div 
               className="bg-white dark:bg-gray-900 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700 shadow-2xl"
@@ -382,7 +395,7 @@ export function OrganizationAnalytics() {
                   <p className="text-gray-600 dark:text-gray-400">{selectedEmployee.name}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedEmployee(null)}
+                  onClick={() => { setSelectedEmployee(null); setEmployeeTrends([]); }}
                   className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
