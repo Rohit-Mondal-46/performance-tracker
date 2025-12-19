@@ -5,7 +5,7 @@ const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true
 
   // Check for existing session on mount
   useEffect(() => {
@@ -18,8 +18,12 @@ export function AuthProvider({ children }) {
           // Verify token is still valid
           const response = await authAPI.getCurrentUser();
           if (response.data.success) {
-            setUser(JSON.parse(savedUser));
+            // Use the user data from localStorage
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            console.log('✅ Session restored for user:', parsedUser.email);
           } else {
+            console.log('❌ Session invalid, clearing storage');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
@@ -28,14 +32,21 @@ export function AuthProvider({ children }) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }
+      } else {
+        console.log('No saved session found');
       }
-      setLoading(false);
+      
+      // Add a small delay for better UX and to ensure animation shows
+      setTimeout(() => {
+        setLoading(false);
+      }, 800); // Increased to 800ms to ensure animation is seen
     };
 
     initAuth();
   }, []);
 
   const login = async (email, password, role) => {
+    setLoading(true); // Set loading true when login starts
     try {
       console.log('=== LOGIN ATTEMPT ===');
       console.log('Email:', email, 'Role:', role);
@@ -73,18 +84,22 @@ export function AuthProvider({ children }) {
         setUser(userWithRole);
         console.log('✅ LOGIN SUCCESS:', userWithRole);
         
+        setLoading(false); // Set loading false after successful login
         return { success: true, user: userWithRole };
       }
       
+      setLoading(false); // Set loading false if login fails
       return { success: false, message: 'Login failed' };
     } catch (error) {
       console.error('❌ LOGIN FAILED:', error);
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setLoading(false); // Set loading false on error
       return { success: false, message };
     }
   };
 
   const logout = async () => {
+    setLoading(true); // Set loading true when logout starts
     try {
       await authAPI.logout();
     } catch (error) {
@@ -93,20 +108,13 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
+      setLoading(false); // Set loading false after logout
     }
   };
 
   const isAdmin = user?.role === 'admin';
   const isOrganization = user?.role === 'organization';
   const isEmployee = user?.role === 'employee';
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{

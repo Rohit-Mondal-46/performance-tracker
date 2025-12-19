@@ -36,7 +36,7 @@ export function EmployeeDashboard() {
       size: Math.random() * 3 + 1,
       speedX: Math.random() * 0.4 - 0.2,
       speedY: Math.random() * 0.4 - 0.2,
-      color: `rgba(${Math.floor(Math.random() * 100 + 155)}, ${Math.floor(Math.random() * 100 + 155)}, 255, 0.2)`
+      color: `rgba(${Math.floor(Math.random() * 100 + 155)}, ${Math.floor(Math.random() * 100 + 155)}, 255, 0.1)`
     }));
     setParticles(newParticles);
 
@@ -91,11 +91,11 @@ export function EmployeeDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black">
         <div className="relative">
-          <div className="absolute inset-0 animate-ping bg-blue-500 rounded-full opacity-20"></div>
-          <div className="relative text-white text-xl flex items-center space-x-3">
-            <Sparkles className="w-6 h-6 animate-spin" />
+          <div className="absolute inset-0 animate-ping bg-blue-400 dark:bg-blue-500 rounded-full opacity-20"></div>
+          <div className="relative text-gray-800 dark:text-white text-xl flex items-center space-x-3">
+            <Sparkles className="w-6 h-6 animate-spin text-blue-500 dark:text-blue-400" />
             <span>Loading your dashboard...</span>
           </div>
         </div>
@@ -105,10 +105,10 @@ export function EmployeeDashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
-        <div className="bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/30 rounded-2xl p-8 backdrop-blur-sm">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <div className="text-red-400 text-xl text-center">{error}</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black">
+        <div className="bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-400/30 dark:border-red-500/30 rounded-2xl p-8 backdrop-blur-sm">
+          <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <div className="text-red-600 dark:text-red-400 text-xl text-center">{error}</div>
         </div>
       </div>
     );
@@ -120,7 +120,7 @@ export function EmployeeDashboard() {
   const performanceStatus = dashboard?.performanceStatus || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-6 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-6 overflow-hidden relative">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {particles.map(particle => (
@@ -152,15 +152,15 @@ export function EmployeeDashboard() {
             <div className="flex items-center space-x-4">
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
-                <div className="relative p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700/50">
-                  <User className="w-8 h-8 text-blue-400" />
+                <div className="relative p-3 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-300/50 dark:border-gray-700/50">
+                  <User className="w-8 h-8 text-blue-500 dark:text-blue-400" />
                 </div>
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
                   Welcome, {employee.name}
                 </h1>
-                <p className="text-gray-400">Track your performance and progress in real-time</p>
+                <p className="text-gray-600 dark:text-gray-400">Track your performance and progress in real-time</p>
               </div>
             </div>
             
@@ -168,11 +168,11 @@ export function EmployeeDashboard() {
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}
-              className="group relative flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 text-white px-4 py-2 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 text-gray-700 dark:text-white px-4 py-2 rounded-xl border border-blue-400/30 dark:border-blue-500/30 hover:border-blue-500/50 dark:hover:border-blue-400/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh data"
             >
-              <RefreshCw className={`w-5 h-5 text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="text-sm font-medium text-gray-300">
+              <RefreshCw className={`w-5 h-5 text-blue-500 dark:text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                 {isRefreshing ? 'Refreshing...' : 'Refresh'}
               </span>
             </button>
@@ -187,7 +187,7 @@ export function EmployeeDashboard() {
             style={{ 
               animationDelay: '100ms',
               background: `linear-gradient(135deg, ${getStatusGradientColor(performanceStatus.color)}`,
-              boxShadow: `0 20px 60px ${getStatusShadowColor(performanceStatus.color)}, 0 0 40px ${getStatusShadowColor(performanceStatus.color)}/30`
+              boxShadow: `0 20px 60px ${getStatusShadowColor(performanceStatus.color)}/30, 0 0 40px ${getStatusShadowColor(performanceStatus.color)}/20`
             }}
           >
             <div className="flex items-center justify-between">
@@ -260,16 +260,16 @@ export function EmployeeDashboard() {
 
         {/* Employee Info Card with Enhanced Animation */}
         <div 
-          className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
+          className="bg-gradient-to-br from-white/40 to-gray-50/40 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
           style={{
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 100px rgba(59, 130, 246, 0.05)'
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 100px rgba(59, 130, 246, 0.05)'
           }}
         >
           <div className="flex items-center space-x-3 mb-6">
             <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl">
-              <BarChart3 className="w-6 h-6 text-blue-400" />
+              <BarChart3 className="w-6 h-6 text-blue-500 dark:text-blue-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Employee Profile</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Employee Profile</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <InfoItem 
@@ -318,19 +318,19 @@ export function EmployeeDashboard() {
           {/* Latest Performance Score with Enhanced Animation */}
           {recentPerformance.latestScore && (
             <div 
-              className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01] group"
+              className="bg-gradient-to-br from-white/40 to-gray-50/40 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01] group"
               style={{
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 100px rgba(59, 130, 246, 0.05)'
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 100px rgba(59, 130, 246, 0.05)'
               }}
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl">
-                    <Zap className="w-6 h-6 text-green-400" />
+                    <Zap className="w-6 h-6 text-green-500 dark:text-green-400" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Latest Performance</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Latest Performance</h2>
                 </div>
-                <div className="text-sm text-gray-400 group-hover:text-white transition-colors duration-300">
+                <div className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300">
                   {new Date(recentPerformance.latestScore.date).toLocaleDateString('en-US', { 
                     weekday: 'long',
                     year: 'numeric', 
@@ -339,10 +339,10 @@ export function EmployeeDashboard() {
                   })}
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-gray-700/50">
+              <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-300/50 dark:border-gray-700/50">
                 <div className="flex justify-between items-center mb-8">
-                  <div className="text-gray-400 text-sm">Overall Score</div>
-                  <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm">Overall Score</div>
+                  <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
                     {parseFloat(recentPerformance.latestScore.finalScore).toFixed(1)}%
                   </div>
                 </div>
@@ -367,39 +367,39 @@ export function EmployeeDashboard() {
           {/* Monthly Average with Enhanced Animation */}
           {recentPerformance.monthlyAverage && (
             <div 
-              className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
+              className="bg-gradient-to-br from-white/40 to-gray-50/40 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
               style={{
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 100px rgba(59, 130, 246, 0.05)'
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 100px rgba(59, 130, 246, 0.05)'
               }}
             >
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl">
-                  <TrendingUp className="w-6 h-6 text-orange-400" />
+                  <TrendingUp className="w-6 h-6 text-orange-500 dark:text-orange-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  Monthly Average <span className="text-gray-400 text-lg">({recentPerformance.monthlyAverage.daysTracked} days)</span>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Monthly Average <span className="text-gray-600 dark:text-gray-400 text-lg">({recentPerformance.monthlyAverage.daysTracked} days)</span>
                 </h2>
               </div>
               <div className="space-y-6">
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105">
-                  <div className="text-gray-400 text-sm mb-2">Overall Average</div>
-                  <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400 mb-2">
+                <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-300/50 dark:border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm mb-2">Overall Average</div>
+                  <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-400 mb-2">
                     {parseFloat(recentPerformance.monthlyAverage.finalScore || 0).toFixed(1)}%
                   </div>
-                  <div className="text-gray-500 text-sm">Last 30 days</div>
+                  <div className="text-gray-500 dark:text-gray-500 text-sm">Last 30 days</div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105 hover:border-green-500/30 group">
+                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-5 border border-gray-300/50 dark:border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105 hover:border-green-500/30 group">
                     <div className="text-3xl mb-2">⚡</div>
-                    <div className="text-gray-400 text-sm mb-1">Productivity</div>
-                    <div className="text-2xl font-bold text-green-400 group-hover:scale-110 transition-transform duration-300">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm mb-1">Productivity</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300">
                       {parseFloat(recentPerformance.monthlyAverage.productivity || 0).toFixed(1)}%
                     </div>
                   </div>
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105 hover:border-blue-500/30 group">
+                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-5 border border-gray-300/50 dark:border-gray-700/50 text-center transform transition-all duration-300 hover:scale-105 hover:border-blue-500/30 group">
                     <div className="text-3xl mb-2">🎯</div>
-                    <div className="text-gray-400 text-sm mb-1">Engagement</div>
-                    <div className="text-2xl font-bold text-blue-400 group-hover:scale-110 transition-transform duration-300">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm mb-1">Engagement</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
                       {parseFloat(recentPerformance.monthlyAverage.engagement || 0).toFixed(1)}%
                     </div>
                   </div>
@@ -412,16 +412,16 @@ export function EmployeeDashboard() {
         {/* Last 7 Days Performance with Enhanced Visualization */}
         {recentPerformance.last7Days && recentPerformance.last7Days.length > 0 && (
           <div 
-            className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
+            className="bg-gradient-to-br from-white/40 to-gray-50/40 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-500 hover:scale-[1.01]"
             style={{
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 100px rgba(59, 130, 246, 0.05)'
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 100px rgba(59, 130, 246, 0.05)'
             }}
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl">
-                <Calendar className="w-6 h-6 text-purple-400" />
+                <Calendar className="w-6 h-6 text-purple-500 dark:text-purple-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Weekly Performance Trend</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Weekly Performance Trend</h2>
             </div>
             <div className="grid grid-cols-7 gap-3">
               {recentPerformance.last7Days.map((day, index) => {
@@ -436,26 +436,26 @@ export function EmployeeDashboard() {
                     onMouseEnter={() => setHoveredCard(`day-${index}`)}
                     onMouseLeave={() => setHoveredCard(null)}
                   >
-                    <div className="text-gray-400 text-xs mb-3">
+                    <div className="text-gray-600 dark:text-gray-400 text-xs mb-3">
                       {dayName}
                     </div>
                     <div className="relative">
                       <div 
-                        className="w-16 h-32 mx-auto bg-gradient-to-t from-gray-900 to-gray-800 rounded-2xl flex flex-col items-center justify-end p-3 border border-gray-700/50 group-hover:border-blue-500/30 transition-all duration-300"
+                        className="w-16 h-32 mx-auto bg-gradient-to-t from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl flex flex-col items-center justify-end p-3 border border-gray-300/50 dark:border-gray-700/50 group-hover:border-blue-500/30 transition-all duration-300"
                         style={{
-                          boxShadow: `inset 0 0 20px ${getScoreGlowColor(score)}/20`,
+                          boxShadow: `inset 0 0 20px ${getScoreGlowColor(score)}/10`,
                           background: `linear-gradient(to top, ${getScoreColor(score)} 0%, ${getScoreColor(score)} ${score}%, transparent ${score}%)`
                         }}
                       >
-                        <div className="text-white font-bold text-lg mb-1">
+                        <div className="text-gray-900 dark:text-white font-bold text-lg mb-1">
                           {dateNum}
                         </div>
-                        <div className="text-white font-semibold text-xl">
+                        <div className="text-gray-900 dark:text-white font-semibold text-xl">
                           {score.toFixed(0)}%
                         </div>
                       </div>
                       {hoveredCard === `day-${index}` && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full bg-gray-900 px-3 py-2 rounded-lg border border-gray-700/50 text-xs text-white whitespace-nowrap">
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border border-gray-300/50 dark:border-gray-700/50 text-xs text-gray-900 dark:text-white whitespace-nowrap shadow-lg">
                           {dayName} {dateNum}: {score.toFixed(1)}%
                         </div>
                       )}
@@ -469,19 +469,19 @@ export function EmployeeDashboard() {
 
         {/* Recent Performance History with Enhanced Animation */}
         <div 
-          className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 transform transition-all duration-500 hover:scale-[1.005]"
+          className="bg-gradient-to-br from-white/40 to-gray-50/40 dark:from-gray-800/40 dark:to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-500 hover:scale-[1.005]"
           style={{
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 100px rgba(59, 130, 246, 0.05)'
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 100px rgba(59, 130, 246, 0.05)'
           }}
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl">
-                <Activity className="w-6 h-6 text-cyan-400" />
+                <Activity className="w-6 h-6 text-cyan-500 dark:text-cyan-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Performance History</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Performance History</h2>
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               Last 30 days
             </div>
           </div>
@@ -491,25 +491,25 @@ export function EmployeeDashboard() {
               {performanceScores.map((score, index) => (
                 <div 
                   key={score.id} 
-                  className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-gray-700/50 transform transition-all duration-300 hover:scale-[1.02] hover:border-blue-500/30 group"
+                  className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-5 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-[1.02] hover:border-blue-500/30 group"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center space-x-4">
-                      <div className="text-white font-medium text-lg group-hover:text-blue-300 transition-colors duration-300">
+                      <div className="text-gray-900 dark:text-white font-medium text-lg group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300">
                         {new Date(score.score_date).toLocaleDateString('en-US', { 
                           weekday: 'long',
                           month: 'short', 
                           day: 'numeric' 
                         })}
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-blue-400 transition-colors duration-300" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300" />
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`px-4 py-2 rounded-xl text-sm font-bold ${getGradeBadgeColorEnhanced(score.performance_grade)} transform transition-transform duration-300 group-hover:scale-110`}>
                         {score.performance_grade}
                       </span>
-                      <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                      <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
                         {parseFloat(score.overall_score || 0).toFixed(1)}%
                       </span>
                     </div>
@@ -541,10 +541,10 @@ export function EmployeeDashboard() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="inline-block p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/50">
-                <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">No performance data available yet</p>
-                <p className="text-gray-500 text-sm mt-2">Your performance metrics will appear here</p>
+              <div className="inline-block p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl border border-gray-300/50 dark:border-gray-700/50">
+                <AlertCircle className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No performance data available yet</p>
+                <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Your performance metrics will appear here</p>
               </div>
             </div>
           )}
@@ -577,7 +577,7 @@ export function EmployeeDashboard() {
         }
         
         ::-webkit-scrollbar-track {
-          background: rgba(31, 41, 55, 0.3);
+          background: rgba(229, 231, 235, 0.3);
           border-radius: 10px;
         }
         
@@ -598,34 +598,34 @@ function AnimatedStatCard({ icon, title, value, color, trend, isHovered, delay =
   const colorClasses = {
     blue: { 
       bg: 'bg-blue-500/20', 
-      text: 'text-blue-400', 
+      text: 'text-blue-600 dark:text-blue-400', 
       glow: 'rgba(59, 130, 246, 0.5)',
       iconBg: 'bg-blue-500/10'
     },
     green: { 
       bg: 'bg-green-500/20', 
-      text: 'text-green-400', 
+      text: 'text-green-600 dark:text-green-400', 
       glow: 'rgba(16, 185, 129, 0.5)',
       iconBg: 'bg-green-500/10'
     },
     purple: { 
       bg: 'bg-purple-500/20', 
-      text: 'text-purple-400', 
+      text: 'text-purple-600 dark:text-purple-400', 
       glow: 'rgba(168, 85, 247, 0.5)',
       iconBg: 'bg-purple-500/10'
     },
     orange: { 
       bg: 'bg-orange-500/20', 
-      text: 'text-orange-400', 
+      text: 'text-orange-600 dark:text-orange-400', 
       glow: 'rgba(249, 115, 22, 0.5)',
       iconBg: 'bg-orange-500/10'
     }
   };
 
   const trendColors = {
-    improving: 'text-green-400',
-    declining: 'text-red-400',
-    stable: 'text-gray-400'
+    improving: 'text-green-600 dark:text-green-400',
+    declining: 'text-red-600 dark:text-red-400',
+    stable: 'text-gray-600 dark:text-gray-400'
   };
 
   const colors = colorClasses[color];
@@ -649,11 +649,11 @@ function AnimatedStatCard({ icon, title, value, color, trend, isHovered, delay =
       
       {/* Main card */}
       <div 
-        className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 border border-gray-700/50 backdrop-blur-sm transition-all duration-300 group-hover:border-transparent"
+        className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-6 border border-gray-300/50 dark:border-gray-700/50 backdrop-blur-sm transition-all duration-300 group-hover:border-transparent"
         style={{
           boxShadow: isHovered 
-            ? `0 20px 60px rgba(0, 0, 0, 0.4), 0 0 60px ${colors.glow}`
-            : '0 10px 40px rgba(0, 0, 0, 0.3)',
+            ? `0 20px 60px rgba(0, 0, 0, 0.2), 0 0 60px ${colors.glow}`
+            : '0 10px 40px rgba(0, 0, 0, 0.1)',
         }}
       >
         {/* Icon with particle effect */}
@@ -669,9 +669,9 @@ function AnimatedStatCard({ icon, title, value, color, trend, isHovered, delay =
           )}
         </div>
         
-        <h3 className="text-gray-400 text-sm mb-2 group-hover:text-gray-300 transition-colors duration-300">{title}</h3>
+        <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-2 group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors duration-300">{title}</h3>
         <div className="flex items-baseline gap-2">
-          <p className="text-4xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{value}</p>
+          <p className="text-4xl font-bold text-gray-900 dark:text-white group-hover:scale-105 transition-transform duration-300">{value}</p>
           {trend && (
             <span className={`text-sm font-medium ${trendColors[trend]} group-hover:scale-110 transition-transform duration-300`}>
               {trend}
@@ -706,12 +706,12 @@ function AnimatedStatCard({ icon, title, value, color, trend, isHovered, delay =
 
 function InfoItem({ label, value, icon }) {
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:border-blue-500/30 group">
+    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:border-blue-500/30 group">
       <div className="flex items-center space-x-3">
         <div className="text-2xl">{icon}</div>
         <div className="flex-1">
-          <div className="text-gray-400 text-sm mb-1 group-hover:text-gray-300 transition-colors duration-300">{label}</div>
-          <div className="text-white font-medium truncate group-hover:text-blue-300 transition-colors duration-300">{value}</div>
+          <div className="text-gray-600 dark:text-gray-400 text-sm mb-1 group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors duration-300">{label}</div>
+          <div className="text-gray-900 dark:text-white font-medium truncate group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300">{value}</div>
         </div>
       </div>
     </div>
@@ -722,17 +722,17 @@ function EnhancedScoreBar({ label, value, color, icon }) {
   const colorClasses = {
     green: { 
       bg: 'bg-gradient-to-r from-green-500 to-emerald-400', 
-      text: 'text-green-400',
+      text: 'text-green-600 dark:text-green-400',
       glow: 'rgba(16, 185, 129, 0.3)'
     },
     blue: { 
       bg: 'bg-gradient-to-r from-blue-500 to-cyan-400', 
-      text: 'text-blue-400',
+      text: 'text-blue-600 dark:text-blue-400',
       glow: 'rgba(59, 130, 246, 0.3)'
     },
     purple: { 
       bg: 'bg-gradient-to-r from-purple-500 to-pink-400', 
-      text: 'text-purple-400',
+      text: 'text-purple-600 dark:text-purple-400',
       glow: 'rgba(168, 85, 247, 0.3)'
     }
   };
@@ -745,14 +745,14 @@ function EnhancedScoreBar({ label, value, color, icon }) {
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center space-x-3">
           <span className="text-2xl">{icon}</span>
-          <span className="text-gray-400 group-hover:text-white transition-colors duration-300 font-medium">{label}</span>
+          <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300 font-medium">{label}</span>
         </div>
-        <span className="text-xl font-bold text-white bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 rounded-xl border border-gray-700/50 group-hover:border-transparent transition-all duration-300">
+        <span className="text-xl font-bold text-gray-900 dark:text-white bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 px-4 py-2 rounded-xl border border-gray-300/50 dark:border-gray-700/50 group-hover:border-transparent transition-all duration-300">
           {numValue.toFixed(1)}%
         </span>
       </div>
       <div className="relative">
-        <div className="w-full bg-gradient-to-r from-gray-800 to-gray-900 rounded-full h-3 border border-gray-700/50 overflow-hidden">
+        <div className="w-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full h-3 border border-gray-300/50 dark:border-gray-700/50 overflow-hidden">
           <div
             className={`h-3 rounded-full ${colors.bg} relative transition-all duration-1000 ease-out group-hover:h-4`}
             style={{ width: `${Math.min(numValue, 100)}%` }}
@@ -763,10 +763,10 @@ function EnhancedScoreBar({ label, value, color, icon }) {
         </div>
         {/* Percentage indicator */}
         <div 
-          className="absolute top-0 h-3 w-0.5 bg-white/50 group-hover:bg-white transition-all duration-300"
+          className="absolute top-0 h-3 w-0.5 bg-gray-900/50 dark:bg-white/50 group-hover:bg-gray-900 dark:group-hover:bg-white transition-all duration-300"
           style={{ left: `${numValue}%` }}
         >
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-white bg-gray-900 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-900 dark:text-white bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap backdrop-blur-sm">
             {numValue.toFixed(1)}%
           </div>
         </div>
@@ -777,15 +777,15 @@ function EnhancedScoreBar({ label, value, color, icon }) {
 
 function MetricItem({ label, value, color }) {
   const colorClasses = {
-    green: 'text-green-400',
-    blue: 'text-blue-400',
-    purple: 'text-purple-400',
-    orange: 'text-orange-400'
+    green: 'text-green-600 dark:text-green-400',
+    blue: 'text-blue-600 dark:text-blue-400',
+    purple: 'text-purple-600 dark:text-purple-400',
+    orange: 'text-orange-600 dark:text-orange-400'
   };
 
   return (
-    <div className="text-center p-3 bg-gray-800/50 rounded-xl border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:border-gray-600/50">
-      <div className="text-gray-400 text-sm mb-1">{label}</div>
+    <div className="text-center p-3 bg-gray-200/50 dark:bg-gray-800/50 rounded-xl border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:border-gray-400/50 dark:hover:border-gray-600/50">
+      <div className="text-gray-600 dark:text-gray-400 text-sm mb-1">{label}</div>
       <div className={`text-xl font-bold ${colorClasses[color]}`}>{value}</div>
     </div>
   );
