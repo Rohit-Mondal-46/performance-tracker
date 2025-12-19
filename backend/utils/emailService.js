@@ -102,6 +102,46 @@ const getEmailTemplate = (type, data) => {
         </html>
       `;
 
+    case 'password_reset':
+      return `
+        <html>
+          <head><style>${baseStyle}</style></head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🔒 Password Reset Request</h1>
+                <p>Reset your Performance Tracker password</p>
+              </div>
+              <div class="content">
+                <h2>Hello ${data.name}!</h2>
+                <p>We received a request to reset your password for your <strong>${data.role}</strong> account.</p>
+                
+                <p>Click the button below to reset your password:</p>
+                
+                <a href="${data.resetLink}" class="button">Reset Password</a>
+                
+                <p style="color: #666; font-size: 14px;">Or copy and paste this link into your browser:</p>
+                <p style="color: #667eea; word-break: break-all; font-size: 12px;">${data.resetLink}</p>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+                  <p style="margin: 0; color: #856404;"><strong>⚠️ Important:</strong></p>
+                  <ul style="margin: 10px 0 0 0; color: #856404;">
+                    <li>This link will expire in 1 hour</li>
+                    <li>If you didn't request this, please ignore this email</li>
+                    <li>Your password will remain unchanged until you create a new one</li>
+                  </ul>
+                </div>
+                
+                <div class="footer">
+                  <p>Best regards,<br>Performance Tracker Team</p>
+                  <p>This is an automated message. Please do not reply to this email.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
     case 'service_request':
       return `
         <html>
@@ -246,6 +286,31 @@ const sendServiceRequestToAdmin = async (requestData) => {
   }
 };
 
+// Send password reset email
+const sendPasswordResetEmail = async (email, name, resetLink, role) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"Performance Tracker" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '🔒 Password Reset Request - Performance Tracker',
+      html: getEmailTemplate('password_reset', {
+        name: name,
+        resetLink: resetLink,
+        role: role
+      })
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Password reset email sent to ${email}`);
+    return result;
+  } catch (error) {
+    console.error(`❌ Error sending password reset email:`, error);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+};
+
 // Test email configuration
 const testEmailConfiguration = async () => {
   try {
@@ -263,5 +328,6 @@ module.exports = {
   sendOrganizationCredentials,
   sendEmployeeCredentials,
   sendServiceRequestToAdmin,
+  sendPasswordResetEmail,
   testEmailConfiguration
 };

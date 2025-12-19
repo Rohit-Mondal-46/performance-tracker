@@ -98,6 +98,54 @@ class Organization {
       throw new Error(`Error deleting organization: ${error.message}`);
     }
   }
+
+  static async updatePasswordByEmail(email, newPassword) {
+    try {
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      const result = await pool.query(
+        'UPDATE organizations SET password = $1 WHERE email = $2 RETURNING id, email',
+        [hashedPassword, email]
+      );
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error updating password: ${error.message}`);
+    }
+  }
+
+  static async setResetToken(email, token, expiry) {
+    try {
+      const result = await pool.query(
+        'UPDATE organizations SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3 RETURNING id, email',
+        [token, expiry, email]
+      );
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error setting reset token: ${error.message}`);
+    }
+  }
+
+  static async findByResetToken(token) {
+    try {
+      const result = await pool.query(
+        'SELECT * FROM organizations WHERE reset_token = $1 AND reset_token_expiry > NOW()',
+        [token]
+      );
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error finding organization by reset token: ${error.message}`);
+    }
+  }
+
+  static async clearResetToken(id) {
+    try {
+      await pool.query(
+        'UPDATE organizations SET reset_token = NULL, reset_token_expiry = NULL WHERE id = $1',
+        [id]
+      );
+    } catch (error) {
+      throw new Error(`Error clearing reset token: ${error.message}`);
+    }
+  }
 }
 
 module.exports = Organization;

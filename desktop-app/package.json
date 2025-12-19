@@ -39,7 +39,6 @@
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
     "@mediapipe/holistic": "^0.5.1675471629",
-    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.13.2",
     "face-api.js": "^0.22.2",
     "jspdf": "^2.5.1",

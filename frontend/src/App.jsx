@@ -24,6 +24,8 @@ function AppLayout({ children }) {
     </div>
   );
 }
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, isAdmin, isOrganization, isEmployee, loading } = useAuth();
@@ -148,6 +150,64 @@ function AppRoutes() {
         />
 
         {/* Employee analytics */}
+    <Routes>
+      <Route
+        path="/role-selection"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <RoleSelection />}
+      />
+      <Route
+        path="/login"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <Login />}
+      />
+      <Route
+        path="/forgot-password"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <ForgotPassword />}
+      />
+      <Route
+        path="/reset-password"
+        element={user ? <Navigate to={getDashboardRoute()} replace /> : <ResetPassword />}
+      />
+      <Route
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organization-dashboard"
+        element={
+          <ProtectedRoute requiredRole="organization">
+            <OrganizationDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee-dashboard"
+        element={
+          <ProtectedRoute requiredRole="employee">
+            <EmployeeDashboard />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/organization-analytics"
+        element={
+          <ProtectedRoute requiredRole="organization">
+            <OrganizationAnalytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee-analytics"
+        element={
+          <ProtectedRoute requiredRole="employee">
+            <EmployeeAnalytics />
+          </ProtectedRoute>
+        }
+      />
         <Route
           path="/employee-analytics"
           element={
