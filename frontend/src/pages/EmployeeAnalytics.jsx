@@ -34,7 +34,7 @@ export function EmployeeAnalytics() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-black">
         <div className="relative">
           <motion.div
             animate={{
@@ -49,7 +49,7 @@ export function EmployeeAnalytics() {
             className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <div className="text-gray-800 dark:text-white text-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
               Loading...
             </div>
           </div>
@@ -82,13 +82,13 @@ export function EmployeeAnalytics() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 md:p-6 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-black p-4 md:p-6 overflow-hidden">
       {/* Animated background particles */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-full"
+            className="absolute w-1 h-1 bg-gradient-to-r from-blue-500/10 to-purple-600/10 dark:from-blue-500/20 dark:to-purple-600/20 rounded-full"
             initial={{
               x: Math.random() * window.innerWidth,
               y: Math.random() * window.innerHeight,
@@ -116,18 +116,18 @@ export function EmployeeAnalytics() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent mb-2">
                 Performance Analytics
               </h1>
-              <p className="text-gray-400">Real-time insights into your performance trends</p>
+              <p className="text-gray-600 dark:text-gray-400">Real-time insights into your performance trends</p>
             </div>
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="hidden md:flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/10"
+              className="hidden md:flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 dark:from-blue-600/20 dark:to-purple-600/20 backdrop-blur-sm px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10"
             >
-              <Zap className="w-5 h-5 text-yellow-400" />
-              <span className="text-white font-medium">Live Analytics</span>
+              <Zap className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+              <span className="text-gray-800 dark:text-white font-medium">Live Analytics</span>
             </motion.div>
           </div>
         </motion.div>
@@ -139,7 +139,7 @@ export function EmployeeAnalytics() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-8 flex justify-between items-center"
         >
-          <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <BarChart3 className="w-5 h-5" />
             <span>Analytics Period</span>
             <ChevronRight className="w-4 h-4" />
@@ -149,7 +149,7 @@ export function EmployeeAnalytics() {
             whileFocus={{ scale: 1.05 }}
             value={timeRange}
             onChange={(e) => setTimeRange(Number(e.target.value))}
-            className="bg-gray-900/50 backdrop-blur-sm text-white rounded-xl px-6 py-3 outline-none border border-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 shadow-2xl shadow-blue-500/10"
+            className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-6 py-3 outline-none border border-gray-300/50 dark:border-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 shadow-2xl shadow-blue-500/10"
           >
             <option value={7}>Last 7 days</option>
             <option value={30}>Last 30 days</option>
@@ -231,16 +231,16 @@ export function EmployeeAnalytics() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             whileHover={{ y: -4 }}
-            className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-2xl shadow-blue-500/10"
+            className="bg-white/80 dark:bg-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-300/50 dark:border-white/10 shadow-2xl shadow-blue-500/10"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Performance Trend</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Performance Trend</h2>
               <motion.div
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.5 }}
-                className="p-2 rounded-lg bg-gradient-to-r from-blue-600/20 to-purple-600/20"
+                className="p-2 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 dark:from-blue-600/20 dark:to-purple-600/20"
               >
-                <TrendingUp className="w-5 h-5 text-blue-400" />
+                <TrendingUp className="w-5 h-5 text-blue-500 dark:text-blue-400" />
               </motion.div>
             </div>
             {trends.length > 0 ? (
@@ -265,20 +265,21 @@ export function EmployeeAnalytics() {
                       <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                  <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-                  <YAxis stroke="#9ca3af" domain={[0, 100]} fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" opacity={0.3} />
+                  <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                  <YAxis stroke="#6b7280" domain={[0, 100]} fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(209, 213, 219, 0.5)',
                       borderRadius: '12px',
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+                      color: '#111827'
                     }}
-                    labelStyle={{ color: '#fff', fontWeight: '600' }}
+                    labelStyle={{ color: '#111827', fontWeight: '600' }}
                   />
-                  <Legend wrapperStyle={{ color: '#fff', fontSize: '12px' }} />
+                  <Legend wrapperStyle={{ color: '#374151', fontSize: '12px' }} />
                   <Area 
                     type="monotone" 
                     dataKey="overall" 
@@ -309,7 +310,7 @@ export function EmployeeAnalytics() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-gray-600 dark:text-gray-400">
                 <div className="text-6xl mb-4">📊</div>
                 No performance data available
               </div>
@@ -322,16 +323,16 @@ export function EmployeeAnalytics() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
             whileHover={{ y: -4 }}
-            className="bg-gradient-to-br from-gray-900/40 to-gray-900/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-2xl shadow-purple-500/10"
+            className="bg-gradient-to-br from-white/80 to-gray-50/80 dark:from-gray-900/40 dark:to-gray-900/20 backdrop-blur-sm rounded-2xl p-6 border border-gray-300/50 dark:border-white/10 shadow-2xl shadow-purple-500/10"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Current Grade</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Current Grade</h2>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
-                className="p-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-pink-600/20"
+                className="p-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 dark:from-purple-600/20 dark:to-pink-600/20"
               >
-                <Award className="w-5 h-5 text-purple-400" />
+                <Award className="w-5 h-5 text-purple-500 dark:text-purple-400" />
               </motion.div>
             </div>
             {currentGrade ? (
@@ -353,32 +354,32 @@ export function EmployeeAnalytics() {
                     <div className="absolute inset-0 blur-3xl opacity-30 bg-current -z-10" />
                   </div>
                 </motion.div>
-                <div className="text-xl text-gray-400 mb-6 text-center">
+                <div className="text-xl text-gray-600 dark:text-gray-400 mb-6 text-center">
                   Latest Score: {parseFloat(trends[trends.length - 1].avg_overall || 0).toFixed(1)}%
                 </div>
                 <div className="grid grid-cols-2 gap-4 w-full max-w-md">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="bg-gray-900/50 rounded-xl p-4 border border-green-500/20"
+                    className="bg-gray-100/80 dark:bg-gray-900/50 rounded-xl p-4 border border-green-500/20"
                   >
-                    <div className="text-green-400 text-2xl font-bold">
+                    <div className="text-green-600 dark:text-green-400 text-2xl font-bold">
                       {parseFloat(trends[trends.length - 1]?.avg_productivity || 0).toFixed(1)}%
                     </div>
-                    <div className="text-gray-400 text-sm">Productivity</div>
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Productivity</div>
                   </motion.div>
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="bg-gray-900/50 rounded-xl p-4 border border-blue-500/20"
+                    className="bg-gray-100/80 dark:bg-gray-900/50 rounded-xl p-4 border border-blue-500/20"
                   >
-                    <div className="text-blue-400 text-2xl font-bold">
+                    <div className="text-blue-600 dark:text-blue-400 text-2xl font-bold">
                       {parseFloat(trends[trends.length - 1]?.avg_engagement || 0).toFixed(1)}%
                     </div>
-                    <div className="text-gray-400 text-sm">Engagement</div>
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Engagement</div>
                   </motion.div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-gray-600 dark:text-gray-400">
                 <div className="text-6xl mb-4">🎓</div>
                 No grade data available
               </div>
@@ -392,16 +393,16 @@ export function EmployeeAnalytics() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
           whileHover={{ y: -4 }}
-          className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/10 shadow-2xl shadow-green-500/10"
+          className="bg-white/80 dark:bg-gray-900/40 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-300/50 dark:border-white/10 shadow-2xl shadow-green-500/10"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Productivity vs Engagement</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Productivity vs Engagement</h2>
             <motion.div
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.5 }}
-              className="p-2 rounded-lg bg-gradient-to-r from-green-600/20 to-emerald-600/20"
+              className="p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 dark:from-green-600/20 dark:to-emerald-600/20"
             >
-              <PieChartIcon className="w-5 h-5 text-green-400" />
+              <PieChartIcon className="w-5 h-5 text-green-500 dark:text-green-400" />
             </motion.div>
           </div>
           {trends.length > 0 ? (
@@ -411,19 +412,20 @@ export function EmployeeAnalytics() {
                 productivity: parseFloat(t.avg_productivity || 0),
                 engagement: parseFloat(t.avg_engagement || 0)
               }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-                <YAxis stroke="#9ca3af" domain={[0, 100]} fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" opacity={0.3} />
+                <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" domain={[0, 100]} fontSize={12} />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(209, 213, 219, 0.5)',
                     borderRadius: '12px',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+                    color: '#111827'
                   }}
                 />
-                <Legend wrapperStyle={{ color: '#fff', fontSize: '12px' }} />
+                <Legend wrapperStyle={{ color: '#374151', fontSize: '12px' }} />
                 <Bar 
                   dataKey="productivity" 
                   fill="#10b981" 
@@ -441,15 +443,12 @@ export function EmployeeAnalytics() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-gray-600 dark:text-gray-400">
               <div className="text-6xl mb-4">⚖️</div>
               No comparison data available
             </div>
           )}
         </motion.div>
-
-        {/* Time Distribution Analysis */}
-        
       </div>
     </div>
   );
@@ -457,10 +456,10 @@ export function EmployeeAnalytics() {
 
 function StatCard({ icon, title, value, color, index }) {
   const colorClasses = {
-    blue: 'bg-gradient-to-br from-blue-600/20 to-cyan-600/20 text-blue-400 border-blue-500/20',
-    green: 'bg-gradient-to-br from-green-600/20 to-emerald-600/20 text-green-400 border-green-500/20',
-    purple: 'bg-gradient-to-br from-purple-600/20 to-pink-600/20 text-purple-400 border-purple-500/20',
-    orange: 'bg-gradient-to-br from-orange-600/20 to-amber-600/20 text-orange-400 border-orange-500/20'
+    blue: 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20 dark:from-blue-600/20 dark:to-cyan-600/20 text-blue-600 dark:text-blue-400 border-blue-400/30 dark:border-blue-500/20',
+    green: 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 dark:from-green-600/20 dark:to-emerald-600/20 text-green-600 dark:text-green-400 border-green-400/30 dark:border-green-500/20',
+    purple: 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-600/20 dark:to-pink-600/20 text-purple-600 dark:text-purple-400 border-purple-400/30 dark:border-purple-500/20',
+    orange: 'bg-gradient-to-br from-orange-500/20 to-amber-500/20 dark:from-orange-600/20 dark:to-amber-600/20 text-orange-600 dark:text-orange-400 border-orange-400/30 dark:border-orange-500/20'
   };
 
   const glowColors = {
@@ -468,6 +467,20 @@ function StatCard({ icon, title, value, color, index }) {
     green: 'shadow-green-500/20',
     purple: 'shadow-purple-500/20',
     orange: 'shadow-orange-500/20'
+  };
+
+  const colorGradients = {
+    blue: 'from-blue-500/30 to-cyan-500/30 dark:from-blue-600/30 dark:to-cyan-600/30',
+    green: 'from-green-500/30 to-emerald-500/30 dark:from-green-600/30 dark:to-emerald-600/30',
+    purple: 'from-purple-500/30 to-pink-500/30 dark:from-purple-600/30 dark:to-pink-600/30',
+    orange: 'from-orange-500/30 to-amber-500/30 dark:from-orange-600/30 dark:to-amber-600/30'
+  };
+
+  const conicColors = {
+    blue: '#3b82f6',
+    green: '#10b981',
+    purple: '#a855f7',
+    orange: '#f97316'
   };
 
   return (
@@ -493,13 +506,13 @@ function StatCard({ icon, title, value, color, index }) {
       <motion.div
         whileHover={{ scale: 1.1, rotate: 5 }}
         transition={{ duration: 0.2 }}
-        className={`inline-flex p-3 rounded-xl mb-4 bg-gradient-to-br ${color === 'blue' ? 'from-blue-600/30 to-cyan-600/30' : color === 'green' ? 'from-green-600/30 to-emerald-600/30' : color === 'purple' ? 'from-purple-600/30 to-pink-600/30' : 'from-orange-600/30 to-amber-600/30'} backdrop-blur-sm`}
+        className={`inline-flex p-3 rounded-xl mb-4 bg-gradient-to-br ${colorGradients[color]} backdrop-blur-sm`}
       >
         {icon}
       </motion.div>
-      <h3 className="text-gray-300 text-sm mb-1 font-medium">{title}</h3>
+      <h3 className="text-gray-600 dark:text-gray-300 text-sm mb-1 font-medium">{title}</h3>
       <motion.p 
-        className="text-3xl font-bold text-white"
+        className="text-3xl font-bold text-gray-900 dark:text-white"
         initial={{ scale: 0.5 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.3, delay: index * 0.1 + 0.2 }}
@@ -511,7 +524,7 @@ function StatCard({ icon, title, value, color, index }) {
       <motion.div
         className="absolute -bottom-2 -right-2 w-16 h-16 rounded-full opacity-10"
         style={{
-          background: `conic-gradient(from 0deg, ${color === 'blue' ? '#3b82f6' : color === 'green' ? '#10b981' : color === 'purple' ? '#a855f7' : '#f97316'}, transparent 50%)`
+          background: `conic-gradient(from 0deg, ${conicColors[color]}, transparent 50%)`
         }}
         animate={{
           rotate: 360
@@ -528,12 +541,12 @@ function StatCard({ icon, title, value, color, index }) {
 
 function getGradeColor(grade) {
   const colors = {
-    'A+': 'text-gradient bg-gradient-to-r from-green-400 to-emerald-400',
-    'A': 'text-gradient bg-gradient-to-r from-green-400 to-emerald-400',
-    'B': 'text-gradient bg-gradient-to-r from-blue-400 to-cyan-400',
-    'C': 'text-gradient bg-gradient-to-r from-yellow-400 to-amber-400',
-    'D': 'text-gradient bg-gradient-to-r from-orange-400 to-red-400',
-    'F': 'text-gradient bg-gradient-to-r from-red-400 to-pink-400'
+    'A+': 'text-gradient bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-400',
+    'A': 'text-gradient bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-400',
+    'B': 'text-gradient bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-400 dark:to-cyan-400',
+    'C': 'text-gradient bg-gradient-to-r from-yellow-500 to-amber-500 dark:from-yellow-400 dark:to-amber-400',
+    'D': 'text-gradient bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-400 dark:to-red-400',
+    'F': 'text-gradient bg-gradient-to-r from-red-500 to-pink-500 dark:from-red-400 dark:to-pink-400'
   };
   return colors[grade] || 'text-gray-400';
 }

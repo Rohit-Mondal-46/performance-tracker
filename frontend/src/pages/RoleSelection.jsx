@@ -216,15 +216,15 @@ export function RoleSelection() {
         >
           <span className="relative">
             <span className="relative z-10 flex items-center space-x-2">
-              <span>Back to Home</span>
               <svg
-                className="w-4 h-4 transform -rotate-180 group-hover:translate-x-1 transition-transform duration-300"
+                className="w-4 h-4 transform -rotate-120 group-hover:translate-x-1 transition-transform duration-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-              >
+                >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
+                <span>Back to Home</span>
             </span>
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 transition-all duration-300 group-hover:w-full" />
           </span>

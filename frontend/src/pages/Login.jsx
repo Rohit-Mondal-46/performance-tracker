@@ -62,6 +62,49 @@ export function Login() {
   const roleInfo = getRoleInfo();
   const RoleIcon = roleInfo.icon;
 
+  const getColorClass = (color) => {
+    switch (color) {
+      case 'red':
+        return {
+          bgLight: 'bg-red-100',
+          bgDark: 'bg-red-900/20',
+          textLight: 'text-red-600',
+          textDark: 'text-red-500',
+          gradientFrom: 'from-red-500/20',
+          gradientTo: 'to-purple-500/20'
+        };
+      case 'blue':
+        return {
+          bgLight: 'bg-blue-100',
+          bgDark: 'bg-blue-900/20',
+          textLight: 'text-blue-600',
+          textDark: 'text-blue-500',
+          gradientFrom: 'from-blue-500/20',
+          gradientTo: 'to-purple-500/20'
+        };
+      case 'green':
+        return {
+          bgLight: 'bg-green-100',
+          bgDark: 'bg-green-900/20',
+          textLight: 'text-green-600',
+          textDark: 'text-green-500',
+          gradientFrom: 'from-green-500/20',
+          gradientTo: 'to-blue-500/20'
+        };
+      default:
+        return {
+          bgLight: 'bg-blue-100',
+          bgDark: 'bg-blue-900/20',
+          textLight: 'text-blue-600',
+          textDark: 'text-blue-500',
+          gradientFrom: 'from-blue-500/20',
+          gradientTo: 'to-purple-500/20'
+        };
+    }
+  };
+
+  const colorClass = getColorClass(roleInfo.color);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -101,22 +144,22 @@ export function Login() {
         {/* Back to Role Selection Button */}
         <button
           onClick={() => navigate('/role-selection')}
-          className="flex items-center space-x-2 text-slate-100 hover:text-white transition-colors duration-200 mb-4 group bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg hover:bg-white/20"
+          className="flex items-center space-x-2 text-gray-700 dark:text-slate-100 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 mb-4 group bg-white/80 dark:bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-white/20 border border-gray-300/50 dark:border-white/10"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
           <span>Back to Role Selection</span>
         </button>
 
-        <div className="glass backdrop-blur-xl bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20 dark:border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-3xl animate-fade-in-up">
+        <div className="glass backdrop-blur-xl bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-300/30 dark:border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-3xl animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
             <div className="flex justify-center mb-4">
-              <div className={`bg-${roleInfo.color}-100 dark:bg-${roleInfo.color}-900/20 p-3 rounded-xl transform transition-all duration-500 hover:scale-110 hover:rotate-12 relative overflow-hidden group`}>
-                <RoleIcon className={`h-6 w-6 sm:h-8 sm:w-8 text-${roleInfo.color}-600 relative z-10`} />
-                <div className={`absolute inset-0 bg-gradient-to-r from-${roleInfo.color}-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+              <div className={`${colorClass.bgLight} dark:${colorClass.bgDark} p-3 rounded-xl transform transition-all duration-500 hover:scale-110 hover:rotate-12 relative overflow-hidden group`}>
+                <RoleIcon className={`h-6 w-6 sm:h-8 sm:w-8 ${colorClass.textLight} dark:${colorClass.textDark} relative z-10`} />
+                <div className={`absolute inset-0 bg-gradient-to-r ${colorClass.gradientFrom} ${colorClass.gradientTo} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
               </div>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 gradient-text">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {roleInfo.title}
             </h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
@@ -140,7 +183,7 @@ export function Login() {
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 sm:p-4 flex items-center animate-bounce-in">
-                <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
+                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mr-3" />
                 <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
               </div>
             )}
@@ -155,7 +198,7 @@ export function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-500 text-sm sm:text-base transform hover:scale-105"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-500 text-sm sm:text-base transform hover:scale-105 placeholder:text-gray-400"
                 placeholder="Enter your email"
               />
             </div>
@@ -171,7 +214,7 @@ export function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-500 pr-12 text-sm sm:text-base transform hover:scale-105"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-500 pr-12 text-sm sm:text-base transform hover:scale-105 placeholder:text-gray-400"
                   placeholder="Enter your password"
                 />
                 <button
