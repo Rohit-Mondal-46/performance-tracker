@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://performance-tracker-backend-o2vq.onrender.com/api';
 
+console.log('API Base URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.MODE);
+
 // Helper to detect if we're running in Electron
 const isElectron = () => {
   return typeof window !== 'undefined' && window.electron !== undefined;
@@ -13,6 +16,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Request interceptor to add token
@@ -23,14 +27,19 @@ api.interceptors.request.use(
     if (isElectron()) {
       // Get token from Electron secure storage
       token = await window.electron.auth.getToken();
+      console.log('🔑 Token from Electron:', token ? 'Found' : 'Not found');
     } else {
       // Get token from localStorage (web)
       token = localStorage.getItem('token');
+      console.log('🔑 Token from localStorage:', token ? 'Found' : 'Not found');
     }
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    const fullUrl = config.baseURL + config.url;
+    console.log('📤 API Request:', config.method?.toUpperCase(), fullUrl);
     return config;
   },
   (error) => {
@@ -40,8 +49,12 @@ api.interceptors.request.use(
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('📥 API Response:', response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error('❌ API Error:', error.config?.url, error.response?.status, error.message);
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');

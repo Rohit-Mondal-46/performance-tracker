@@ -114,14 +114,35 @@ const Navbar = ({ user, onLogout }) => {
                 {/* Open Dashboard Button */}
                 <button
                   onClick={async () => {
+                    const localUrl = 'http://localhost:5173/employee-dashboard';
+                    const productionUrl = 'https://frontend-vista.vercel.app/employee-dashboard';
+                    
                     try {
+                      // Try to check if localhost is running
+                      const response = await fetch('http://localhost:5173', { 
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                      }).catch(() => null);
+                      
+                      // Use local if available, otherwise use production
+                      const dashboardUrl = response ? localUrl : productionUrl;
+                      
+                      console.log('Opening dashboard:', dashboardUrl);
+                      
                       if (window.electron && window.electron.openExternal) {
-                        await window.electron.openExternal('http://localhost:5173/employee-dashboard');
+                        await window.electron.openExternal(dashboardUrl);
                       } else {
-                        window.open('http://localhost:5173/employee-dashboard', '_blank');
+                        window.open(dashboardUrl, '_blank');
                       }
                     } catch (error) {
-                      console.error('Failed to open URL:', error);
+                      console.error('Failed to open dashboard:', error);
+                      // Final fallback to production
+                      if (window.electron && window.electron.openExternal) {
+                        await window.electron.openExternal(productionUrl);
+                      } else {
+                        window.open(productionUrl, '_blank');
+                      }
                     }
                     setIsDropdownOpen(false);
                   }}
