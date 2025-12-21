@@ -27,3 +27,5 @@ Thumbs.db
 *.swp
 
 /coverage
+
+.github/copilot-instructions.md
