@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, CheckCircle, Monitor } from 'lucide-react';
+import { Download, CheckCircle, Monitor, Apple, Laptop } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export function DownloadSection() {
@@ -53,9 +53,27 @@ export function DownloadSection() {
                   >
                     <span className="flex items-center justify-center gap-3">
                       <Download className="w-6 h-6 group-hover:animate-bounce" />
-                      Download Now
+                      Download Now for Windows
                     </span>
                   </button>
+
+                  {/* Mac and Linux Coming Soon */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      disabled
+                      className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg font-medium text-sm cursor-not-allowed border border-gray-200 dark:border-gray-600 flex items-center justify-center gap-2"
+                    >
+                      <Apple className="w-4 h-4" />
+                      <span>macOS Soon</span>
+                    </button>
+                    <button
+                      disabled
+                      className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg font-medium text-sm cursor-not-allowed border border-gray-200 dark:border-gray-600 flex items-center justify-center gap-2"
+                    >
+                      <Laptop className="w-4 h-4" />
+                      <span>Linux Soon</span>
+                    </button>
+                  </div>
 
                   <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                     Free download • Quick installation • Secure
