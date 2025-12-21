@@ -58,14 +58,14 @@ app.whenReady().then(() => {
   // Simple ping
   ipcMain.handle("ping", () => "pong");
 
-  // =====================================================
-  // 🔐 AUTH LOGIC (ELECTRON SIDE)
-  // =====================================================
-
-  // ------ 1) LOGIN ------
+  // AUTH LOGIC (ELECTRON SIDE)
+  
   ipcMain.handle("auth:login", async (event, creds) => {
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/employee/login", {
+      const API_URL = process.env.VITE_API_URL || "https://performance-tracker-backend-o2vq.onrender.com/api";
+      console.log('Attempting login to:', API_URL);
+      
+      const res = await axios.post(`${API_URL}/auth/employee/login`, {
         email: creds.email,
         password: creds.password,
       });
