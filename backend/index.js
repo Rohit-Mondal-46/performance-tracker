@@ -29,14 +29,24 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://frontend-vista.vercel.app/'] 
-    : true,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like Electron apps, mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? ['https://frontend-vista.vercel.app'] 
+      : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost'];
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-// ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost']
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
