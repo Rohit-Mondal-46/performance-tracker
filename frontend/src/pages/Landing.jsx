@@ -8,6 +8,7 @@ import { HowItWorksSection } from '../components/landing sections/HowItWorksSect
 import { TestimonialsSection } from '../components/landing sections/TestimonialsSection';
 import { BenefitsSection } from '../components/landing sections/BenefitsSection';
 // import { PricingSection } from '../components/landing sections/PricingSection';
+import { DownloadSection } from '../components/landing sections/DownloadSection';
 import { CTASection } from '../components/landing sections/CTASection';
 import { Footer } from '../components/landing sections/Footer';
 
@@ -54,7 +55,7 @@ export function Landing() {
       <HowItWorksSection />
       <TestimonialsSection />
       <BenefitsSection />
-   //
+      <DownloadSection />
       <CTASection />
       <Footer />
     </div>

@@ -1,5 +1,5 @@
 {
-  "name": "desktop-app",
+  "name": "VISTA",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -13,7 +13,7 @@
     "dist": "npm run electron:build"
   },
   "build": {
-    "appId": "com.yourapp.desktop",
+    "appId": "com.vista.desktop",
     "productName": "VISTA",
     "icon": "build/icon.ico",
     "files": [

@@ -8,17 +8,18 @@ export const features = [
     color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600'
   },
   {
+    icon: Lock,
+    title: 'Privacy First',
+    description: 'All processing happens locally on your device. No video data is stored or transmitted anywhere.',
+    color: 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600'
+  },
+  {
     icon: Eye,
     title: 'Real-Time Analytics',
     description: 'Get instant feedback on focus levels, engagement, and productivity metrics happen.',
     color: 'bg-green-100 dark:bg-green-900/20 text-green-600'
   },
-  {
-    icon: Shield,
-    title: 'Blockchain Security',
-    description: 'All reports are cryptographically secured and stored on the blockchain for tamper-proof verification.',
-    color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600'
-  },
+  
   {
     icon: BarChart3,
     title: 'Detailed Reports',
@@ -31,10 +32,5 @@ export const features = [
     description: 'Monitor entire teams with role-based access controls and collaborative productivity tracking.',
     color: 'bg-pink-100 dark:bg-pink-900/20 text-pink-600'
   },
-  {
-    icon: Lock,
-    title: 'Privacy First',
-    description: 'All processing happens locally on your device. No video data is stored or transmitted anywhere.',
-    color: 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600'
-  }
+  
 ];

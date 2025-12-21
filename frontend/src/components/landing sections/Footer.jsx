@@ -41,10 +41,10 @@ export function Footer() {
             </a>
 
             <a
-              href="#testimonials"
+              href="#download"
               className="text-gray-400 hover:text-white text-sm transition-colors duration-300"
             >
-              Testimonials
+              Download
             </a>
 
             {/* Request Service → Contact Page */}
@@ -52,7 +52,7 @@ export function Footer() {
               to="/contact"
               className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:scale-105 relative group"
             >
-              Request Service
+              Start Free Trial
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>

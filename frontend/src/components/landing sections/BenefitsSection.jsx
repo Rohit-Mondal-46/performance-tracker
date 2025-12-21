@@ -6,20 +6,20 @@ export function BenefitsSection() {
   const benefits = [
     {
       icon: CheckCircle,
-      title: 'Increase Productivity by 40%',
-      description: 'Our AI-powered insights help teams identify and eliminate productivity bottlenecks.',
+      title: 'AI-Powered Camera Vision Monitoring',
+      description: 'Advanced computer vision technology tracks activities and behaviors in real-time with precision.',
       color: 'from-green-500 to-green-600'
     },
     {
       icon: Shield,
-      title: 'Enterprise-Grade Security',
-      description: 'Blockchain verification and local processing ensure your data remains secure and private.',
+      title: 'Privacy First',
+      description: 'On-device AI processing ensures your data never leaves your machine, keeping everything secure and private.',
       color: 'from-blue-500 to-blue-600'
     },
     {
       icon: Zap,
-      title: 'Real-Time Feedback',
-      description: 'Get instant notifications and insights to stay focused and maintain peak performance.',
+      title: 'Real-Time Insights',
+      description: 'Get instant performance analytics and actionable insights to optimize productivity throughout the day.',
       color: 'from-purple-500 to-purple-600'
     }
   ];

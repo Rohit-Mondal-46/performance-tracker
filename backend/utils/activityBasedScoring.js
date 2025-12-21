@@ -22,11 +22,7 @@ class ActivityBasedScoring {
     idle: ['idle']
   };
 
-  /**
-   * Aggregate raw activity counts into category totals
-   * @param {Object} activityData - Raw activity counts from desktop app
-   * @returns {Object} Category totals
-   */
+  
   static aggregateActivities(activityData) {
     const {
       typing = 0,
@@ -69,15 +65,6 @@ class ActivityBasedScoring {
     return Math.max(0, Math.min(100, Math.round(productivity_score * 100) / 100));
   }
 
-  /**
-   * Calculate engagement score (0-100)
-   * Penalizes distracted activities, rewards consistent focus
-   * 
-   * @param {number} working_total - Total working activity count
-   * @param {number} distracted_total - Total distracted activity count
-   * @param {number} grand_total - Total of all activities
-   * @returns {number} Engagement score (0-100)
-   */
   static calculateEngagementScore(working_total, distracted_total, grand_total) {
     if (grand_total === 0) return 0;
 
@@ -99,14 +86,6 @@ class ActivityBasedScoring {
     return Math.max(0, Math.min(100, Math.round(engagement_score * 100) / 100));
   }
 
-  /**
-   * Calculate overall performance score (0-100)
-   * Weighted combination of productivity and engagement
-   * 
-   * @param {number} productivity_score - Productivity score (0-100)
-   * @param {number} engagement_score - Engagement score (0-100)
-   * @returns {number} Overall score (0-100)
-   */
   static calculateOverallScore(productivity_score, engagement_score) {
     const overall_score = (
       productivity_score * this.WEIGHTS.productivity +
@@ -116,12 +95,6 @@ class ActivityBasedScoring {
     return Math.round(overall_score * 100) / 100;
   }
 
-  /**
-   * Determine performance grade based on overall score
-   * 
-   * @param {number} overall_score - Overall performance score (0-100)
-   * @returns {string} Performance grade (A, B, C, D, F)
-   */
   static calculatePerformanceGrade(overall_score) {
     if (overall_score >= 90) return 'A';
     if (overall_score >= 80) return 'B';
@@ -130,12 +103,7 @@ class ActivityBasedScoring {
     return 'F';
   }
 
-  /**
-   * Validate activity inputs
-   * 
-   * @param {Object} activityData - Raw activity counts
-   * @returns {Array} Validation errors (empty if valid)
-   */
+  
   static validateActivityInputs(activityData) {
     const errors = [];
     const {

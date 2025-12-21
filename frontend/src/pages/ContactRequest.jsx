@@ -111,7 +111,7 @@ export function ContactRequest() {
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
       <div className="max-w-4xl mx-auto relative z-10">
-        {/* Back to Home Button */}
+        {/* Back to Home Button
         <div className="mb-8">
           <Link
             to="/"
@@ -120,7 +120,7 @@ export function ContactRequest() {
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
             <span className="group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">Back to Home</span>
           </Link>
-        </div>
+        </div> */}
 
         {/* Header */}
         <div className="text-center mb-12 pt-4">
@@ -128,10 +128,10 @@ export function ContactRequest() {
             <Mail className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-            Get in Touch
+            Request Our Service
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Interested in our analytics solutions? Send us your information and we'll get back to you within 24 hours.
+            Fill the detials carefully. we'll get back to you within 24 hours.
           </p>
         </div>
 
@@ -313,35 +313,6 @@ export function ContactRequest() {
             </div>
           </form>
 
-          {/* Additional Information */}
-          <div className="mt-12 pt-8 border-t border-gray-300/50 dark:border-gray-700/50">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Why Choose VISTA?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-6 bg-gradient-to-br from-gray-100/80 to-white/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-105">
-                <div className="inline-flex p-3 bg-blue-500/10 rounded-lg mb-4">
-                  <Clock className="w-6 h-6 text-blue-500 dark:text-blue-400" />
-                </div>
-                <h3 className="text-gray-900 dark:text-white font-bold mb-2">24 Hour Response</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">We guarantee a response within 24 hours</p>
-              </div>
-              
-              <div className="text-center p-6 bg-gradient-to-br from-gray-100/80 to-white/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-105">
-                <div className="inline-flex p-3 bg-green-500/10 rounded-lg mb-4">
-                  <Shield className="w-6 h-6 text-green-500 dark:text-green-400" />
-                </div>
-                <h3 className="text-gray-900 dark:text-white font-bold mb-2">Enterprise Security</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Bank-grade encryption for your data</p>
-              </div>
-              
-              <div className="text-center p-6 bg-gradient-to-br from-gray-100/80 to-white/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl border border-gray-300/50 dark:border-gray-700/50 transform transition-all duration-300 hover:scale-105">
-                <div className="inline-flex p-3 bg-purple-500/10 rounded-lg mb-4">
-                  <BarChart className="w-6 h-6 text-purple-500 dark:text-purple-400" />
-                </div>
-                <h3 className="text-gray-900 dark:text-white font-bold mb-2">Advanced Analytics</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">AI-powered insights and reporting</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Home Button at Bottom */}

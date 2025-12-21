@@ -53,12 +53,12 @@ export function CTASection() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-                <Link to="/role-selection" className="w-full sm:w-auto">
+                <Link to="/contact" className="w-full sm:w-auto">
                   <RippleButton
                     variant="secondary"
                     className="bg-white text-blue-600 hover:bg-gray-100 shadow-xl hover:shadow-2xl w-full sm:w-auto justify-center flex items-center"
                   >
-                    Start Your Free Trial
+                    Start Free Trial
                     <ArrowRight className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" />
                   </RippleButton>
                 </Link>

@@ -507,7 +507,7 @@ export function AdminDashboard() {
           {[
             { icon: <Building2 className="w-8 h-8" />, title: "Total Organizations", value: stats?.totalOrganizations || 0, color: "blue", delay: 100 },
             { icon: <Users className="w-8 h-8" />, title: "Total Employees", value: stats?.totalEmployees || 0, color: "green", delay: 200 },
-            { icon: <TrendingUp className="w-8 h-8" />, title: "Avg Employees/Org", value: stats?.averageEmployeesPerOrg || 0, color: "purple", delay: 300 },
+            // { icon: <TrendingUp className="w-8 h-8" />, title: "Avg Employees/Org", value: stats?.averageEmployeesPerOrg || 0, color: "purple", delay: 300 },
             { icon: <Activity className="w-8 h-8" />, title: "Active Organizations", value: organizations.length, color: "orange", delay: 400 },
           ].map((stat, index) => (
             <div

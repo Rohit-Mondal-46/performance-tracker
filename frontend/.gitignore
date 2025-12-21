@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# Installers
+*.exe
+*.msi
+*.dmg
+*.AppImage
