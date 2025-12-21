@@ -30,7 +30,7 @@ app.use(helmet({
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://abc_domain.com'] 
+    ? ['https://frontend-vista.vercel.app/'] 
     : true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -97,7 +97,7 @@ app.use((error, req, res, next) => {
 
 const startServer = async () => {
   try {
-    console.log('Initializing Performance Tracker Backend...');
+    console.log('Initializing Vista Backend...');
     
     await createTables();
     
