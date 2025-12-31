@@ -21,9 +21,7 @@ export function AuthProvider({ children }) {
             // Use the user data from localStorage
             const parsedUser = JSON.parse(savedUser);
             setUser(parsedUser);
-            console.log('✅ Session restored for user:', parsedUser.email);
           } else {
-            console.log('❌ Session invalid, clearing storage');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
@@ -48,8 +46,6 @@ export function AuthProvider({ children }) {
   const login = async (email, password, role) => {
     setLoading(true); // Set loading true when login starts
     try {
-      console.log('=== LOGIN ATTEMPT ===');
-      console.log('Email:', email, 'Role:', role);
       
       let response;
       
@@ -82,7 +78,6 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify(userWithRole));
         
         setUser(userWithRole);
-        console.log('✅ LOGIN SUCCESS:', userWithRole);
         
         setLoading(false); // Set loading false after successful login
         return { success: true, user: userWithRole };

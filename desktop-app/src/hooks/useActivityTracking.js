@@ -60,7 +60,6 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
   // Send activity batch to backend
   const sendActivityBatch = useCallback(async () => {
     if (isSubmittingRef.current) {
-      console.log('Already submitting, skipping...');
       return;
     }
 
@@ -94,7 +93,6 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       // Backend validation requires total <= 600 seconds
       // If total exceeds 600, normalize the values proportionally
       if (totalSeconds > 600) {
-        console.log(`⚠️ Total time (${totalSeconds}s) exceeds 600s, normalizing...`);
         const scale = 600 / totalSeconds;
         activityData.typing = Math.round(activityData.typing * scale);
         activityData.writing = Math.round(activityData.writing * scale);
@@ -110,19 +108,18 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
                         activityData.phone + activityData.gesturing + activityData.looking_away + 
                         activityData.idle;
 
-      console.log('📤 Sending activity batch:', activityData);
-      console.log('📊 Total time:', finalTotal, 'seconds');
+      
       
       if (finalTotal > 0) {
         await activityAPI.ingestActivityBatch(activityData);
-        console.log('✅ Activity batch sent successfully');
+        
         
         // Call success callback if provided
         if (onSuccessRef.current) {
           onSuccessRef.current(activityData);
         }
       } else {
-        console.log('No activity data to send');
+        console.log("No activity data");
       }
 
       // Reset for next interval
@@ -145,8 +142,6 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
       }
-      
-      // Call error callback if provided
       if (onErrorRef.current) {
         onErrorRef.current(error);
       }
@@ -188,7 +183,7 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       sendActivityBatch();
     }, INTERVAL_DURATION);
 
-    console.log('Activity tracking started - will send data every 10 minutes');
+    
 
     // Cleanup on unmount
     return () => {

@@ -32,7 +32,7 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
 
   // Cleanup function
   const cleanup = useCallback(() => {
-    console.log("Cleaning up resources...");
+    
     
     if (cameraRef.current) {
       try {
@@ -68,30 +68,25 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
   const initialize = useCallback(async () => {
     // Prevent multiple simultaneous initializations
     if (initializingRef.current) {
-      console.log("Already initializing, skipping...");
       return;
     }
 
     try {
       initializingRef.current = true;
-      console.log("Starting initialization...");
       setError(null);
       setMediaPipeStatus("loading");
       cleanup();
       
       // CRITICAL: Wait for video element to be mounted
       if (!videoRef.current) {
-        console.log("Waiting for video element...");
         await new Promise((resolve, reject) => {
           const maxAttempts = 30; // 3 seconds max (reduced from 5)
           let attempts = 0;
           
           const checkVideo = setInterval(() => {
             attempts++;
-            console.log(`Checking for video element... attempt ${attempts}/${maxAttempts}`);
             if (videoRef.current) {
               clearInterval(checkVideo);
-              console.log("✅ Video element found!");
               resolve();
             } else if (attempts >= maxAttempts) {
               clearInterval(checkVideo);
@@ -99,14 +94,11 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
             }
           }, 100);
         });
-      } else {
-        console.log("✅ Video element already available");
       }
       
       // Wait for MediaPipe in Electron
       if (window.electronAPI) {
-        console.log("Loading MediaPipe via Electron...");
-        await window.electronAPI.loadMediaPipe();
+        await window.electronAPI.mediaPipe.load()
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
@@ -116,7 +108,7 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
       }
 
       // Get camera access
-      console.log("Requesting camera access...");
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
           width: { ideal: 640 },
@@ -160,7 +152,7 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
         }
       });
 
-      console.log("Video ready, initializing Holistic...");
+      
 
       // Initialize Holistic
       const holistic = new Holistic({
@@ -311,7 +303,6 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
       });
 
       await holistic.initialize();
-      console.log("Holistic initialized");
 
       // Start camera processing
       if (!videoRef.current) {
@@ -338,7 +329,6 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
       setIsInitialized(true);
       setMediaPipeStatus("loaded");
       setIsUsingFallback(false);
-      console.log("✅ Camera and MediaPipe initialized successfully");
       initializingRef.current = false;
 
     } catch (err) {
@@ -352,7 +342,6 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
 
   // Restart function
   const restart = useCallback(() => {
-    console.log("Restarting...");
     setIsInitialized(false);
     setError(null);
     setCurrentActivity("Restarting...");
@@ -367,7 +356,6 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
   useEffect(() => {
     // Don't initialize if camera hasn't been started yet
     if (!cameraStarted) {
-      console.log("Waiting for camera to be started...");
       setCurrentActivity("Not Started");
       return;
     }

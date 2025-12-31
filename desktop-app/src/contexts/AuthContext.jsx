@@ -1,133 +1,154 @@
+// contexts/AuthContext.jsx - COMPLETE FIX
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
-export const AuthContext = createContext(undefined);
-
-// Helper to detect if we're running in Electron
+// Single source of truth for Electron detection
 const isElectron = () => {
-  return typeof window !== 'undefined' && window.electron !== undefined;
+  return typeof window !== 'undefined' && window.electronAPI !== undefined;
 };
 
-// Storage helpers that work in both web and Electron
-const storage = {
-  getItem: async (key) => {
-    if (isElectron()) {
-      // In Electron, get token from secure cookie storage
-      if (key === 'token') {
-        return await window.electron.auth.getToken();
+// Unified storage that works everywhere
+const createStorage = () => {
+  return {
+    getItem: async (key) => {
+      try {
+        if (isElectron() && key === 'token' && window.electronAPI?.auth?.getToken) {
+          return await window.electronAPI.auth.getToken();
+        }
+        return localStorage.getItem(key);
+      } catch (err) {
+        console.warn('Storage getItem failed:', err);
+        return localStorage.getItem(key);
       }
-      // For other items, use localStorage
-      return localStorage.getItem(key);
-    }
-    return localStorage.getItem(key);
-  },
-  setItem: async (key, value) => {
-    // Token is handled by Electron IPC, other data in localStorage
-    if (key !== 'token' || !isElectron()) {
+    },
+    
+    setItem: async (key, value) => {
       localStorage.setItem(key, value);
-    }
-  },
-  removeItem: async (key) => {
-    if (key !== 'token' || !isElectron()) {
+      
+      if (isElectron() && key === 'token' && value) {
+        try {
+          if (window.electronAPI?.screenshot?.setToken) {
+            await window.electronAPI.screenshot.setToken(value);
+          }
+        } catch (err) {
+          console.error('Failed to sync token to Electron:', err);
+        }
+      }
+    },
+    
+    removeItem: async (key) => {
       localStorage.removeItem(key);
+      if (isElectron() && key === 'token' && window.electronAPI?.screenshot?.stop) {
+        try {
+          await window.electronAPI.screenshot.stop();
+        } catch (err) {
+          console.error('Failed to stop screenshots:', err);
+        }
+      }
     }
-  }
+  };
 };
+
+export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const storage = createStorage();
 
-  // Check for existing session on mount
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = await storage.getItem('token');
         const savedUser = await storage.getItem('user');
-        
-        if (token && savedUser) {
-          try {
-            // Verify token is still valid
-            const response = await authAPI.getCurrentUser();
-            if (response.data.success) {
-              setUser(JSON.parse(savedUser));
-            } else {
-              await storage.removeItem('token');
-              await storage.removeItem('user');
-            }
-          } catch (error) {
-            console.error('Session verification failed:', error);
-            await storage.removeItem('token');
-            await storage.removeItem('user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+          
+          // Auto-start screenshots if we have a token
+          if (isElectron() && window.electronAPI?.screenshot) {
+            setTimeout(async () => {
+              try {
+                const token = await storage.getItem('token');
+                if (token && window.electronAPI?.screenshot?.setToken) {
+                  await window.electronAPI.screenshot.setToken(token);
+                  const status = await window.electronAPI.screenshot.status();
+                  if (!status.running) {
+                    await window.electronAPI.screenshot.start();
+                  }
+                }
+              } catch (err) {
+                console.warn('Auto-start screenshots failed:', err);
+              }
+            }, 1000);
           }
         }
-      } catch (error) {
-        console.error('Init auth error:', error);
+      } catch (err) {
+        console.error('[Auth] Init failed:', err);
       } finally {
         setLoading(false);
       }
     };
-
+    
     initAuth();
   }, []);
 
   const login = async (email, password) => {
     try {
-      // In Electron, use IPC for login
-      if (isElectron()) {
-        const result = await window.electron.auth.login({ email, password });
+      
+      // ALWAYS use Electron login if available
+      if (isElectron() && window.electronAPI?.auth?.login) {
+        const result = await window.electronAPI.auth.login({ email, password });
         
         if (result.success && result.user) {
-          const userWithRole = {
-            ...result.user,
-            role: result.user.role || 'employee'
-          };
+          // Store user
+          await storage.setItem('user', JSON.stringify(result.user));
+          setUser(result.user);
           
-          await storage.setItem('user', JSON.stringify(userWithRole));
-          setUser(userWithRole);
-          
-          return { success: true, user: userWithRole };
+          // Token is automatically set by Electron main process
+          return { success: true };
         }
-        
-        return { success: false, message: result.message || 'Login failed' };
       }
       
-      // Web login
-      const response = await authAPI.employeeLogin(email, password);
+      // Fallback to web login
+      const res = await authAPI.employeeLogin(email, password);
       
-      if (response.data.success && response.data.data.token) {
-        const { token, user: userData, role } = response.data.data;
+      if (res.data?.success) {
+        const { token, user } = res.data.data;
         
-        const userWithRole = {
-          ...userData,
-          role: role || userData.role
-        };
-        
+        // Store in localStorage
         await storage.setItem('token', token);
-        await storage.setItem('user', JSON.stringify(userWithRole));
+        await storage.setItem('user', JSON.stringify(user));
+        setUser(user);
         
-        setUser(userWithRole);
+        // If in Electron, sync token
+        if (isElectron() && window.electronAPI?.screenshot?.setToken) {
+          try {
+            await window.electronAPI.screenshot.setToken(token);
+            await window.electronAPI.screenshot.start();
+          } catch (err) {
+            console.error('Failed to sync token:', err);
+          }
+        }
         
-        return { success: true, user: userWithRole };
+        return { success: true };
       }
       
       return { success: false, message: 'Login failed' };
-    } catch (error) {
-      console.error('❌ LOGIN FAILED:', error);
-      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      return { success: false, message };
+    } catch (err) {
+      console.error('🔐 Login error:', err);
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Login failed',
+      };
     }
   };
 
   const logout = async () => {
     try {
-      if (isElectron()) {
-        await window.electron.auth.logout();
+      if (isElectron() && window.electronAPI?.auth?.logout) {
+        await window.electronAPI.auth.logout();
       } else {
         await authAPI.logout();
       }
-    } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       await storage.removeItem('token');
       await storage.removeItem('user');
@@ -135,11 +156,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const isEmployee = user?.role === 'employee';
-  const isAuthenticated = !!user;
-
   if (loading) {
-    console.log('⏳ AuthProvider still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-white text-xl">Loading...</div>
@@ -147,26 +164,23 @@ export function AuthProvider({ children }) {
     );
   }
 
-  console.log('✅ AuthProvider ready, rendering children. User:', user);
-
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      logout,
-      isEmployee,
-      isAuthenticated,
-      loading
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        isAuthenticated: !!user,
+        isEmployee: user?.role === 'employee',
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 }

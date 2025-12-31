@@ -137,7 +137,6 @@ const CameraMonitor = ({ onActivityChange }) => {
       if (faceApiLoaded) return;
       
       try {
-        console.log("Loading face-api models...");
         
         const isElectron = window && window.process && window.process.versions?.electron;
         const modelPath = isElectron ? './public/models/face-api' : './models/face-api';
@@ -148,7 +147,6 @@ const CameraMonitor = ({ onActivityChange }) => {
           faceapi.nets.faceExpressionNet.loadFromUri(modelPath)
         ]);
 
-        console.log("Face-api models loaded successfully!");
         setFaceApiLoaded(true);
       } catch (err) {
         console.error("Error loading face-api models:", err);

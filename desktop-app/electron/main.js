@@ -1,32 +1,39 @@
-//desktop-app/electron/main.js
-import { app, BrowserWindow, ipcMain, session, shell } from "electron";
-import path from "path";
-import { fileURLToPath } from "url";
-import axios from "axios";
+// electron/main.js - Update the auth:login handler
+import { app, BrowserWindow, ipcMain, session, shell, desktopCapturer } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import axios from 'axios';
+import { screenshotManager } from './screenshotManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow;
 
-const createWindow = () => {
+// electron/main.js - UPDATE createWindow function
+function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 800,
-    minWidth: 900,
-    minHeight: 700,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false, // development only
-      allowRunningInsecureContent: true,
+      webSecurity: false, // Allow file:// protocol
     },
   });
 
-  // disable CORS + CSP in dev
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({ responseHeaders: details.responseHeaders });
+  // Prevent file:// navigation errors
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('file://') && !url.includes('/dist/index.html')) {
+      console.warn('⚠️ Blocked navigation to external file:', url);
+      event.preventDefault();
+    }
+  });
+
+  // Handle failed loads
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('❌ Failed to load:', validatedURL, errorDescription);
   });
 
   // Load the app
@@ -34,100 +41,135 @@ const createWindow = () => {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(__dirname, "..", "dist", "index.html");
-    mainWindow.loadFile(indexPath).catch(err => {
-      console.error('❌ Failed to load index.html:', err);
-    });
+    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 
-  // Add error handlers for debugging
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error('❌ Page failed to load:', errorCode, errorDescription);
+  mainWindow.on('closed', () => {
+    screenshotManager.stop();
+    mainWindow = null;
   });
+}
 
-  mainWindow.on("closed", () => (mainWindow = null));
-};
+app.whenReady().then(createWindow);
 
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-
-  // Simple ping
-  ipcMain.handle("ping", () => "pong");
-
-  // =====================================================
-  // 🔐 AUTH LOGIC (ELECTRON SIDE)
-  // =====================================================
-
-  // ------ 1) LOGIN ------
-  ipcMain.handle("auth:login", async (event, creds) => {
-    try {
-      const res = await axios.post("http://localhost:3000/api/auth/employee/login", {
-        email: creds.email,
-        password: creds.password,
-      });
-
-      // Backend returns { success: true, message: '...', data: { token, user, role } }
-      if (res.data && res.data.success && res.data.data) {
-        const { token, user, role } = res.data.data;
-
-        // Store JWT securely inside Electron cookies
-        await session.defaultSession.cookies.set({
-          url: "http://localhost",
-          name: "authToken",
-          value: token,
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-        });
-        
-        return { 
-          success: true, 
-          user: { ...user, role: role || user.role || 'employee' }
-        };
-      }
-
-      return { success: false, message: res.data?.message || "Invalid credentials" };
-    } catch (err) {
-      console.error("❌ Electron: Login failed:", err.message);
-      const errorMessage = err.response?.data?.message || err.message || "Invalid credentials";
-      return { success: false, message: errorMessage };
-    }
-  });
-
-  // ------ 2) CHECK AUTH / GET TOKEN ------
-  ipcMain.handle("auth:getToken", async () => {
-    const cookies = await session.defaultSession.cookies.get({ name: "authToken" });
-    if (cookies.length === 0) return null;
-    return cookies[0].value;
-  });
-
-  // ------ 3) LOGOUT ------
-  ipcMain.handle("auth:logout", async () => {
-    await session.defaultSession.cookies.remove("http://localhost", "authToken");
-    return { success: true };
-  });
-
-  // ------ 4) OPEN EXTERNAL URL IN BROWSER ------
-  ipcMain.handle("shell:openExternal", async (event, url) => {
-    try {
-      await shell.openExternal(url);
-      return { success: true };
-    } catch (error) {
-      console.error("❌ Failed to open external URL:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  // Example: Receive tracking data
-  ipcMain.on("tracking-data", (event, data) => {
-    event.sender.send("tracking-response", { status: "received", data });
-  });
+app.on('window-all-closed', () => {
+  screenshotManager.stop();
+  if (process.platform !== 'darwin') app.quit();
 });
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+// Store token globally for access
+let authToken = null;
+
+ipcMain.handle('auth:login', async (_, creds) => {
+  try {
+    
+    const res = await axios.post(
+      'http://localhost:3000/api/auth/employee/login',
+      creds
+    );
+
+
+    if (res.data?.success) {
+      const { token, user, role } = res.data.data;
+      
+
+      // ✅ CRITICAL: Store token globally
+      authToken = token;
+      
+      // ✅ CRITICAL: Set token for screenshot manager
+      screenshotManager.setAuthToken(token);
+      
+      // ✅ CRITICAL: Start screenshots AFTER auth
+      screenshotManager.start();
+
+      // Store token in cookies for API calls
+      await session.defaultSession.cookies.set({
+        url: 'http://localhost',
+        name: 'authToken',
+        value: token,
+        httpOnly: true,
+      });
+
+      
+      return {
+        success: true,
+        user: { ...user, role: role || 'employee' },
+      };
+    }
+
+    return { success: false, message: 'Login failed - no success flag' };
+  } catch (err) {
+    console.error('🔐 Login error:', err.message);
+    console.error('🔐 Error details:', err.response?.data || err.message);
+    return {
+      success: false,
+      message: err.response?.data?.message || 'Login failed',
+    };
+  }
+});
+
+ipcMain.handle('auth:logout', async () => {
+  screenshotManager.stop();
+  authToken = null;
+  await session.defaultSession.cookies.remove('http://localhost', 'authToken');
+  return { success: true };
+});
+
+ipcMain.handle('ping', () => {
+  return { success: true, message: 'pong', timestamp: Date.now() };
+});
+
+ipcMain.handle('auth:getToken', async () => {
+  const cookies = await session.defaultSession.cookies.get({ name: 'authToken' });
+  const token = cookies.length ? cookies[0].value : null;
+  return token;
+});
+
+// Add this handler to manually set token for testing
+ipcMain.handle('screenshot:setToken', async (_, token) => {
+  screenshotManager.setAuthToken(token);
+  return { success: true };
+});
+
+ipcMain.handle('shell:openExternal', (_, url) => shell.openExternal(url));
+
+// Debugging handlers
+ipcMain.handle('screenshot:test', async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: 800, height: 600 }
+    });
+    return { 
+      success: true, 
+      count: sources.length,
+      names: sources.map(s => s.name)
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('screenshot:start', () => {
+  screenshotManager.start();
+  return screenshotManager.getStatus();
+});
+
+ipcMain.handle('screenshot:stop', () => {
+  screenshotManager.stop();
+  return screenshotManager.getStatus();
+});
+
+ipcMain.handle('screenshot:status', () => {
+  const status = screenshotManager.getStatus();
+  return status;
+});
+
+// Add this to help debug
+ipcMain.handle('debug:getToken', () => {
+  return { 
+    hasToken: !!authToken,
+    tokenPreview: authToken ? `${authToken.substring(0, 20)}...` : null,
+    length: authToken?.length || 0
+  };
 });

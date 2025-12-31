@@ -5,9 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 let mediaPipeLoaded = false;
 let mediaPipeLoadPromise = null;
 
-/**
- * Safe loader for MediaPipe scripts
- */
+
 function loadMediaPipeScripts() {
   if (mediaPipeLoaded) return Promise.resolve(true);
   if (mediaPipeLoadPromise) return mediaPipeLoadPromise;
@@ -35,7 +33,6 @@ function loadMediaPipeScripts() {
       script.src = src;
       script.onload = () => {
         loadedCount++;
-        console.log(`✅ Loaded: ${src}`);
         checkDone();
       };
       script.onerror = () => {
@@ -59,42 +56,51 @@ function loadMediaPipeScripts() {
 // --------------------------------------------------
 // Expose API to renderer
 // --------------------------------------------------
-contextBridge.exposeInMainWorld("electron", {
+
+// electron/preload.js - CLEAN UP
+contextBridge.exposeInMainWorld("electronAPI", {
   // General
-  ping: async () => await ipcRenderer.invoke("ping"),
-
-  // Tracking
-  tracking: {
-    sendData: (data) => ipcRenderer.send("tracking-data", data),
-    onResponse: (callback) => ipcRenderer.on("tracking-response", callback),
-  },
-
-  // MediaPipe
-  mediaPipe: {
-    isReady: () => mediaPipeLoaded,
-    load: loadMediaPipeScripts,
-  },
-
+  ping: () => ipcRenderer.invoke("ping"),
+  
   // Authentication
   auth: {
     login: (credentials) => ipcRenderer.invoke("auth:login", credentials),
     logout: () => ipcRenderer.invoke("auth:logout"),
     getToken: () => ipcRenderer.invoke("auth:getToken"),
   },
-
-  // Open external URL in browser
+  
+  // Screenshot Management
+  screenshot: {
+    test: () => ipcRenderer.invoke('screenshot:test'),
+    start: () => ipcRenderer.invoke('screenshot:start'),
+    stop: () => ipcRenderer.invoke('screenshot:stop'),
+    status: () => ipcRenderer.invoke('screenshot:status'),
+    setToken: (token) => ipcRenderer.invoke('screenshot:setToken', token),
+  },
+  
+  // MediaPipe
+  mediaPipe: {
+    isReady: () => mediaPipeLoaded,
+    load: loadMediaPipeScripts,
+  },
+  
+  // Utilities
   openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+  
+  // Debug
+  debug: {
+    getToken: () => ipcRenderer.invoke('debug:getToken'),
+  },
 });
+
+
 
 // Automatically start loading MediaPipe when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    console.log("🔧 Preload: DOM loaded, starting MediaPipe scripts");
     loadMediaPipeScripts();
   });
 } else {
-  console.log("🔧 Preload: DOM already ready, starting MediaPipe scripts");
   loadMediaPipeScripts();
 }
 
-console.log("🔧 Preload script initialized");

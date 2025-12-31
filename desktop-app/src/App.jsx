@@ -1,3 +1,5 @@
+// App.jsx
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
@@ -71,6 +73,8 @@ function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+  
+
   const handleActivityChange = (activity) => {
     setCurrentActivity(activity);
   };
@@ -83,7 +87,6 @@ function DashboardPage() {
   return (
     <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
       <Navbar user={user} onLogout={handleLogout} />
-
       <div className="flex-1 flex overflow-hidden p-2 gap-2">
         {/* Compact Info Sidebar - Left */}
         <div className="w-64 flex flex-col gap-2 overflow-hidden">

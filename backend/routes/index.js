@@ -6,6 +6,7 @@ const organizationRoutes = require('./organization');
 const employeeRoutes = require('./employee');
 const activityRoutes = require('./activity');
 const contactRoutes = require('./contact');
+const screenshotsRouter = require('./screenshots');
 
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
@@ -13,5 +14,6 @@ router.use('/organization', organizationRoutes);
 router.use('/employee', employeeRoutes);
 router.use('/activities', activityRoutes);
 router.use('/contact', contactRoutes);
+router.use('/screenshots', screenshotsRouter);
 
 module.exports = router;

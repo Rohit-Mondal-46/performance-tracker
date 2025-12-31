@@ -95,6 +95,19 @@ const createTables = async () => {
       );
     `);
 
+      await pool.query(`CREATE TABLE IF NOT EXISTS daily_screenshots (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        captured_at TIMESTAMP NOT NULL,
+        cloudinary_public_id TEXT NOT NULL,
+        cloudinary_url TEXT NOT NULL,
+        created_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      `);
+
+
     // Create indexes for raw_activity_intervals
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_raw_activity_employee_id 

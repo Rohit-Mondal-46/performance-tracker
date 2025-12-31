@@ -1,10 +1,12 @@
+// services/api.js
+
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-// Helper to detect if we're running in Electron
+
 const isElectron = () => {
-  return typeof window !== 'undefined' && window.electron !== undefined;
+  return typeof window !== 'undefined' && window.electronAPI !== undefined;
 };
 
 // Create axios instance with default config
@@ -20,11 +22,9 @@ api.interceptors.request.use(
   async (config) => {
     let token = null;
     
-    if (isElectron()) {
-      // Get token from Electron secure storage
-      token = await window.electron.auth.getToken();
+    if (isElectron() && window.electronAPI?.auth?.getToken) {
+      token = await window.electronAPI.auth.getToken();
     } else {
-      // Get token from localStorage (web)
       token = localStorage.getItem('token');
     }
     
@@ -33,9 +33,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor to handle errors

@@ -65,10 +65,6 @@ function VideoModal({ isOpen, onClose }) {
 export function HeroSection() {
   const [showVideo, setShowVideo] = useState(false);
 
-  // Remove the console.log that was causing infinite logs
-  // const videoPath = "/VISTA Real-Time AI Productivity Monitoring Platform 202512161126_20251217_085931.mp4";
-  // console.log("Video path:", videoPath); // REMOVE THIS LINE
-
   const openVideoModal = useCallback(() => {
     setShowVideo(true);
   }, []);

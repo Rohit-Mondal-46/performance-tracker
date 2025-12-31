@@ -111,15 +111,10 @@ export function Login() {
     setError('');
 
     try {
-      console.log('=== LOGIN FORM SUBMISSION ===');
-      console.log('Email entered:', email);
-      console.log('Selected role:', selectedRole);
-      
       const result = await login(email, password, selectedRole);
       
       if (!result.success) {
         setError(result.message || 'Invalid email or password');
-        console.log('❌ Login failed in form handler');
       } else {
         console.log('✅ Login successful in form handler');
       }
@@ -166,18 +161,6 @@ export function Login() {
               {roleInfo.description}
             </p>
           </div>
-
-          {/* Demo credentials
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 border border-blue-200 dark:border-blue-800">
-            <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
-              Demo Credentials:
-            </p>
-            <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              <p><strong>Admin:</strong> admin@VISTA.com / a*******3</p>
-              <p><strong>HR Manager:</strong> hr@VISTA.com / h******3</p>
-              <p><strong>Employee:</strong> employee@VISTA.com / e********3</p>
-            </div>
-          </div> */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

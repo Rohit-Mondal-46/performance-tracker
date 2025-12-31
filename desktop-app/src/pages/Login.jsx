@@ -1,6 +1,8 @@
+// pagess/Login.jsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,27 +14,27 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  // pages/Login.jsx - IMPROVE error handling
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      const result = await login(email, password);
-      if (result.success) {
-        // Redirect to the employee dashboard on successful login
-        navigate('/dashboard');
-      } else {
-        // Display error message from the login function
-        setError(result.message);
-      }
-    } catch (err) {
-     
-      setError('An unexpected error occurred. Please try again.', err);
-    } finally {
-      setLoading(false);
+  try {
+    const result = await login(email, password);
+    
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      setError(result.message || 'Login failed. Please check your credentials.');
     }
-  };
+  } catch (err) {
+    console.error('Login error:', err);
+    setError('An unexpected error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
