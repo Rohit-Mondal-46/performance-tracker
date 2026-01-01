@@ -1,23 +1,45 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://performance-tracker-backend-o2vq.onrender.com/api';
+
+console.log('API Base URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.MODE);
+
+// Helper to detect if we're running in Electron
+const isElectron = () => {
+  return typeof window !== 'undefined' && window.electron !== undefined;
+};
 
 // Create axios instance with default config
-const apiClient = axios.create({
+const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 30000, // 30 second timeout
 });
 
-// Add request interceptor to include auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('desktopApp_token');
+// Request interceptor to add token
+api.interceptors.request.use(
+  async (config) => {
+    let token = null;
+    
+    if (isElectron()) {
+      // Get token from Electron secure storage
+      token = await window.electron.auth.getToken();
+      console.log('🔑 Token from Electron:', token ? 'Found' : 'Not found');
+    } else {
+      // Get token from localStorage (web)
+      token = localStorage.getItem('token');
+      console.log('🔑 Token from localStorage:', token ? 'Found' : 'Not found');
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    const fullUrl = config.baseURL + config.url;
+    console.log('📤 API Request:', config.method?.toUpperCase(), fullUrl);
     return config;
   },
   (error) => {
@@ -25,77 +47,99 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle errors
-apiClient.interceptors.response.use(
+// Response interceptor to handle errors
+api.interceptors.response.use(
   (response) => {
+    console.log('📥 API Response:', response.config.url, response.status);
     return response;
   },
   (error) => {
+    console.error('❌ API Error:', error.config?.url, error.response?.status, error.message);
     if (error.response?.status === 401) {
-      // Token expired or invalid, clear storage
-      localStorage.removeItem('desktopApp_token');
-      localStorage.removeItem('desktopApp_user');
-      // Redirect to login (will be handled by AuthContext)
-      window.location.reload();
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
 
-// Authentication API calls
+// ========================
+// AUTH ENDPOINTS
+// ========================
 export const authAPI = {
-  // Login based on role
-  login: async (email, password, role) => {
-    const endpoint = getLoginEndpoint(role);
-    const response = await apiClient.post(endpoint, { email, password });
-    return response.data;
-  },
-
-  // Get current user
-  getCurrentUser: async () => {
-    const response = await apiClient.get('/auth/me');
-    return response.data;
-  },
-
-  // Logout
-  logout: async () => {
-    try {
-      await apiClient.post('/auth/logout');
-    } catch (error) {
-      // Even if logout fails on server, we'll clear local data
-      console.warn('Logout API call failed:', error);
-    }
-    // Clear local storage
-    localStorage.removeItem('desktopApp_token');
-    localStorage.removeItem('desktopApp_user');
-  }
+  employeeLogin: (email, password) => 
+    api.post('/auth/employee/login', { email, password }),
+  
+  getCurrentUser: () => 
+    api.get('/auth/me'),
+  
+  logout: () => 
+    api.post('/auth/logout'),
 };
 
-// Helper function to get login endpoint based on role
-function getLoginEndpoint(role) {
-  switch (role) {
-    case 'admin':
-      return '/auth/admin/login';
-    case 'hr_manager':
-      return '/auth/organization/login'; // hr_manager maps to organization endpoint
-    case 'employee':
-      return '/auth/employee/login';
-    default:
-      throw new Error(`Invalid role: ${role}`);
-  }
-}
-
-// Other API calls can be added here
-export const organizationAPI = {
-  // Add organization-specific APIs here
-};
-
+// ========================
+// EMPLOYEE ENDPOINTS
+// ========================
 export const employeeAPI = {
-  // Add employee-specific APIs here
+  // Profile Management
+  getMyProfile: () => 
+    api.get('/employee/profile')
+      .then(response => response.data),
+  
+  updateMyProfile: (data) => 
+    api.put('/employee/profile', data),
+  
+  changePassword: (currentPassword, newPassword) => 
+    api.put('/employee/change-password', { currentPassword, newPassword }),
+  
+  // Dashboard & Settings
+  getDashboard: () => 
+    api.get('/employee/dashboard'),
+  
+  getMySettings: () => 
+    api.get('/employee/settings'),
+  
+  // Performance Data
+  getMyPerformanceScores: (limit = 30) => 
+    api.get('/performance/employee/scores', {
+      params: { limit }
+    }),
+  
+  getPerformanceTrends: (days = 30) => 
+    api.get('/performance/employee/trends', {
+      params: { days }
+    }),
+  
+  createPerformanceScore: (data) => 
+    api.post('/performance/employee/scores', data),
 };
 
-export const adminAPI = {
-  // Add admin-specific APIs here
+// ========================
+// ACTIVITY ENDPOINTS
+// ========================
+export const activityAPI = {
+  // Ingest 10-minute activity batch
+  ingestActivityBatch: (data) => 
+    api.post('/activities/ingest', data),
+  
+  // Get calculated scores
+  getMyCalculatedScores: () => 
+    api.get('/activities/scores'),
+  
+  // Get daily scores
+  getMyDailyScores: () => 
+    api.get('/activities/daily-scores'),
+  
+  // Get performance trends
+  getMyPerformanceTrends: () => 
+    api.get('/activities/trends'),
+  
+  // Get latest activity
+  getMyLatestActivity: () => 
+    api.get('/activities/latest'),
 };
 
-export default apiClient;
+// Export default api instance for custom requests
+export default api;

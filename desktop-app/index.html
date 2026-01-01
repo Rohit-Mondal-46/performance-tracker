@@ -4,34 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Performance Tracker</title>
+    <title>VISTA - Performance Tracker </title>
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
+    <script>
+      // Debug: Log early initialization
+      console.log('Index.html loading...');
+      console.log('User Agent:', navigator.userAgent);
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    
-    <!-- Optional: Preload MediaPipe for better performance -->
-    <script>
-      // Make MediaPipe available globally for Electron
-      if (window && window.process && window.process.versions && window.process.versions.electron) {
-        console.log('Running in Electron environment');
-        
-        // Preload MediaPipe components for immediate access
-        window.preloadMediaPipe = function() {
-          if (window.Holistic && window.Hands && window.Camera) {
-            console.log('MediaPipe components already loaded');
-            return Promise.resolve();
-          }
-          
-          return new Promise((resolve) => {
-            // Components will be available via the script tags above
-            setTimeout(resolve, 1000);
-          });
-        };
-        
-        // Start preloading
-        window.preloadMediaPipe();
-      }
-    </script>
   </body>
 </html>

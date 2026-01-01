@@ -1,45 +1,48 @@
 {
-  "name": "desktop-app",
+  "name": "vista",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
-  "main": "electron/main.js",
+  "description": "VISTA – AI-powered real-time productivity monitoring desktop app",
+  "author": "Shivam Kumar Rai",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "start": "electron .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder",
+    "dist": "npm run electron:build",
+    "build:mac": "npm run electron:build -- --mac"
   },
   "build": {
-    "appId": "com.yourapp.desktop",
-    "productName": "DesktopApp",
+    "appId": "com.vista.desktop",
+    "productName": "VISTA",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "public/mediapipe/**/*",
-      "public/models/**/*",
-      "node_modules/@mediapipe/**/*",
-      "node_modules/@models/**/*",
+      "public/**/*",
       "package.json"
     ],
-    "directories": {
-      "buildResources": "build"
-    },
-    "win": {
-      "target": "nsis"
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
     },
     "extraMetadata": {
-      "main": "electron/main.js"
+      "main": "electron/main.cjs"
     }
   },
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
     "@mediapipe/holistic": "^0.5.1675471629",
-    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.13.2",
     "face-api.js": "^0.22.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.10.1",
