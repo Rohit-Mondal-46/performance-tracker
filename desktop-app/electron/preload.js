@@ -1,10 +1,21 @@
-
+// electron/preload.js
 const { contextBridge, ipcRenderer } = require('electron');
+
+<<<<<<< HEAD
+const { contextBridge, ipcRenderer } = require('electron');
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
 let mediaPipeLoaded = false;
 let mediaPipeLoadPromise = null;
 
+<<<<<<< HEAD
 
+=======
+/**
+ * Safe loader for MediaPipe scripts
+ */
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 function loadMediaPipeScripts() {
   if (mediaPipeLoaded) return Promise.resolve(true);
   if (mediaPipeLoadPromise) return mediaPipeLoadPromise;
@@ -32,6 +43,10 @@ function loadMediaPipeScripts() {
       script.src = src;
       script.onload = () => {
         loadedCount++;
+<<<<<<< HEAD
+=======
+        console.log(`✅ Loaded: ${src}`);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
         checkDone();
       };
       script.onerror = () => {
@@ -55,8 +70,12 @@ function loadMediaPipeScripts() {
 // --------------------------------------------------
 // Expose API to renderer
 // --------------------------------------------------
+<<<<<<< HEAD
 
 contextBridge.exposeInMainWorld("electronAPI", {
+=======
+contextBridge.exposeInMainWorld("electron", {
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   // General
   ping: async () => await ipcRenderer.invoke("ping"),
 
@@ -64,6 +83,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   tracking: {
     sendData: (data) => ipcRenderer.send("tracking-data", data),
     onResponse: (callback) => ipcRenderer.on("tracking-response", callback),
+<<<<<<< HEAD
     
     // Keyboard & Mouse events
     onKeyboardEvent: (callback) => {
@@ -113,6 +133,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     resetStats: () => {
       return ipcRenderer.invoke('reset-stats');
     }
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   },
 
   // MediaPipe
@@ -127,6 +149,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     logout: () => ipcRenderer.invoke("auth:logout"),
     getToken: () => ipcRenderer.invoke("auth:getToken"),
   },
+<<<<<<< HEAD
   
   // Screenshot Management
   screenshot: {
@@ -163,3 +186,22 @@ if (document.readyState === "loading") {
   loadMediaPipeScripts();
 }
 
+=======
+
+  // Open external URL in browser
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+});
+
+// Automatically start loading MediaPipe when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("🔧 Preload: DOM loaded, starting MediaPipe scripts");
+    loadMediaPipeScripts();
+  });
+} else {
+  console.log("🔧 Preload: DOM already ready, starting MediaPipe scripts");
+  loadMediaPipeScripts();
+}
+
+console.log("🔧 Preload script initialized");
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e

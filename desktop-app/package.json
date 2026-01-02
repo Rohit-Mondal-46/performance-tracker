@@ -1,20 +1,31 @@
 {
+<<<<<<< HEAD
   "name": "VISTA",
+=======
+  "name": "vista",
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   "private": true,
   "version": "0.0.1",
-  "type": "module",
-  "main": "electron/main.js",
+  "description": "VISTA – AI-powered real-time productivity monitoring desktop app",
+  "author": "Shivam Kumar Rai",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "start": "electron .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
+<<<<<<< HEAD
     "dist": "npm run electron:build"
+=======
+    "dist": "npm run electron:build",
+    "build:mac": "npm run electron:build -- --mac"
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   },
   "build": {
     "appId": "com.vista.desktop",
     "productName": "VISTA",
+<<<<<<< HEAD
     "icon": "build/icon.ico",
     "files": [
       "dist/**/*",
@@ -23,16 +34,24 @@
       "public/models/**/*",
       "node_modules/@mediapipe/**/*",
       "node_modules/@models/**/*",
-      "package.json"
-    ],
+=======
     "directories": {
+      "output": "release",
       "buildResources": "build"
     },
-    "win": {
-      "target": "nsis"
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*",
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
+      "package.json"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
     },
     "extraMetadata": {
-      "main": "electron/main.js"
+      "main": "electron/main.cjs"
     }
   },
   "dependencies": {
@@ -46,9 +65,13 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.10.1",
+<<<<<<< HEAD
     "react-speech-recognition": "^4.0.1",
     "sharp": "^0.34.5",
     "uiohook-napi": "^1.5.4"
+=======
+    "react-speech-recognition": "^4.0.1"
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

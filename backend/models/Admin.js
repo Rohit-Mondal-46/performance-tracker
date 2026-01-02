@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 
+
 class Admin {
   static async findByEmail(email) {
     try {

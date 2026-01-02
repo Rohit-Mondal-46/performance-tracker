@@ -85,8 +85,13 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
           
           const checkVideo = setInterval(() => {
             attempts++;
+            console.log(`Checking for video element... attempt ${attempts}/${maxAttempts}`);
             if (videoRef.current) {
               clearInterval(checkVideo);
+<<<<<<< HEAD
+=======
+              console.log("✅ Video element found!");
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
               resolve();
             } else if (attempts >= maxAttempts) {
               clearInterval(checkVideo);
@@ -94,6 +99,8 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
             }
           }, 100);
         });
+      } else {
+        console.log("✅ Video element already available");
       }
       
       // Wait for MediaPipe in Electron
@@ -356,6 +363,10 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
   useEffect(() => {
     // Don't initialize if camera hasn't been started yet
     if (!cameraStarted) {
+<<<<<<< HEAD
+=======
+      console.log("Waiting for camera to be started...");
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       setCurrentActivity("Not Started");
       return;
     }

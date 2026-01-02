@@ -1,0 +1,12 @@
+names:
+- phone
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: phone-qywmy
+  url: https://universe.roboflow.com/ehjun-7e7tb/phone-qywmy/dataset/1
+  version: 1
+  workspace: ehjun-7e7tb
+test: /Users/shivamkumarrai/Downloads/performance-tracker/dataset/test/images
+train: /Users/shivamkumarrai/Downloads/performance-tracker/dataset/train/images
+val: /Users/shivamkumarrai/Downloads/performance-tracker/dataset/valid/images

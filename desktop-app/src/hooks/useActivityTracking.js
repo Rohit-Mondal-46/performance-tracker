@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 
 import { useEffect, useRef, useCallback } from 'react';
 import { activityAPI } from '../services/api';
 import useInputTracking from './useInputTracking';
 
 const INTERVAL_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+=======
+// hooks/useActivityTracking.js
+import { useEffect, useRef, useCallback } from 'react';
+import { activityAPI } from '../services/api';
+
+const INTERVAL_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
 const useActivityTracking = (currentActivity, isActive = true, onSuccess = null, onError = null) => {
   const intervalStartRef = useRef(null);
@@ -15,16 +24,22 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     gesturing: 0,
     looking_away: 0,
     idle: 0,
+<<<<<<< HEAD
     mouse_activity: 0,
     keyboard_activity: 0,
   });
   
+=======
+    sitting: 0, // Will be converted to reading or idle
+  });
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   const lastActivityRef = useRef(null);
   const lastUpdateRef = useRef(Date.now());
   const sendIntervalRef = useRef(null);
   const isSubmittingRef = useRef(false);
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
+<<<<<<< HEAD
   
   // Use input tracking hook
   const {
@@ -43,6 +58,8 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     keyboardActiveTime: 0,
     mouseActiveTime: 0,
   });
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
   // Update callback refs
   useEffect(() => {
@@ -59,13 +76,18 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       'Phone': 'phone',
       'Gesturing': 'gesturing',
       'Looking Away': 'looking_away',
+<<<<<<< HEAD
       'Sitting': 'idle',
       'Mouse Activity': 'mouse_activity',
       'Keyboard Activity': 'keyboard_activity',
+=======
+      'Sitting': 'idle', // Default sitting to idle
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
     };
     return activityMap[activity] || 'idle';
   };
 
+<<<<<<< HEAD
   // Calculate input activity time based on keyboard and mouse events
   const calculateInputActivityTime = useCallback(() => {
     const now = Date.now();
@@ -129,11 +151,14 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     inputActivityRef.current.mouseActiveTime = 0;
   }, [keyboardStats.totalKeys, mouseStats.totalClicks, mouseStats.distance]);
 
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   // Calculate time for current activity since last update
   const updateActivityTimes = useCallback(() => {
     const now = Date.now();
     const timeDelta = now - lastUpdateRef.current;
     
+<<<<<<< HEAD
     // Calculate input-based activity first
     calculateInputActivityTime();
     
@@ -183,10 +208,23 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     
     return 'idle';
   }, [isActive, inputTracking, keyboardStats.keysPerMinute, mouseStats.clicksPerMinute, mouseStats.distance]);
+=======
+    if (lastActivityRef.current && timeDelta > 0) {
+      const mappedActivity = mapActivityName(lastActivityRef.current);
+      activityTimesRef.current[mappedActivity] += timeDelta;
+    }
+    
+    lastUpdateRef.current = now;
+  }, []);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
   // Send activity batch to backend
   const sendActivityBatch = useCallback(async () => {
     if (isSubmittingRef.current) {
+<<<<<<< HEAD
+=======
+      console.log('Already submitting, skipping...');
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       return;
     }
 
@@ -210,6 +248,7 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
         gesturing: Math.round(activityTimesRef.current.gesturing / 1000),
         looking_away: Math.round(activityTimesRef.current.looking_away / 1000),
         idle: Math.round(activityTimesRef.current.idle / 1000),
+<<<<<<< HEAD
         // New input-based metrics
         mouse_activity: Math.round(activityTimesRef.current.mouse_activity / 1000),
         keyboard_activity: Math.round(activityTimesRef.current.keyboard_activity / 1000),
@@ -227,10 +266,22 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       const totalSeconds = activityData.typing + activityData.writing + activityData.reading + 
                           activityData.phone + activityData.gesturing + activityData.looking_away + 
                           activityData.idle + activityData.mouse_activity + activityData.keyboard_activity;
+=======
+      };
+
+      // Calculate total seconds (excluding timestamp fields)
+      const totalSeconds = activityData.typing + activityData.writing + activityData.reading + 
+                          activityData.phone + activityData.gesturing + activityData.looking_away + 
+                          activityData.idle;
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       
       // Backend validation requires total <= 600 seconds
       // If total exceeds 600, normalize the values proportionally
       if (totalSeconds > 600) {
+<<<<<<< HEAD
+=======
+        console.log(`⚠️ Total time (${totalSeconds}s) exceeds 600s, normalizing...`);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
         const scale = 600 / totalSeconds;
         activityData.typing = Math.round(activityData.typing * scale);
         activityData.writing = Math.round(activityData.writing * scale);
@@ -246,6 +297,7 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
                         activityData.phone + activityData.gesturing + activityData.looking_away + 
                         activityData.idle;
 
+<<<<<<< HEAD
       
       // Backend validation requires total <= 300 seconds (5 minutes)
       // If total exceeds 300, normalize the values proportionally
@@ -265,13 +317,25 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
         // Send to API
         await activityAPI.ingestActivityBatch(activityData);
         
+=======
+      console.log('📤 Sending activity batch:', activityData);
+      console.log('📊 Total time:', finalTotal, 'seconds');
+      
+      if (finalTotal > 0) {
+        await activityAPI.ingestActivityBatch(activityData);
+        console.log('✅ Activity batch sent successfully');
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
         
         // Call success callback if provided
         if (onSuccessRef.current) {
           onSuccessRef.current(activityData);
         }
       } else {
+<<<<<<< HEAD
         console.log("No activity data");
+=======
+        console.log('No activity data to send');
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       }
 
       // Reset for next interval
@@ -284,6 +348,7 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
         gesturing: 0,
         looking_away: 0,
         idle: 0,
+<<<<<<< HEAD
         mouse_activity: 0,
         keyboard_activity: 0,
       };
@@ -299,16 +364,30 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       
     } catch (error) {
       console.error('Failed to send 5-minute activity batch:', error);
+=======
+        sitting: 0,
+      };
+      lastUpdateRef.current = Date.now();
+      
+    } catch (error) {
+      console.error('Failed to send activity batch:', error);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
       }
+<<<<<<< HEAD
+=======
+      
+      // Call error callback if provided
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       if (onErrorRef.current) {
         onErrorRef.current(error);
       }
     } finally {
       isSubmittingRef.current = false;
     }
+<<<<<<< HEAD
   }, [updateActivityTimes, keyboardStats, mouseStats]);
 
   // Update current activity tracking with auto-detection
@@ -325,10 +404,19 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
       }
     }
     
+=======
+  }, [updateActivityTimes]);
+
+  // Update current activity tracking
+  useEffect(() => {
+    if (!isActive || !currentActivity) return;
+
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
     // Update times for previous activity
     updateActivityTimes();
     
     // Set new activity
+<<<<<<< HEAD
     lastActivityRef.current = finalActivity;
     
     // Log activity changes for debugging
@@ -341,6 +429,12 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
   }, [currentActivity, isActive, updateActivityTimes, autoDetectActivityFromInput, keyboardStats.totalKeys, mouseStats.totalClicks]);
 
   // Set up 5-minute interval
+=======
+    lastActivityRef.current = currentActivity;
+  }, [currentActivity, isActive, updateActivityTimes]);
+
+  // Set up 10-minute interval
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   useEffect(() => {
     if (!isActive) {
       // Cleanup interval when not active
@@ -348,6 +442,7 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
         clearInterval(sendIntervalRef.current);
         sendIntervalRef.current = null;
       }
+<<<<<<< HEAD
       // Pause input tracking
       toggleInputTracking(false);
       return;
@@ -356,10 +451,16 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     // Start input tracking when activity tracking is active
     toggleInputTracking(true);
     
+=======
+      return;
+    }
+
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
     // Initialize interval start time
     if (!intervalStartRef.current) {
       intervalStartRef.current = new Date();
       lastUpdateRef.current = Date.now();
+<<<<<<< HEAD
       inputActivityRef.current = {
         lastKeyboardCount: keyboardStats.totalKeys,
         lastMouseCount: mouseStats.totalClicks,
@@ -369,40 +470,64 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
     }
 
     // Set up interval to send data every 5 minutes
+=======
+    }
+
+    // Set up interval to send data every 10 minutes
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
     sendIntervalRef.current = setInterval(() => {
       sendActivityBatch();
     }, INTERVAL_DURATION);
 
+<<<<<<< HEAD
     console.log('Activity tracking started - will send data every 5 minutes');
+=======
+    console.log('Activity tracking started - will send data every 10 minutes');
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
     // Cleanup on unmount
     return () => {
       if (sendIntervalRef.current) {
         clearInterval(sendIntervalRef.current);
       }
+<<<<<<< HEAD
       // Pause input tracking
       toggleInputTracking(false);
       
       // Send final batch before unmounting
       updateActivityTimes();
+=======
+      // Send final batch before unmounting
+      updateActivityTimes();
+      // Don't await here as this is cleanup
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       sendActivityBatch().catch(err => 
         console.error('Failed to send final activity batch:', err)
       );
     };
+<<<<<<< HEAD
   }, [isActive, sendActivityBatch, updateActivityTimes, toggleInputTracking, keyboardStats.totalKeys, mouseStats.totalClicks]);
+=======
+  }, [isActive, sendActivityBatch, updateActivityTimes]);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
   // Manual send function
   const sendNow = useCallback(async () => {
     await sendActivityBatch();
   }, [sendActivityBatch]);
 
+<<<<<<< HEAD
   // Get current accumulated times with input metrics
+=======
+  // Get current accumulated times
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   const getCurrentStats = useCallback(() => {
     updateActivityTimes();
     return {
       ...activityTimesRef.current,
       intervalStart: intervalStartRef.current,
       timeRemaining: INTERVAL_DURATION - (Date.now() - (intervalStartRef.current?.getTime() || Date.now())),
+<<<<<<< HEAD
       inputMetrics: {
         keyboard: keyboardStats,
         mouse: mouseStats,
@@ -417,16 +542,23 @@ const useActivityTracking = (currentActivity, isActive = true, onSuccess = null,
   const toggleActivityTracking = useCallback((enabled) => {
     toggleInputTracking(enabled);
   }, [toggleInputTracking]);
+=======
+    };
+  }, [updateActivityTimes]);
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 
   return {
     sendNow,
     getCurrentStats,
     isActive,
+<<<<<<< HEAD
     inputTracking,
     toggleActivityTracking,
     keyboardStats,
     mouseStats,
     currentActivity: lastActivityRef.current,
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
   };
 };
 

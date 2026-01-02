@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // services/api.js
 
+=======
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://performance-tracker-backend-o2vq.onrender.com/api';
@@ -7,9 +10,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://performance-tracke
 console.log('API Base URL:', API_BASE_URL);
 console.log('Environment:', import.meta.env.MODE);
 
+<<<<<<< HEAD
 
 const isElectron = () => {
   return typeof window !== 'undefined' && window.electronAPI !== undefined;
+=======
+// Helper to detect if we're running in Electron
+const isElectron = () => {
+  return typeof window !== 'undefined' && window.electron !== undefined;
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 };
 
 // Create axios instance with default config
@@ -26,9 +35,18 @@ api.interceptors.request.use(
   async (config) => {
     let token = null;
     
+<<<<<<< HEAD
     if (isElectron() && window.electronAPI?.auth?.getToken) {
       token = await window.electronAPI.auth.getToken();
     } else {
+=======
+    if (isElectron()) {
+      // Get token from Electron secure storage
+      token = await window.electron.auth.getToken();
+      console.log('🔑 Token from Electron:', token ? 'Found' : 'Not found');
+    } else {
+      // Get token from localStorage (web)
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
       token = localStorage.getItem('token');
       console.log('🔑 Token from localStorage:', token ? 'Found' : 'Not found');
     }
@@ -41,7 +59,13 @@ api.interceptors.request.use(
     console.log('📤 API Request:', config.method?.toUpperCase(), fullUrl);
     return config;
   },
+<<<<<<< HEAD
   (error) => Promise.reject(error)
+=======
+  (error) => {
+    return Promise.reject(error);
+  }
+>>>>>>> 966e2588cf863eb6a980edcaff9998d6ee73909e
 );
 
 // Response interceptor to handle errors
