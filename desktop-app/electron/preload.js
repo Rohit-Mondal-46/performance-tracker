@@ -1,6 +1,5 @@
-// electron/preload.js
-const { contextBridge, ipcRenderer } = require('electron');
 
+const { contextBridge, ipcRenderer } = require('electron');
 
 let mediaPipeLoaded = false;
 let mediaPipeLoadPromise = null;
@@ -57,11 +56,71 @@ function loadMediaPipeScripts() {
 // Expose API to renderer
 // --------------------------------------------------
 
-// electron/preload.js - CLEAN UP
 contextBridge.exposeInMainWorld("electronAPI", {
   // General
-  ping: () => ipcRenderer.invoke("ping"),
-  
+  ping: async () => await ipcRenderer.invoke("ping"),
+
+  // Tracking
+  tracking: {
+    sendData: (data) => ipcRenderer.send("tracking-data", data),
+    onResponse: (callback) => ipcRenderer.on("tracking-response", callback),
+    
+    // Keyboard & Mouse events
+    onKeyboardEvent: (callback) => {
+      ipcRenderer.on('keyboard-event', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('keyboard-event', callback);
+    },
+    onMouseEvent: (callback) => {
+      ipcRenderer.on('mouse-event', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('mouse-event', callback);
+    },
+    
+    // Analytics updates
+    onAnalyticsUpdate: (callback) => {
+      ipcRenderer.on('analytics-update', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('analytics-update', callback);
+    },
+    
+    // Tracking initialization status
+    onTrackingInitialized: (callback) => {
+      ipcRenderer.on('tracking-initialized', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('tracking-initialized', callback);
+    },
+    
+    // Control functions
+    toggleTracking: (enabled) => {
+      ipcRenderer.send('toggle-tracking', enabled);
+    },
+    
+    getKeyboardStats: () => {
+      return new Promise((resolve) => {
+        ipcRenderer.once('keyboard-stats-response', (event, data) => resolve(data));
+        ipcRenderer.send('get-keyboard-stats');
+      });
+    },
+    
+    getMouseStats: () => {
+      return new Promise((resolve) => {
+        ipcRenderer.once('mouse-stats-response', (event, data) => resolve(data));
+        ipcRenderer.send('get-mouse-stats');
+      });
+    },
+    
+    getDetailedStats: () => {
+      return ipcRenderer.invoke('get-detailed-stats');
+    },
+    
+    resetStats: () => {
+      return ipcRenderer.invoke('reset-stats');
+    }
+  },
+
+  // MediaPipe
+  mediaPipe: {
+    isReady: () => mediaPipeLoaded,
+    load: loadMediaPipeScripts,
+  },
+
   // Authentication
   auth: {
     login: (credentials) => ipcRenderer.invoke("auth:login", credentials),

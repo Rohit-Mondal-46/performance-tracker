@@ -44,6 +44,58 @@ const createTables = async () => {
       );
     `);
 
+     // ========================================================================
+    // DETAILED ACTIVITY TRACKING TABLES (Session-based)
+    // ========================================================================
+
+    // Sessions Table - The central table for tracking an employee's activity session.
+    // Each session is linked to a specific employee.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        start_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        end_time TIMESTAMP WITH TIME ZONE,
+        is_active BOOLEAN NOT NULL DEFAULT true
+      );
+    `);
+
+    // Keyboard Events Table - Stores every single keystroke event for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS keyboard_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        key_code INTEGER NOT NULL,
+        key_name VARCHAR(50),
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Mouse Events Table - Stores mouse clicks, movements, and scrolls for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS mouse_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        event_type VARCHAR(20) NOT NULL, -- e.g., 'click', 'move', 'scroll'
+        button INTEGER, -- 1 for left, 2 for right, 3 for middle
+        x INTEGER,
+        y INTEGER,
+        scroll_direction VARCHAR(10), -- 'up', 'down'
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Activity Summaries Table - Stores periodic summaries of user activity for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_summaries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        activity_type VARCHAR(50), -- e.g., 'typing', 'reading', 'idle'
+        overall_activity DECIMAL(5,2), -- A score from 0-100
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // ========================================================================
     // NEW TABLES FOR ACTIVITY-BASED TRACKING
     // ========================================================================
@@ -106,6 +158,15 @@ const createTables = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
       `);
+
+    // Indexes for Session-based Tracking
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sessions_employee_id ON sessions(employee_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sessions_is_active ON sessions(is_active);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_keyboard_events_session_id ON keyboard_events(session_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_keyboard_events_timestamp ON keyboard_events(timestamp);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_mouse_events_session_id ON mouse_events(session_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_mouse_events_timestamp ON mouse_events(timestamp);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_summaries_session_id ON activity_summaries(session_id);`);
 
 
     // Create indexes for raw_activity_intervals
