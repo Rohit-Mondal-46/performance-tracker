@@ -28,6 +28,7 @@ api.interceptors.request.use(
     
     if (isElectron() && window.electronAPI?.auth?.getToken) {
       token = await window.electronAPI.auth.getToken();
+      console.log('🔑 Token from Electron:', token ? 'Found' : 'Not found');
     } else {
       token = localStorage.getItem('token');
       console.log('🔑 Token from localStorage:', token ? 'Found' : 'Not found');
@@ -35,6 +36,9 @@ api.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('✅ Authorization header set');
+    } else {
+      console.warn('⚠️ No token available for request');
     }
     
     const fullUrl = config.baseURL + config.url;
@@ -137,6 +141,28 @@ export const activityAPI = {
   getMyLatestActivity: () => 
     api.get('/activities/latest'),
 };
+
+// ========================
+// INPUT TRACKING ENDPOINTS
+// Save keyboard/mouse metrics for 5-minute intervals
+// Used for displaying detailed input history with screenshots
+// ========================
+export const inputAPI = {
+  // Save 5-minute input batch (keyboard + mouse metrics)
+  saveInputBatch: (data) =>
+    api.post('/input/batch', data),
+  
+  // Get input history with date range
+  getInputHistory: (params) =>
+    api.get('/input/history', { params }),
+  
+  // Get specific input interval
+  getInputInterval: (intervalId) =>
+    api.get(`/input/interval/${intervalId}`),
+};
+
+// Note: Input tracking routes removed - now using activityAPI.ingestActivityBatch()
+// All keyboard/mouse tracking is handled via 5-minute batches sent to /api/activities/ingest
 
 // Export default api instance for custom requests
 export default api;

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 class ScreenshotManager {
   constructor() {
-    this.INTERVAL_MS = 10 * 1000; // 5 mins
+    this.INTERVAL_MS = 60 * 1000; // 5 mins
     this.BLUR_RADIUS = 1;
     this.UPLOAD_URL = 'http://localhost:3000/api/screenshots/upload';
     

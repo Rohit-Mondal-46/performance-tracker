@@ -1,724 +1,144 @@
 // electron/main.js
-import { app, BrowserWindow, ipcMain, session, shell, desktopCapturer } from 'electron';
+import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import { screenshotManager } from './screenshotManager.js';
-import { uIOhook } from 'uiohook-napi';
+import { TrackingManager } from './trackingManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow;
-let isTrackingEnabled = true;
-let isHookRunning = false;
-
-// Store token globally for access
+let trackingManager;
 let authToken = null;
 
-// Enhanced tracking data structures
-const trackingData = {
-  keyboard: {
-    totalKeystrokes: 0,
-    keystrokesPerMinute: 0,
-    activeKeystrokes: 0,
-    lastKeystrokeTime: null,
-    keystrokeHistory: [], // Stores last 1000 keystrokes with timestamps
-    keyFrequency: new Map(), // Tracks frequency of each key
-    typingSessions: [], // Tracks typing bursts
-    currentTypingSession: { start: null, keystrokes: 0 }
-  },
-  mouse: {
-    totalClicks: 0,
-    totalDistance: 0,
-    clicksPerMinute: 0,
-    averageSpeed: 0,
-    lastPosition: { x: 0, y: 0 },
-    lastClickTime: null,
-    movementHistory: [], // Stores last 1000 movements with timestamps
-    clickFrequency: new Map(), // Tracks frequency of each button
-    idleTime: 0,
-    lastMovementTime: null,
-    activityZones: new Map(), // Tracks which screen areas are most active
-    scrollDistance: 0
-  },
-  combined: {
-    overallActivity: 0, // 0-100 score
-    lastActivityTime: null,
-    activityPattern: [] // History of activity patterns
-  }
-};
+// API Configuration
+const API_BASE_URL = 'http://localhost:3000/api';
 
-// Configuration for intelligent detection
-const config = {
-  mouse: {
-    minimumMovement: 2, // pixels to consider as intentional movement
-    idleThreshold: 30000, // 30 seconds of no movement = idle
-    speedThreshold: 1000, // px/sec to consider as fast movement
-    zoneSize: 100, // pixel grid for activity zones
-    clickDebounce: 100 // ms between clicks to count as separate
-  },
-  keyboard: {
-    typingThreshold: 5, // keystrokes per second to consider as typing
-    burstThreshold: 10, // keystrokes in sequence to consider a burst
-    idleThreshold: 60000, // 1 minute of no keystrokes = idle
-    sessionTimeout: 2000, // ms between keystrokes to end a session
-  },
-  tracking: {
-    historySize: 1000,
-    updateInterval: 1000, // Update every second for more responsive UI
-    sendInterval: 300000 // Send data to renderer every 5 minutes (300,000ms)
-  }
-};
-
-// Analytics calculations
-function calculateKeyboardAnalytics() {
-  const now = Date.now();
-  const recentKeystrokes = trackingData.keyboard.keystrokeHistory.filter(
-    k => now - k.timestamp < 60000
-  );
-  
-  // Calculate KPM
-  trackingData.keyboard.keystrokesPerMinute = recentKeystrokes.length;
-  
-  // Detect if currently typing
-  if (recentKeystrokes.length > 0) {
-    const lastKeystroke = recentKeystrokes[recentKeystrokes.length - 1];
-    const timeSinceLast = now - lastKeystroke.timestamp;
-    trackingData.keyboard.activeKeystrokes = timeSinceLast < 5000 ? recentKeystrokes.length : 0;
+// =====================================================
+// SIMPLE SYNC MANAGER - No session logic
+// =====================================================
+class SimpleSyncManager {
+  constructor() {
+    this.INTERVAL_MS = 60 * 1000; // 5 minutes
+    this.timer = null;
+    this.running = false;
+    this.authToken = null;
   }
 
-  // Update typing session
-  if (trackingData.keyboard.currentTypingSession.start) {
-    const sessionTime = now - trackingData.keyboard.currentTypingSession.start;
-    if (sessionTime > config.keyboard.sessionTimeout) {
-      // End session
-      if (trackingData.keyboard.currentTypingSession.keystrokes > 0) {
-        trackingData.keyboard.typingSessions.push({
-          start: trackingData.keyboard.currentTypingSession.start,
-          end: now,
-          keystrokes: trackingData.keyboard.currentTypingSession.keystrokes,
-          duration: sessionTime
+  setAuthToken(token) {
+    this.authToken = token;
+    console.log('[SimpleSync] 🔑 Auth token set');
+  }
+
+  async sendDataToBackend(data) {
+    if (!this.authToken) {
+      console.error('[SimpleSync] Cannot send data: No auth token');
+      return false;
+    }
+
+    try {
+      console.log('[SimpleSync] 📤 Sending 5-minute data to backend:', {
+        keystrokes: data.keyboard.totalKeystrokes,
+        clicks: data.mouse.totalClicks,
+        distance: data.mouse.totalDistance
+      });
+
+      // Send simple data to backend
+      const response = await axios.post(
+        `${API_BASE_URL}/input-activity/ingest`, 
+        {
+          timestamp: data.timestamp,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          keyboard: data.keyboard,
+          mouse: data.mouse
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.authToken}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+
+      if (response.data.success) {
+        console.log('[SimpleSync] ✅ Data sent successfully');
+        return true;
+      } else {
+        console.error('[SimpleSync] ❌ Backend returned error:', response.data.message);
+        return false;
+      }
+
+    } catch (error) {
+      console.error('[SimpleSync] ❌ Failed to send data:', error.message);
+      return false;
+    }
+  }
+
+  async start() {
+    if (this.running) {
+      console.log('[SimpleSync] ⚠️ Already running');
+      return false;
+    }
+
+    if (!this.authToken) {
+      console.error('[SimpleSync] ❌ Cannot start: No auth token');
+      return false;
+    }
+
+    console.log('[SimpleSync] ✅ Starting - will send data every 5 minutes');
+
+    this.running = true;
+
+    // Set up 5-minute interval
+    this.timer = setInterval(async () => {
+      if (!this.running || !trackingManager) return;
+      
+      // Get and reset tracking data
+      const periodicData = trackingManager.getAndResetTrackingData();
+      
+      // Send to backend
+      const success = await this.sendDataToBackend(periodicData);
+      
+      // Notify renderer
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('sync-completed', {
+          timestamp: Date.now(),
+          success: success,
+          data: periodicData,
+          message: success ? 'Data sent successfully' : 'Failed to send data'
         });
       }
-      trackingData.keyboard.currentTypingSession = { start: null, keystrokes: 0 };
-    }
-  }
-}
-
-function calculateMouseAnalytics() {
-  const now = Date.now();
-  
-  // Calculate mouse speed
-  if (trackingData.mouse.movementHistory.length >= 2) {
-    const recentMovements = trackingData.mouse.movementHistory.slice(-10);
-    let totalDistance = 0;
-    let totalTime = 0;
-    
-    for (let i = 1; i < recentMovements.length; i++) {
-      const prev = recentMovements[i-1];
-      const curr = recentMovements[i];
-      const distance = Math.sqrt(
-        Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2)
-      );
-      const time = curr.timestamp - prev.timestamp;
       
-      if (time > 0) {
-        totalDistance += distance;
-        totalTime += time;
-      }
+    }, this.INTERVAL_MS);
+
+    return true;
+  }
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
     }
-    
-    if (totalTime > 0) {
-      trackingData.mouse.averageSpeed = (totalDistance / totalTime) * 1000; // px/sec
-    }
+    this.running = false;
+    console.log('[SimpleSync] 🛑 Stopped');
   }
-  
-  // Calculate CPM
-  const recentClicks = trackingData.mouse.movementHistory.filter(
-    m => m.type === 'click' && now - m.timestamp < 60000
-  );
-  trackingData.mouse.clicksPerMinute = recentClicks.length;
-  
-  // Update idle time
-  if (trackingData.mouse.lastMovementTime) {
-    trackingData.mouse.idleTime = now - trackingData.mouse.lastMovementTime;
-  }
-}
 
-function calculateCombinedActivity() {
-  const now = Date.now();
-  
-  // Recent activity score (last 30 seconds)
-  const recentKeyboard = trackingData.keyboard.keystrokeHistory.filter(
-    k => now - k.timestamp < 30000
-  ).length;
-  
-  const recentMouse = trackingData.mouse.movementHistory.filter(
-    m => now - m.timestamp < 30000 && (m.type === 'move' || m.type === 'click')
-  ).length;
-  
-  // Weighted activity score
-  const keyboardScore = Math.min(recentKeyboard * 10, 50); // Max 50 points
-  const mouseScore = Math.min(recentMouse * 5, 50); // Max 50 points
-  
-  trackingData.combined.overallActivity = keyboardScore + mouseScore;
-  trackingData.combined.lastActivityTime = now;
-  
-  // Store activity pattern
-  trackingData.combined.activityPattern.push({
-    timestamp: now,
-    activity: trackingData.combined.overallActivity,
-    keyboard: recentKeyboard,
-    mouse: recentMouse
-  });
-  
-  // Keep only last 60 entries (5 minutes at 5-second intervals)
-  if (trackingData.combined.activityPattern.length > 60) {
-    trackingData.combined.activityPattern.shift();
-  }
-}
-
-function detectActivityPattern() {
-  const now = Date.now();
-  const pattern = {
-    isTyping: false,
-    isScrolling: false,
-    isClicking: false,
-    isIdle: false,
-    activityType: 'idle'
-  };
-  
-  // Check keyboard activity
-  if (trackingData.keyboard.keystrokesPerMinute > config.keyboard.typingThreshold * 2) {
-    pattern.isTyping = true;
-    pattern.activityType = 'fast_typing';
-  } else if (trackingData.keyboard.keystrokesPerMinute > config.keyboard.typingThreshold) {
-    pattern.isTyping = true;
-    pattern.activityType = 'typing';
-  }
-  
-  // Check mouse activity
-  if (trackingData.mouse.clicksPerMinute > 10) {
-    pattern.isClicking = true;
-    pattern.activityType = pattern.isTyping ? 'typing_clicking' : 'clicking';
-  } else if (trackingData.mouse.scrollDistance > 500) {
-    pattern.isScrolling = true;
-    pattern.activityType = 'scrolling';
-  } else if (trackingData.mouse.averageSpeed > config.mouse.speedThreshold) {
-    pattern.activityType = 'fast_movement';
-  } else if (trackingData.mouse.averageSpeed > config.mouse.speedThreshold / 2) {
-    pattern.activityType = 'movement';
-  }
-  
-  // Check idle
-  if (trackingData.mouse.idleTime > config.mouse.idleThreshold && 
-      trackingData.keyboard.activeKeystrokes === 0) {
-    pattern.isIdle = true;
-    pattern.activityType = 'idle';
-  }
-  
-  return pattern;
-}
-
-// Intelligent event processors
-function processKeystroke(event, type) {
-  const now = Date.now();
-  
-  // Update basic stats
-  trackingData.keyboard.totalKeystrokes++;
-  trackingData.keyboard.lastKeystrokeTime = now;
-  
-  // Store in history
-  trackingData.keyboard.keystrokeHistory.push({
-    keycode: event.keycode,
-    keychar: event.keychar,
-    timestamp: now,
-    type: type,
-    modifiers: {
-      ctrl: event.ctrlKey,
-      shift: event.shiftKey,
-      alt: event.altKey
-    }
-  });
-  
-  // Keep history size limited
-  if (trackingData.keyboard.keystrokeHistory.length > config.tracking.historySize) {
-    trackingData.keyboard.keystrokeHistory.shift();
-  }
-  
-  // Update key frequency
-  const key = event.keychar || `key${event.keycode}`;
-  trackingData.keyboard.keyFrequency.set(
-    key, 
-    (trackingData.keyboard.keyFrequency.get(key) || 0) + 1
-  );
-  
-  // Manage typing session
-  if (!trackingData.keyboard.currentTypingSession.start) {
-    trackingData.keyboard.currentTypingSession.start = now;
-  }
-  trackingData.keyboard.currentTypingSession.keystrokes++;
-  
-  // Calculate analytics
-  calculateKeyboardAnalytics();
-}
-
-function processMouseEvent(event, type) {
-  const now = Date.now();
-  
-  // Calculate movement distance for mousemove
-  if (type === 'mousemove') {
-    const distance = Math.sqrt(
-      Math.pow(event.x - trackingData.mouse.lastPosition.x, 2) +
-      Math.pow(event.y - trackingData.mouse.lastPosition.y, 2)
-    );
-    
-    // Only track if movement is significant
-    if (distance >= config.mouse.minimumMovement) {
-      trackingData.mouse.totalDistance += distance;
-      trackingData.mouse.lastPosition = { x: event.x, y: event.y };
-      trackingData.mouse.lastMovementTime = now;
-      
-      // Store movement
-      trackingData.mouse.movementHistory.push({
-        x: event.x,
-        y: event.y,
-        distance: distance,
-        timestamp: now,
-        type: 'move'
-      });
-      
-      // Update activity zones
-      const zoneX = Math.floor(event.x / config.mouse.zoneSize);
-      const zoneY = Math.floor(event.y / config.mouse.zoneSize);
-      const zoneKey = `${zoneX},${zoneY}`;
-      trackingData.mouse.activityZones.set(
-        zoneKey,
-        (trackingData.mouse.activityZones.get(zoneKey) || 0) + 1
-      );
-    }
-  }
-  
-  // Handle clicks
-  else if (type === 'click' || type === 'mousedown') {
-    // Debounce clicks
-    if (!trackingData.mouse.lastClickTime || 
-        now - trackingData.mouse.lastClickTime > config.mouse.clickDebounce) {
-      trackingData.mouse.totalClicks++;
-      trackingData.mouse.lastClickTime = now;
-      trackingData.mouse.lastMovementTime = now;
-      
-      // Store click
-      trackingData.mouse.movementHistory.push({
-        x: event.x,
-        y: event.y,
-        button: event.button,
-        clicks: event.clicks,
-        timestamp: now,
-        type: 'click'
-      });
-      
-      // Update click frequency
-      const buttonKey = `button${event.button}`;
-      trackingData.mouse.clickFrequency.set(
-        buttonKey,
-        (trackingData.mouse.clickFrequency.get(buttonKey) || 0) + 1
-      );
-    }
-  }
-  
-  // Handle wheel
-  else if (type === 'wheel') {
-    trackingData.mouse.scrollDistance += Math.abs(event.rotation);
-    trackingData.mouse.lastMovementTime = now;
-    
-    trackingData.mouse.movementHistory.push({
-      rotation: event.rotation,
-      direction: event.direction,
-      timestamp: now,
-      type: 'wheel'
-    });
-  }
-  
-  // Keep history size limited
-  if (trackingData.mouse.movementHistory.length > config.tracking.historySize) {
-    trackingData.mouse.movementHistory.shift();
-  }
-  
-  // Calculate analytics
-  calculateMouseAnalytics();
-}
-
-// Helper function to send tracking status
-function sendTrackingStatus(status, message = '') {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('tracking-initialized', {
-      timestamp: Date.now(),
-      status: status,
-      message: message
-    });
-  }
-}
-
-// Event handler functions
-function handleKeyDown(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Keydown event:', event.keycode, event.keychar);
-  processKeystroke(event, 'keydown');
-  
-  const specialCombos = detectSpecialCombinations(event);
-  if (specialCombos.length > 0) {
-    console.log('🔍 Special combination detected:', specialCombos);
-  }
-  
-  sendKeyboardEvent('keydown', event, specialCombos);
-}
-
-function handleKeyUp(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Keyup event:', event.keycode, event.keychar);
-  processKeystroke(event, 'keyup');
-  sendKeyboardEvent('keyup', event);
-}
-
-function handleMouseMove(event) {
-  if (!isTrackingEnabled) return;
-  
-  processMouseEvent(event, 'mousemove');
-  const pattern = detectActivityPattern();
-  
-  sendMouseEvent('mousemove', event, pattern);
-}
-
-function handleMouseDown(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Mousedown event:', event.button, event.x, event.y);
-  processMouseEvent(event, 'mousedown');
-  sendMouseEvent('mousedown', event);
-}
-
-function handleMouseUp(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Mouseup event:', event.button, event.x, event.y);
-  processMouseEvent(event, 'mouseup');
-  sendMouseEvent('mouseup', event);
-}
-
-function handleWheel(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Wheel event:', event.rotation, event.direction);
-  processMouseEvent(event, 'wheel');
-  sendMouseEvent('wheel', event);
-}
-
-function handleClick(event) {
-  if (!isTrackingEnabled) return;
-  
-  console.log('Click event:', event.button, event.clicks, event.x, event.y);
-  processMouseEvent(event, 'click');
-  const clickType = getClickType(event);
-  
-  sendMouseEvent('click', event, null, clickType);
-}
-
-// Helper functions to send events to renderer
-function sendKeyboardEvent(type, event, specialCombos = []) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('keyboard-event', {
-      type: type,
-      keycode: event.keycode,
-      keychar: event.keychar,
-      timestamp: Date.now(),
-      ctrlKey: event.ctrlKey,
-      shiftKey: event.shiftKey,
-      altKey: event.altKey,
-      isSpecial: specialCombos.length > 0,
-      specialCombos: specialCombos
-    });
-  }
-}
-
-function sendMouseEvent(type, event, pattern = null, clickType = null) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    const baseEvent = {
-      type: type,
-      timestamp: Date.now()
+  getStatus() {
+    return {
+      running: this.running,
+      hasToken: !!this.authToken,
+      interval: this.INTERVAL_MS
     };
-    
-    // Add properties based on event type
-    if (['mousemove', 'mousedown', 'mouseup', 'click'].includes(type)) {
-      baseEvent.x = event.x;
-      baseEvent.y = event.y;
-    }
-    
-    if (['mousedown', 'mouseup', 'click'].includes(type)) {
-      baseEvent.button = event.button;
-    }
-    
-    if (type === 'click') {
-      baseEvent.clicks = event.clicks || 1;
-      baseEvent.clickType = clickType;
-    }
-    
-    if (type === 'wheel') {
-      baseEvent.rotation = event.rotation;
-      baseEvent.direction = event.direction;
-    }
-    
-    if (type === 'mousemove' && pattern) {
-      baseEvent.speed = Math.round(trackingData.mouse.averageSpeed);
-      baseEvent.distance = Math.round(trackingData.mouse.totalDistance);
-      baseEvent.activityPattern = pattern;
-    }
-    
-    mainWindow.webContents.send('mouse-event', baseEvent);
   }
 }
 
-// Helper functions for intelligent detection
-function detectSpecialCombinations(event) {
-  const combos = [];
-  const now = Date.now();
-  
-  // Check for common shortcuts
-  if (event.ctrlKey) {
-    switch (event.keycode) {
-      case 46: // C
-        combos.push('CTRL+C');
-        trackingData.keyboard.keyFrequency.set('copy', (trackingData.keyboard.keyFrequency.get('copy') || 0) + 1);
-        break;
-      case 47: // V
-        combos.push('CTRL+V');
-        trackingData.keyboard.keyFrequency.set('paste', (trackingData.keyboard.keyFrequency.get('paste') || 0) + 1);
-        break;
-      case 48: // B
-        combos.push('CTRL+B');
-        break;
-      case 49: // N
-        combos.push('CTRL+N');
-        break;
-      case 50: // M
-        combos.push('CTRL+M');
-        break;
-      case 20: // T
-        combos.push('CTRL+T');
-        break;
-      case 24: // W
-        combos.push('CTRL+W');
-        break;
-    }
-  }
-  
-  if (event.altKey) {
-    switch (event.keycode) {
-      case 15: // Tab
-        combos.push('ALT+TAB');
-        break;
-      case 1: // F4
-        combos.push('ALT+F4');
-        break;
-    }
-  }
-  
-  // Track shift combinations
-  if (event.shiftKey && event.keycode >= 16 && event.keycode <= 25) {
-    // Function keys with shift
-    combos.push(`SHIFT+F${event.keycode - 15}`);
-  }
-  
-  return combos;
-}
+// Create global sync manager instance
+const syncManager = new SimpleSyncManager();
 
-function getClickType(event) {
-  const now = Date.now();
-  
-  if (event.clicks >= 3) return 'triple_click';
-  if (event.clicks === 2) return 'double_click';
-  
-  // Detect click patterns
-  const recentClicks = trackingData.mouse.movementHistory.filter(
-    m => m.type === 'click' && now - m.timestamp < 1000
-  );
-  
-  if (recentClicks.length > 5) return 'rapid_clicking';
-  if (recentClicks.length > 2) return 'multiple_clicks';
-  
-  return 'single_click';
-}
-
-// Setup event listeners using the correct uIOhook API
-function setupEventListeners() {
-  console.log('Setting up event listeners...');
-  
-  // Keyboard events
-  uIOhook.on('keydown', handleKeyDown);
-  uIOhook.on('keyup', handleKeyUp);
-  
-  // Mouse events
-  uIOhook.on('mousemove', handleMouseMove);
-  uIOhook.on('mousedown', handleMouseDown);
-  uIOhook.on('mouseup', handleMouseUp);
-  uIOhook.on('wheel', handleWheel);
-  uIOhook.on('click', handleClick);
-  
-  console.log('✅ Event listeners registered');
-}
-
-// Start uIOhook
-function startUIOhook() {
-  console.log('🔄 Starting intelligent input tracking...');
-  
-  try {
-    uIOhook.start();
-    isHookRunning = true;
-    startAnalyticsInterval();
-    
-    // Send success status
-    sendTrackingStatus('success', 'Tracking started successfully');
-    
-    // Initialize last position
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('mouse-position', {
-        x: 0,
-        y: 0,
-        timestamp: Date.now()
-      });
-    }
-  } catch (error) {
-    console.error('❌ Failed to start uIOhook:', error);
-    sendTrackingStatus('error', error.message);
-  }
-}
-
-// Initialize uIOhook for intelligent tracking
-function initializeUIOhook() {
-  try {
-    console.log('🔧 Initializing intelligent input tracking...');
-    console.log('uIOhook object structure:', Object.keys(uIOhook));
-    
-    // Check if uIOhook is properly loaded
-    if (!uIOhook || typeof uIOhook !== 'object') {
-      console.error('❌ uIOhook module not properly loaded');
-      sendTrackingStatus('error', 'uIOhook module not loaded');
-      return;
-    }
-    
-    // Check if event emitter methods exist
-    if (typeof uIOhook.on === 'function') {
-      console.log('✅ Using uIOhook.on method');
-      setupEventListeners();
-      startUIOhook();
-    } else {
-      console.error('❌ uIOhook.on method not found');
-      
-      // Try to log available methods
-      const methods = Object.getOwnPropertyNames(uIOhook).filter(
-        prop => typeof uIOhook[prop] === 'function'
-      );
-      console.log('Available methods:', methods);
-      
-      sendTrackingStatus('error', 'uIOhook.on method not available');
-    }
-    
-  } catch (error) {
-    console.error('❌ Error initializing intelligent tracking:', error);
-    sendTrackingStatus('error', error.message);
-  }
-}
-
-// Analytics interval
-function startAnalyticsInterval() {
-  // Send comprehensive analytics to renderer every second
-  const analyticsInterval = setInterval(() => {
-    if (!isTrackingEnabled) return;
-    
-    calculateCombinedActivity();
-    
-    // Send comprehensive analytics to renderer
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const analytics = {
-        timestamp: Date.now(),
-        keyboard: {
-          totalKeystrokes: trackingData.keyboard.totalKeystrokes,
-          keystrokesPerMinute: trackingData.keyboard.keystrokesPerMinute,
-          activeKeystrokes: trackingData.keyboard.activeKeystrokes,
-          isTyping: trackingData.keyboard.keystrokesPerMinute > config.keyboard.typingThreshold,
-          topKeys: Array.from(trackingData.keyboard.keyFrequency.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([key, count]) => ({ key, count })),
-          typingSessions: trackingData.keyboard.typingSessions.slice(-5)
-        },
-        mouse: {
-          totalClicks: trackingData.mouse.totalClicks,
-          clicksPerMinute: trackingData.mouse.clicksPerMinute,
-          totalDistance: Math.round(trackingData.mouse.totalDistance),
-          averageSpeed: Math.round(trackingData.mouse.averageSpeed),
-          scrollDistance: Math.round(trackingData.mouse.scrollDistance),
-          idleTime: trackingData.mouse.idleTime,
-          isMoving: trackingData.mouse.averageSpeed > 0,
-          lastPosition: trackingData.mouse.lastPosition,
-          topZones: Array.from(trackingData.mouse.activityZones.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
-            .map(([zone, count]) => ({ zone, count }))
-        },
-        combined: {
-          overallActivity: trackingData.combined.overallActivity,
-          activityType: detectActivityPattern().activityType,
-          isActive: trackingData.combined.overallActivity > 20
-        }
-      };
-      
-      mainWindow.webContents.send('analytics-update', analytics);
-    }
-  }, config.tracking.updateInterval); // Send every second
-  
-  // Send 5-minute summary to backend
-  const summaryInterval = setInterval(() => {
-    if (!isTrackingEnabled) return;
-    
-    // This is where you would send the 5-minute summary to your backend
-    console.log('5-minute summary:', {
-      keyboard: trackingData.keyboard,
-      mouse: trackingData.mouse,
-      combined: trackingData.combined
-    });
-  }, config.tracking.sendInterval); // Every 5 minutes
-  
-  // Store intervals for cleanup
-  global.analyticsIntervals = [analyticsInterval, summaryInterval];
-}
-
-function stopUIOhook() {
-  try {
-    if (isHookRunning) {
-      console.log('🛑 Stopping intelligent tracking...');
-      
-      uIOhook.stop();
-      uIOhook.removeAllListeners();
-      
-      // Clear intervals
-      if (global.analyticsIntervals) {
-        global.analyticsIntervals.forEach(interval => clearInterval(interval));
-        global.analyticsIntervals = null;
-      }
-      
-      isHookRunning = false;
-      console.log('✅ Intelligent tracking stopped');
-    }
-  } catch (error) {
-    console.error('❌ Error stopping tracking:', error);
-  }
-}
-
-// electron/main.js - UPDATE createWindow function
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -758,7 +178,10 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     screenshotManager.stop();
-    stopUIOhook();
+    syncManager.stop();
+    if (trackingManager) {
+      trackingManager.stop();
+    }
     mainWindow = null;
   });
 }
@@ -766,24 +189,31 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
   
-  // Wait a bit before initializing uIOhook to ensure window is ready
+  // Initialize tracking manager
+  trackingManager = new TrackingManager(mainWindow);
+  
+  // Wait a bit before initializing tracking to ensure window is ready
   setTimeout(() => {
-    initializeUIOhook();
+    trackingManager.initialize();
   }, 1000);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
+      trackingManager = new TrackingManager(mainWindow);
       setTimeout(() => {
-        initializeUIOhook();
+        trackingManager.initialize();
       }, 1000);
     }
   });
 
+  // Note: SimpleSyncManager handles sending data to backend
+  // No need to listen to periodic-activity-data events
+
   // AUTH LOGIC (ELECTRON SIDE)
   ipcMain.handle("auth:login", async (event, creds) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/auth/employee/login`, {
+      const res = await axios.post(`${API_BASE_URL}/auth/employee/login`, {
         email: creds.email,
         password: creds.password,
       });
@@ -797,6 +227,10 @@ app.whenReady().then(() => {
         // Set token for screenshot manager and start
         screenshotManager.setAuthToken(token);
         screenshotManager.start();
+
+        // Set token for sync manager and start
+        syncManager.setAuthToken(token);
+        syncManager.start();
 
         await session.defaultSession.cookies.set({
           url: "http://localhost",
@@ -822,211 +256,211 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("auth:getToken", async () => {
-    const cookies = await session.defaultSession.cookies.get({ name: "authToken" });
-    if (cookies.length === 0) return null;
-    return cookies[0].value;
+    if (authToken) {
+      return authToken;
+    }
+    
+    try {
+      const cookies = await session.defaultSession.cookies.get({ name: "authToken" });
+      if (cookies.length > 0) {
+        authToken = cookies[0].value;
+        return authToken;
+      }
+    } catch (error) {
+      console.error('Error retrieving token from cookies:', error);
+    }
+    
+    return null;
   });
 
   ipcMain.handle("auth:logout", async () => {
     screenshotManager.stop();
-    stopUIOhook();
+    syncManager.stop();
+    if (trackingManager) {
+      trackingManager.stop();
+    }
     authToken = null;
     await session.defaultSession.cookies.remove("http://localhost", "authToken");
     return { success: true };
   });
 
-  ipcMain.handle("ping", () => {
-    return { success: true, message: 'pong', timestamp: Date.now() };
-  });
-
-  ipcMain.handle("shell:openExternal", async (event, url) => {
-    try {
-      await shell.openExternal(url);
-      return { success: true };
-    } catch (error) {
-      console.error("❌ Failed to open external URL:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  // SCREENSHOT HANDLERS
-  ipcMain.handle('screenshot:test', async () => {
-    try {
-      const sources = await desktopCapturer.getSources({
-        types: ['screen'],
-        thumbnailSize: { width: 800, height: 600 }
-      });
-      return { 
-        success: true, 
-        count: sources.length,
-        names: sources.map(s => s.name)
-      };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('screenshot:start', () => {
-    screenshotManager.start();
-    return screenshotManager.getStatus();
-  });
-
-  ipcMain.handle('screenshot:stop', () => {
-    screenshotManager.stop();
-    return screenshotManager.getStatus();
-  });
-
-  ipcMain.handle('screenshot:status', () => {
-    const status = screenshotManager.getStatus();
-    return status;
-  });
-
-  ipcMain.handle('screenshot:setToken', async (_, token) => {
-    screenshotManager.setAuthToken(token);
-    return { success: true };
-  });
-
-  // ENHANCED TRACKING IPC HANDLERS
+  // TRACKING MANAGER IPC HANDLERS
   ipcMain.on('toggle-tracking', (event, enabled) => {
-    isTrackingEnabled = enabled;
-    console.log(`🔧 Tracking ${enabled ? 'enabled' : 'disabled'}`);
-    
-    if (enabled && !isHookRunning) {
-      initializeUIOhook();
+    if (enabled) {
+      trackingManager.startTracking();
+    } else {
+      trackingManager.stopTracking();
     }
+  });
+
+  ipcMain.handle('tracking:getCurrentData', () => {
+    // Create a snapshot of current data without resetting
+    const now = Date.now();
+    const keyboardDuration = now - trackingManager.trackingData.keyboard.lastResetTime;
+    const mouseDuration = now - trackingManager.trackingData.mouse.lastResetTime;
+    
+    return {
+      keyboard: {
+        totalKeystrokes: trackingManager.trackingData.keyboard.totalKeystrokes,
+        duration: keyboardDuration,
+        keystrokesPerMinute: (trackingManager.trackingData.keyboard.totalKeystrokes / (keyboardDuration / 60000)).toFixed(2)
+      },
+      mouse: {
+        totalClicks: trackingManager.trackingData.mouse.totalClicks,
+        totalDistance: Math.round(trackingManager.trackingData.mouse.totalDistance),
+        scrollDistance: Math.round(trackingManager.trackingData.mouse.scrollDistance),
+        duration: mouseDuration,
+        clicksPerMinute: (trackingManager.trackingData.mouse.totalClicks / (mouseDuration / 60000)).toFixed(2)
+      },
+      timestamp: now,
+      startTime: trackingManager.trackingData.keyboard.lastResetTime,
+      isTrackingEnabled: trackingManager.isTrackingEnabled,
+      isHookRunning: trackingManager.isHookRunning
+    };
+  });
+
+  ipcMain.handle('tracking:reset', () => {
+    trackingManager.resetCounters();
+    return { success: true };
   });
 
   ipcMain.handle('get-detailed-stats', () => {
     return {
-      ...trackingData,
-      config: config,
-      isTrackingEnabled,
-      isHookRunning,
+      trackingData: trackingManager.trackingData,
+      config: trackingManager.config,
+      isTrackingEnabled: trackingManager.isTrackingEnabled,
+      isHookRunning: trackingManager.isHookRunning,
       timestamp: Date.now()
     };
   });
 
   ipcMain.handle('reset-stats', () => {
-    // Reset all tracking data
-    Object.keys(trackingData.keyboard).forEach(key => {
-      if (Array.isArray(trackingData.keyboard[key])) {
-        trackingData.keyboard[key] = [];
-      } else if (typeof trackingData.keyboard[key] === 'number') {
-        trackingData.keyboard[key] = 0;
-      } else if (trackingData.keyboard[key] === null) {
-        trackingData.keyboard[key] = null;
-      }
-    });
-    
-    Object.keys(trackingData.mouse).forEach(key => {
-      if (Array.isArray(trackingData.mouse[key])) {
-        trackingData.mouse[key] = [];
-      } else if (typeof trackingData.mouse[key] === 'number') {
-        trackingData.mouse[key] = 0;
-      } else if (trackingData.mouse[key] === null) {
-        trackingData.mouse[key] = null;
-      } else if (key === 'lastPosition') {
-        trackingData.mouse.lastPosition = { x: 0, y: 0 };
-      }
-    });
-    
-    Object.keys(trackingData.combined).forEach(key => {
-      if (Array.isArray(trackingData.combined[key])) {
-        trackingData.combined[key] = [];
-      } else if (typeof trackingData.combined[key] === 'number') {
-        trackingData.combined[key] = 0;
-      } else if (trackingData.combined[key] === null) {
-        trackingData.combined[key] = null;
-      }
-    });
-    
-    trackingData.keyboard.keyFrequency.clear();
-    trackingData.mouse.activityZones.clear();
-    trackingData.mouse.clickFrequency.clear();
-    
+    trackingManager.resetCounters();
     return { success: true, message: 'Statistics reset' };
   });
 
+  // Simple activity pattern detection
   ipcMain.handle('get-activity-pattern', () => {
-    return detectActivityPattern();
-  });
-
-  ipcMain.handle('get-recent-activity', (event, seconds = 60) => {
     const now = Date.now();
-    const cutoff = now - (seconds * 1000);
+    const keyboardDuration = now - trackingManager.trackingData.keyboard.lastResetTime;
+    const mouseDuration = now - trackingManager.trackingData.mouse.lastResetTime;
     
-    const recentKeyboard = trackingData.keyboard.keystrokeHistory.filter(
-      k => k.timestamp >= cutoff
-    );
+    const kpm = trackingManager.trackingData.keyboard.totalKeystrokes / (keyboardDuration / 60000);
+    const cpm = trackingManager.trackingData.mouse.totalClicks / (mouseDuration / 60000);
     
-    const recentMouse = trackingData.mouse.movementHistory.filter(
-      m => m.timestamp >= cutoff
-    );
+    let activityType = 'idle';
     
-    return {
-      keyboard: recentKeyboard,
-      mouse: recentMouse,
-      pattern: detectActivityPattern(),
-      timestamp: now
-    };
+    if (kpm > 20) {
+      activityType = 'fast_typing';
+    } else if (kpm > 5) {
+      activityType = 'typing';
+    } else if (cpm > 10) {
+      activityType = 'clicking';
+    } else if (trackingManager.trackingData.mouse.totalDistance > 1000) {
+      activityType = 'moving';
+    }
+    
+    return activityType;
   });
 
   ipcMain.on('update-config', (event, newConfig) => {
-    Object.assign(config, newConfig);
-    console.log('🔧 Tracking configuration updated:', newConfig);
+    if (newConfig.mouse) {
+      Object.assign(trackingManager.config.mouse, newConfig.mouse);
+    }
+    if (newConfig.tracking) {
+      Object.assign(trackingManager.config.tracking, newConfig.tracking);
+    }
+    console.log('🔧 Tracking config updated:', trackingManager.config);
   });
 
-  // DEBUG IPC HANDLERS
-  ipcMain.handle('debug:getToken', () => {
+  // SYNC MANAGER HANDLERS
+  ipcMain.handle('sync:start', async () => {
+    const started = await syncManager.start();
+    return { success: started, status: syncManager.getStatus() };
+  });
+
+  ipcMain.handle('sync:stop', async () => {
+    syncManager.stop();
+    return { success: true, status: syncManager.getStatus() };
+  });
+
+  ipcMain.handle('sync:status', () => {
+    return syncManager.getStatus();
+  });
+
+  ipcMain.handle('sync:setToken', (_, token) => {
+    syncManager.setAuthToken(token);
+    return { success: true };
+  });
+
+  ipcMain.handle('sync:forceReset', () => {
+    console.log('[SyncManager] 🔄 Manual reset requested');
+    trackingManager.resetCounters();
+    return { success: true, message: 'Tracking data manually reset' };
+  });
+
+  ipcMain.handle('sync:forceSend', async () => {
+    console.log('[SyncManager] 🔄 Manual sync requested');
+    if (syncManager.running && trackingManager) {
+      const data = trackingManager.getAndResetTrackingData();
+      const success = await syncManager.sendDataToBackend(data);
+      return { success, message: success ? 'Manual sync completed' : 'Manual sync failed' };
+    } else {
+      return { success: false, message: 'Sync manager not running' };
+    }
+  });
+
+  // SCREENSHOT MANAGER HANDLERS
+  ipcMain.handle('screenshot:test', async () => {
+    try {
+      const testResult = await screenshotManager.captureNow();
+      return { success: true, result: testResult };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('screenshot:start', async () => {
+    const started = await screenshotManager.start();
+    return { success: started, running: screenshotManager.running };
+  });
+
+  ipcMain.handle('screenshot:stop', async () => {
+    await screenshotManager.stop();
+    return { success: true, running: false };
+  });
+
+  ipcMain.handle('screenshot:status', () => {
     return { 
-      hasToken: !!authToken,
-      tokenPreview: authToken ? `${authToken.substring(0, 20)}...` : null,
-      length: authToken?.length || 0
+      running: screenshotManager.running,
+      hasToken: !!screenshotManager.authToken 
     };
   });
 
-  ipcMain.handle('debug-uiohook', () => {
-    const methods = Object.getOwnPropertyNames(uIOhook).filter(
-      prop => typeof uIOhook[prop] === 'function'
-    );
-    
-    const properties = Object.keys(uIOhook).filter(
-      prop => typeof uIOhook[prop] !== 'function'
-    );
-    
-    return {
-      isUIOhookLoaded: !!uIOhook,
-      uIOhookType: typeof uIOhook,
-      uIOhookMethods: methods,
-      uIOhookProperties: properties,
-      hasOnMethod: typeof uIOhook.on === 'function',
-      hasStartMethod: typeof uIOhook.start === 'function',
-      hasStopMethod: typeof uIOhook.stop === 'function',
-      isHookRunning,
-      isTrackingEnabled,
-      trackingData: {
-        keyboardEvents: trackingData.keyboard.keystrokeHistory.length,
-        mouseEvents: trackingData.mouse.movementHistory.length,
-        totalKeystrokes: trackingData.keyboard.totalKeystrokes,
-        totalClicks: trackingData.mouse.totalClicks
-      },
-      timestamp: Date.now()
-    };
+  ipcMain.handle('screenshot:setToken', (_, token) => {
+    screenshotManager.setAuthToken(token);
+    authToken = token;
+    return { success: true };
+  });
+
+  // SYSTEM STATUS HANDLERS
+  ipcMain.handle('ping', () => {
+    return { success: true, message: 'pong', timestamp: Date.now() };
+  });
+
+  ipcMain.handle('shell:openExternal', (_, url) => {
+    const { shell } = require('electron');
+    shell.openExternal(url);
   });
 });
 
 app.on("window-all-closed", () => {
   screenshotManager.stop();
-  stopUIOhook();
+  syncManager.stop();
+  if (trackingManager) {
+    trackingManager.stop();
+  }
   if (process.platform !== "darwin") app.quit();
-});
-
-app.on("before-quit", () => {
-  stopUIOhook();
-});
-
-app.on("will-quit", () => {
-  stopUIOhook();
 });
 
 process.on('uncaughtException', (error) => {

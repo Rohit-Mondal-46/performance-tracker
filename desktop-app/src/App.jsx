@@ -5,7 +5,6 @@ import { useAuth } from './contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import CameraMonitor from "./components/CameraMonitor";
-import InputMonitor from './components/InputMonitor';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { employeeAPI, activityAPI } from './services/api';
@@ -23,20 +22,18 @@ function DashboardPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingToday, setLoadingToday] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  const [activeView, setActiveView] = useState('both'); // 'camera', 'input', 'both'
+  const [activeView, setActiveView] = useState('camera'); // Only 'camera' view now
 
-  // Initialize activity tracking hook
+  // Initialize activity tracking hook for manual sending only (no automatic interval)
   const {
     getCurrentStats,
     sendNow,
     inputTracking,
-    toggleActivityTracking,
-    keyboardStats,
-    mouseStats
+    toggleActivityTracking
   } = useActivityTracking(
     currentActivity,
-    trackingEnabled,
-    (data) => console.log('✅ Activity batch sent:', data),
+    false, // Disable automatic interval - only allow manual sendNow() calls
+    (data) => console.log('✅ Activity batch sent to backend:', data),
     (error) => console.error('❌ Error sending batch:', error)
   );
 
@@ -44,8 +41,27 @@ function DashboardPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await employeeAPI.getMyProfile();
+        // Check if token exists before making request
+        const isElectron = typeof window !== 'undefined' && window.electronAPI !== undefined;
+        let hasToken = false;
         
+        if (isElectron && window.electronAPI?.auth?.getToken) {
+          const token = await window.electronAPI.auth.getToken();
+          hasToken = !!token;
+          console.log('🔐 Token check (Electron):', hasToken ? 'Found' : 'Missing');
+        } else {
+          const token = localStorage.getItem('token');
+          hasToken = !!token;
+          console.log('🔐 Token check (localStorage):', hasToken ? 'Found' : 'Missing');
+        }
+        
+        if (!hasToken) {
+          console.warn('⚠️ No token found, skipping profile fetch');
+          setLoadingProfile(false);
+          return;
+        }
+        
+        const response = await employeeAPI.getMyProfile();
         
         if (response && response.success && response.data?.employee) {
           setProfileData(response.data.employee);
@@ -60,22 +76,44 @@ function DashboardPage() {
       }
     };
 
-    fetchProfile();
+    // Wait a bit for token to be available
+    const timer = setTimeout(fetchProfile, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Fetch today's performance data
   useEffect(() => {
     const fetchTodayData = async () => {
       try {
+        // Check if token exists before making request
+        const isElectron = typeof window !== 'undefined' && window.electronAPI !== undefined;
+        let hasToken = false;
+        
+        if (isElectron && window.electronAPI?.auth?.getToken) {
+          const token = await window.electronAPI.auth.getToken();
+          hasToken = !!token;
+        } else {
+          const token = localStorage.getItem('token');
+          hasToken = !!token;
+        }
+        
+        if (!hasToken) {
+          console.warn('⚠️ No token found, skipping daily scores fetch');
+          setLoadingToday(false);
+          return;
+        }
+        
         const response = await activityAPI.getMyDailyScores();
         
         if (response && response.data) {
           setTodayData(response.data.data);
         }
       } catch (error) {
-        console.error('❌ Failed to fetch today\'s data:', error);
-        // It's okay if there's no data for today yet
-        if (error.response?.status !== 404) {
+        // It's okay if there's no data for today yet (404 is expected)
+        if (error.response?.status === 404) {
+          console.log('ℹ️ No activity data for today yet');
+        } else {
+          console.error('❌ Failed to fetch today\'s data:', error);
           console.error('Error details:', error.response?.data || error.message);
         }
       } finally {
@@ -83,12 +121,16 @@ function DashboardPage() {
       }
     };
 
-    fetchTodayData();
+    // Wait a bit for token to be available
+    const timer = setTimeout(fetchTodayData, 500);
     
-    // Refresh today's data every 1 minutes
-    const interval = setInterval(fetchTodayData, 60 * 1000);
+    // Refresh today's data every 6 minutes
+    const interval = setInterval(fetchTodayData, 6 * 60 * 1000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   // Fetch current activity stats periodically
@@ -104,7 +146,6 @@ function DashboardPage() {
   }, [trackingEnabled, getCurrentStats]);
 
   const handleActivityChange = useCallback((activity) => {
-    console.log('📝 Activity changed to:', activity);
     setCurrentActivity(activity);
   }, []);
 
@@ -179,101 +220,35 @@ function DashboardPage() {
             </div>
           </div>
 
-          {/* View Selector */}
+          {/* Live Activity Status */}
           <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-            <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">View Options</h3>
-            <div className="space-y-1">
-              <button
-                onClick={() => setActiveView('camera')}
-                className={`w-full py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeView === 'camera' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                📷 Camera Only
-              </button>
-              <button
-                onClick={() => setActiveView('input')}
-                className={`w-full py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeView === 'input' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                ⌨️ Input Only
-              </button>
-              <button
-                onClick={() => setActiveView('both')}
-                className={`w-full py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeView === 'both' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                📊 Split View
-              </button>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className={`w-2 h-2 rounded-full ${currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+              <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide">Live Status</h3>
+            </div>
+            <div
+              className={`text-sm font-bold text-center py-2 rounded-lg transition-all duration-300 ${
+                currentActivity === "Reading"
+                  ? "bg-purple-50 text-purple-700 border border-purple-200"
+                  : currentActivity === "Phone"
+                  ? "bg-red-50 text-red-700 border border-red-200"
+                  : currentActivity === "Gesturing"
+                  ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                  : currentActivity === "Looking Away"
+                  ? "bg-orange-50 text-orange-700 border border-orange-200"
+                  : currentActivity === "Paused"
+                  ? "bg-amber-50 text-amber-700 border border-amber-200"
+                  : currentActivity === "Not Started"
+                  ? "bg-gray-50 text-gray-600 border border-gray-200"
+                  : "bg-gray-50 text-gray-600 border border-gray-200"
+              }`}
+            >
+              {currentActivity || "Waiting..."}
             </div>
           </div>
 
-          {/* Input Monitor in Sidebar - Only shown when input view is selected */}
-          {activeView === 'input' && (
-            <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-auto">
-              <InputMonitor />
-            </div>
-          )}
-
-          {/* Live Activity Status */}
-          {activeView !== 'input' && (
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className={`w-2 h-2 rounded-full ${currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide">Live Status</h3>
-              </div>
-              <div
-                className={`text-sm font-bold text-center py-2 rounded-lg transition-all duration-300 ${
-                  currentActivity === "Typing"
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : currentActivity === "Writing"
-                    ? "bg-blue-50 text-blue-700 border border-blue-200"
-                    : currentActivity === "Reading"
-                    ? "bg-purple-50 text-purple-700 border border-purple-200"
-                    : currentActivity === "Phone"
-                    ? "bg-red-50 text-red-700 border border-red-200"
-                    : currentActivity === "Meeting"
-                    ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                    : currentActivity === "Presenting"
-                    ? "bg-orange-50 text-orange-700 border border-orange-200"
-                    : currentActivity === "Paused"
-                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                    : currentActivity === "Not Started"
-                    ? "bg-gray-50 text-gray-600 border border-gray-200"
-                    : "bg-gray-50 text-gray-600 border border-gray-200"
-                }`}
-              >
-                {currentActivity || "Waiting..."}
-              </div>
-              
-              {/* Input Activity Mini-stats */}
-              <div className="mt-2 pt-2 border-t border-gray-100">
-                <div className="grid grid-cols-2 gap-1">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">Keys</div>
-                    <div className="text-sm font-bold text-blue-700">{keyboardStats?.totalKeys || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">Clicks</div>
-                    <div className="text-sm font-bold text-purple-700">{mouseStats?.totalClicks || 0}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Employee Details */}
-          {activeView !== 'input' && (
-            <>
-              {loadingProfile ? (
+          {loadingProfile ? (
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2 animate-pulse">
                   <div className="h-3 bg-gray-200 rounded w-24 mb-1.5"></div>
                   <div className="space-y-1">
@@ -313,38 +288,38 @@ function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-                  <p className="text-xs text-red-600">Failed to load profile</p>
-                </div>
-              )}
-
-              {/* Session Info */}
               <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Session Info</h3>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Status</span>
-                    <span className={`font-semibold ${currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'text-green-600' : 'text-gray-600'}`}>
-                      {currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'Tracking' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="pt-1 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 text-center">Auto-sync every 5 min</p>
-                  </div>
-                </div>
+                <p className="text-xs text-red-600">Failed to load profile</p>
               </div>
+            )}
 
-              {/* Performance Analytics */}
-              {loadingToday ? (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2 animate-pulse">
-                  <div className="h-3 bg-gray-200 rounded w-24 mb-1.5"></div>
-                  <div className="space-y-1">
-                    <div className="h-2.5 bg-gray-200 rounded w-full"></div>
-                    <div className="h-2.5 bg-gray-200 rounded w-4/5"></div>
-                  </div>
-                </div>
-              ) : todayData?.daily_score ? (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
+          {/* Session Info */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
+            <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Session Info</h3>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">Status</span>
+                <span className={`font-semibold ${currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'text-green-600' : 'text-gray-600'}`}>
+                  {currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'Tracking' : 'Inactive'}
+                </span>
+              </div>
+              <div className="pt-1 border-t border-gray-100">
+                <p className="text-xs text-gray-500 text-center">Auto-sync every 5 min</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Analytics */}
+          {loadingToday ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2 animate-pulse">
+              <div className="h-3 bg-gray-200 rounded w-24 mb-1.5"></div>
+              <div className="space-y-1">
+                <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+                <div className="h-2.5 bg-gray-200 rounded w-4/5"></div>
+              </div>
+            </div>
+          ) : todayData?.daily_score ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
                   <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Today's Performance</h3>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -390,17 +365,17 @@ function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-                  <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Today's Performance</h3>
-                  <p className="text-xs text-gray-500 text-center py-2">No activity data yet today</p>
-                </div>
-              )}
+            </div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
+              <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Today's Performance</h3>
+              <p className="text-xs text-gray-500 text-center py-2">No activity data yet today</p>
+            </div>
+          )}
 
-              {/* Today's Activity Breakdown */}
-              {todayData?.daily_score && (
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-md p-2 border border-blue-100">
+          {/* Today's Activity Breakdown */}
+          {todayData?.daily_score && (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-md p-2 border border-blue-100">
                   <h3 className="font-semibold text-indigo-700 text-xs uppercase tracking-wide mb-1.5">Activity Breakdown</h3>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
@@ -430,63 +405,15 @@ function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Input Activity Summary */}
-              <div className="bg-gradient-to-br from-gray-50 to-slate-100 rounded-xl shadow-md p-2 border border-gray-200">
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Input Activity</h3>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Keys per minute</span>
-                    </div>
-                    <span className="text-xs font-bold text-blue-700">{keyboardStats?.keysPerMinute || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Mouse distance</span>
-                    </div>
-                    <span className="text-xs font-bold text-purple-700">{Math.round(mouseStats?.distance || 0)} px</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Active</span>
-                    </div>
-                    <span className="text-xs font-bold text-green-700">
-                      {inputTracking ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </>
+            </div>
           )}
         </div>
 
         {/* Main Content Area - Right */}
-        <div className={`${activeView === 'input' ? 'hidden' : 'flex-1'} flex flex-col overflow-hidden`}>
-          {activeView === 'camera' && (
-            <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden">
-              <CameraMonitor onActivityChange={handleActivityChange} />
-            </div>
-          )}
-          
-          {activeView === 'both' && (
-            <>
-              {/* Top Section: Camera Monitor */}
-              <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden mb-2">
-                <CameraMonitor onActivityChange={handleActivityChange} />
-              </div>
-
-              {/* Bottom Section: Input Monitor */}
-              <div className="h-80 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-auto">
-                <InputMonitor />
-              </div>
-            </>
-          )}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden">
+            <CameraMonitor onActivityChange={handleActivityChange} />
+          </div>
         </div>
       </div>
     </div>

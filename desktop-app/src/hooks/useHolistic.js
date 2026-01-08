@@ -224,44 +224,30 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
             rightWrist.y < rightShoulder.y && // Above shoulder
             Math.abs(rightWrist.x - rightShoulder.x) > shoulderWidth * 0.3; // Away from body
           
-          // Writing detection - hand in front of body, at desk level
-          const leftHandWriting = hasLeftHand && leftWrist && leftShoulder && leftHip &&
-            leftWrist.y > leftShoulder.y && // Below shoulder
-            leftWrist.y < leftHip.y && // Above hip (desk level)
-            leftWrist.z < -0.15 && // Hand forward (z-depth)
-            Math.abs(leftWrist.x - leftShoulder.x) < shoulderWidth * 0.8; // In front of body
-            
-          const rightHandWriting = hasRightHand && rightWrist && rightShoulder && rightHip &&
-            rightWrist.y > rightShoulder.y && // Below shoulder
-            rightWrist.y < rightHip.y && // Above hip (desk level)
-            rightWrist.z < -0.15 && // Hand forward (z-depth)
-            Math.abs(rightWrist.x - rightShoulder.x) < shoulderWidth * 0.8; // In front of body
+          // Reading detection - hands at desk level, in front of body
+          const handsAtReadingPosition = (hasLeftHand || hasRightHand) &&
+            ((hasLeftHand && leftWrist && leftShoulder && leftHip &&
+              leftWrist.y > leftShoulder.y && // Below shoulder
+              leftWrist.y < leftHip.y && // Above hip (desk level)
+              leftWrist.z < -0.1) || // Hand forward
+            (hasRightHand && rightWrist && rightShoulder && rightHip &&
+              rightWrist.y > rightShoulder.y && // Below shoulder
+              rightWrist.y < rightHip.y && // Above hip (desk level)
+              rightWrist.z < -0.1)); // Hand forward
           
-          // Typing detection - both hands at typing position
-          const handsAtTypingHeight = hasLeftHand && hasRightHand && 
-            leftWrist && rightWrist && leftShoulder && rightShoulder && leftHip && rightHip &&
-            leftWrist.y > leftShoulder.y && rightWrist.y > rightShoulder.y && // Below shoulders
-            leftWrist.y < leftHip.y && rightWrist.y < rightHip.y && // Above hips
-            Math.abs(leftWrist.y - rightWrist.y) < 0.15 && // Similar height
-            leftWrist.z < -0.1 && rightWrist.z < -0.1 && // Both hands forward
-            Math.abs(leftWrist.x - rightWrist.x) > shoulderWidth * 0.5; // Hands spread apart
-          
-          // Activity logic with clear priorities
+          // Activity logic with clear priorities (camera-based only)
           if (leftHandNearEar || rightHandNearEar) {
             // Phone call - hand near ear
             detectedActivity = 'Phone';
           } else if (leftHandRaised || rightHandRaised) {
             // Gesturing - hand raised and away from body
             detectedActivity = 'Gesturing';
-          } else if (handsAtTypingHeight) {
-            // Both hands typing
-            detectedActivity = 'Typing';
-          } else if ((leftHandWriting && !hasRightHand) || (rightHandWriting && !hasLeftHand)) {
-            // One hand writing (other hand not visible)
-            detectedActivity = 'Writing';
+          } else if (handsAtReadingPosition) {
+            // Hands at desk level - likely reading
+            detectedActivity = 'Reading';
           } else if (hasLeftHand && hasRightHand) {
             // Both hands visible but not in specific positions
-            detectedActivity = 'Gesturing';
+            detectedActivity = 'Reading';
           } else if (hasLeftHand || hasRightHand) {
             // One hand visible - could be gesturing or resting
             const wrist = hasLeftHand ? leftWrist : rightWrist;
@@ -271,11 +257,11 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
               // Hand above shoulder - probably gesturing
               detectedActivity = 'Gesturing';
             } else {
-              // Hand below shoulder - resting or idle
-              detectedActivity = 'Idle';
+              // Hand below shoulder - likely reading or idle
+              detectedActivity = 'Reading';
             }
           } else {
-            // No hands visible
+            // No hands visible - sitting idle
             detectedActivity = 'Sitting';
           }
         }

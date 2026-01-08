@@ -51,55 +51,11 @@ const useInputTracking = () => {
       }
     });
 
-    // Listen for keyboard events
-    keyboardEventCleanupRef.current = window.electronAPI.tracking.onKeyboardEvent((event) => {
-      if (!isTracking) return;
-      
-      setKeyboardEvents(prev => [...prev.slice(-99), event]);
-      console.log('Keyboard event:', event);
-    });
-
-    // Listen for mouse events
-    mouseEventCleanupRef.current = window.electronAPI.tracking.onMouseEvent((event) => {
-      if (!isTracking) return;
-      
-      setMouseEvents(prev => [...prev.slice(-99), event]);
-      console.log('Mouse event:', event);
-    });
-    
-    // Listen for analytics updates (this is the key addition)
-    analyticsUpdateCleanupRef.current = window.electronAPI.tracking.onAnalyticsUpdate((data) => {
-      console.log('Analytics update:', data);
-      
-      setKeyboardStats(prev => ({
-        ...prev,
-        totalKeys: data.keyboard.totalKeystrokes,
-        keysPerMinute: data.keyboard.keystrokesPerMinute,
-        isTyping: data.keyboard.isTyping,
-        topKeys: data.keyboard.topKeys,
-        lastActivity: new Date().toISOString()
-      }));
-      
-      setMouseStats(prev => ({
-        ...prev,
-        totalClicks: data.mouse.totalClicks,
-        distance: data.mouse.totalDistance,
-        averageSpeed: data.mouse.averageSpeed,
-        clicksPerMinute: data.mouse.clicksPerMinute,
-        isMoving: data.mouse.isMoving,
-        lastPosition: data.mouse.lastPosition || prev.lastPosition
-      }));
-      
-      setActivityData(data.combined);
-      setLastUpdateTime(Date.now());
-    });
+    // No real-time event listeners needed - tracking happens in main process
 
     // Cleanup function
     return () => {
-      if (keyboardEventCleanupRef.current) keyboardEventCleanupRef.current();
-      if (mouseEventCleanupRef.current) mouseEventCleanupRef.current();
-      if (analyticsUpdateCleanupRef.current) analyticsUpdateCleanupRef.current();
-      if (trackingInitializedCleanupRef.current) trackingInitializedCleanupRef.current();
+      // No cleanup needed for snapshot-based tracking
     };
   }, [isTracking]);
 
@@ -127,15 +83,26 @@ const useInputTracking = () => {
     }
   }, []);
 
-  // Get detailed statistics
+  // Get detailed statistics (snapshot from main process)
   const fetchDetailedStats = useCallback(async () => {
-    if (window.electronAPI) {
+    if (window.electronAPI?.tracking?.getSnapshot) {
       try {
-        const stats = await window.electronAPI.tracking.getDetailedStats();
-        console.log('Detailed stats:', stats);
+        const stats = await window.electronAPI.tracking.getSnapshot();
+        // Update local state with snapshot
+        if (stats?.keyboard) {
+          setKeyboardStats(prev => ({
+            ...prev,
+            totalKeys: stats.keyboard.totalKeys || 0,
+          }));
+          setMouseStats(prev => ({
+            ...prev,
+            totalClicks: stats.keyboard.totalClicks || 0,
+            distance: stats.keyboard.mouseDistance || 0,
+          }));
+        }
         return stats;
       } catch (error) {
-        console.error('Error fetching detailed stats:', error);
+        console.error('Error fetching snapshot:', error);
         return null;
       }
     }
@@ -143,10 +110,10 @@ const useInputTracking = () => {
 
   // Reset statistics
   const resetStats = useCallback(async () => {
-    if (window.electronAPI) {
+    if (window.electronAPI?.tracking?.reset) {
       try {
-        const result = await window.electronAPI.tracking.resetStats();
-        console.log('Reset stats result:', result);
+        const result = await window.electronAPI.tracking.reset();
+        console.log('✅ Tracking reset:', result);
         
         // Reset local state
         setKeyboardStats({

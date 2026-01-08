@@ -37,8 +37,6 @@ const CameraMonitor = ({ onActivityChange }) => {
   const [activityLog, setActivityLog] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
   const [sessionStats, setSessionStats] = useState({
-    Typing: 0,
-    Writing: 0,
     Phone: 0,
     Gesturing: 0,
     Sitting: 0,
@@ -577,8 +575,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           'bg-gray-100 text-gray-800'
         }`}>
           <div className="flex items-center justify-center gap-2">
-            {enhancedActivity === 'Typing' && '⌨️'}
-            {enhancedActivity === 'Writing' && '✍️'}
+
             {enhancedActivity === 'Gesturing' && '👋'}
             {enhancedActivity === 'Phone' && '📱'}
             {enhancedActivity === 'Reading' && '📖'}

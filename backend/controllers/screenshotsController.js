@@ -12,7 +12,6 @@ exports.uploadScreenshot = async (req, res) => {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-    console.log("req.user: ",req.user);
     
     const userId = req.user.id;
     const organizationId = req.user.organizationId;

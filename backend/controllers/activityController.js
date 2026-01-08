@@ -6,7 +6,7 @@ const { formatSuccessResponse, formatErrorResponse } = require('../utils/helpers
 
 const ingestActivityBatch = async (req, res) => {
   try {
-    console.log('📥 Received activity batch:', JSON.stringify(req.body, null, 2));
+    console.log('📥 Received camera activity batch:', JSON.stringify(req.body, null, 2));
     
     const {
       interval_start,
@@ -23,8 +23,6 @@ const ingestActivityBatch = async (req, res) => {
     // Get employee info from authenticated user
     const employeeId = req.user.id;
     const organizationId = req.user.organizationId;
-    
-    console.log('👤 Employee ID:', employeeId, 'Organization ID:', organizationId);
 
     // Validate required fields
     if (!interval_start || !interval_end) {
