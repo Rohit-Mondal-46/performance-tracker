@@ -12,7 +12,8 @@ import {
   BarChart3,
   Shield,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Keyboard
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -33,12 +34,13 @@ export function Layout({ children }) {
       return [
         { name: 'Dashboard', href: '/employee-dashboard', icon: Monitor },
         { name: 'Analytics', href: '/employee-analytics', icon: BarChart3 },
-        
+        { name: 'Input Activity', href: '/employee-input-activity', icon: Keyboard },
       ];
     } else {
       return [
         { name: 'Dashboard', href: '/organization-dashboard', icon: Monitor },
         { name: 'Analytics', href: '/organization-analytics', icon: BarChart3 },
+        { name: 'Input Activity', href: '/organization-input-activity', icon: Keyboard },
       ];
     }
   };

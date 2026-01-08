@@ -11,6 +11,8 @@ import { OrganizationDashboard } from './pages/OrganizationDashboard';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
 import { OrganizationAnalytics } from './pages/OrganizationAnalytics';
 import { EmployeeAnalytics } from './pages/EmployeeAnalytics';
+import { EmployeeInputActivity } from './pages/EmployeeInputActivity';
+import { OrganizationInputActivity } from './pages/OrganizationInputActivity';
 import { Landing } from './pages/Landing';
 import { ContactRequest } from './pages/ContactRequest';
 import PreLoader from './components/Loaders/PreLoader';
@@ -168,6 +170,26 @@ function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="employee">
               <EmployeeAnalytics />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Employee Input Activity */}
+        <Route
+          path="/employee-input-activity"
+          element={
+            <ProtectedRoute requiredRole="employee">
+              <EmployeeInputActivity />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Organization Input Activity */}
+        <Route
+          path="/organization-input-activity"
+          element={
+            <ProtectedRoute requiredRole="organization">
+              <OrganizationInputActivity />
             </ProtectedRoute>
           }
         />
