@@ -1,5 +1,4 @@
-
-  var Module = typeof createMediapipeSolutionsPackedAssets !== 'undefined' ? createMediapipeSolutionsPackedAssets : {};
+var Module = typeof createMediapipeSolutionsPackedAssets !== 'undefined' ? createMediapipeSolutionsPackedAssets : {};
 
   if (!Module.expectedDataFileDownloads) {
     Module.expectedDataFileDownloads = 0;

@@ -44,6 +44,58 @@ const createTables = async () => {
       );
     `);
 
+     // ========================================================================
+    // DETAILED ACTIVITY TRACKING TABLES (Session-based)
+    // ========================================================================
+
+    // Sessions Table - The central table for tracking an employee's activity session.
+    // Each session is linked to a specific employee.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        start_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        end_time TIMESTAMP WITH TIME ZONE,
+        is_active BOOLEAN NOT NULL DEFAULT true
+      );
+    `);
+
+    // Keyboard Events Table - Stores every single keystroke event for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS keyboard_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        key_code INTEGER NOT NULL,
+        key_name VARCHAR(50),
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Mouse Events Table - Stores mouse clicks, movements, and scrolls for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS mouse_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        event_type VARCHAR(20) NOT NULL, -- e.g., 'click', 'move', 'scroll'
+        button INTEGER, -- 1 for left, 2 for right, 3 for middle
+        x INTEGER,
+        y INTEGER,
+        scroll_direction VARCHAR(10), -- 'up', 'down'
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Activity Summaries Table - Stores periodic summaries of user activity for a session.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_summaries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        activity_type VARCHAR(50), -- e.g., 'typing', 'reading', 'idle'
+        overall_activity DECIMAL(5,2), -- A score from 0-100
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // ========================================================================
     // NEW TABLES FOR ACTIVITY-BASED TRACKING
     // ========================================================================
@@ -95,29 +147,6 @@ const createTables = async () => {
       );
     `);
 
-    // Input Activity Intervals Table
-    // Stores 5-minute input activity data (keyboard and mouse contributions)
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS input_activity_intervals (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-        interval_start TIMESTAMP NOT NULL,
-        interval_end TIMESTAMP NOT NULL,
-        keyboard_contribution DECIMAL(5,2) NOT NULL CHECK (keyboard_contribution >= 0 AND keyboard_contribution <= 100),
-        mouse_contribution DECIMAL(5,2) NOT NULL CHECK (mouse_contribution >= 0 AND mouse_contribution <= 100),
-        productive_percentage DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (productive_percentage >= 0 AND productive_percentage <= 100),
-        total_keystrokes INTEGER NOT NULL DEFAULT 0 CHECK (total_keystrokes >= 0),
-        total_clicks INTEGER NOT NULL DEFAULT 0 CHECK (total_clicks >= 0),
-        total_mouse_distance INTEGER NOT NULL DEFAULT 0 CHECK (total_mouse_distance >= 0),
-        total_scroll_distance INTEGER NOT NULL DEFAULT 0 CHECK (total_scroll_distance >= 0),
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(employee_id, interval_start),
-        CHECK (interval_end > interval_start),
-        CHECK (keyboard_contribution + mouse_contribution <= 100)
-      );
-    `);
-
       await pool.query(`CREATE TABLE IF NOT EXISTS daily_screenshots (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
@@ -129,6 +158,15 @@ const createTables = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
       `);
+
+    // Indexes for Session-based Tracking
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sessions_employee_id ON sessions(employee_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sessions_is_active ON sessions(is_active);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_keyboard_events_session_id ON keyboard_events(session_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_keyboard_events_timestamp ON keyboard_events(timestamp);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_mouse_events_session_id ON mouse_events(session_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_mouse_events_timestamp ON mouse_events(timestamp);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_summaries_session_id ON activity_summaries(session_id);`);
 
 
     // Create indexes for raw_activity_intervals
@@ -173,33 +211,6 @@ const createTables = async () => {
       ON calculated_scores(employee_id, score_date);
     `);
 
-    // Create indexes for input_activity_intervals
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_input_activity_employee_id 
-      ON input_activity_intervals(employee_id);
-    `);
-
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_input_activity_organization_id 
-      ON input_activity_intervals(organization_id);
-    `);
-
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_input_activity_interval_start 
-      ON input_activity_intervals(interval_start);
-    `);
-
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_input_activity_date 
-      ON input_activity_intervals(DATE(interval_start));
-    `);
-
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_input_activity_employee_date 
-      ON input_activity_intervals(employee_id, DATE(interval_start));
-    `);
-
-   
     // Create a default admin if none exists
     const adminExists = await pool.query('SELECT id FROM admins LIMIT 1');
     if (adminExists.rows.length === 0) {
@@ -223,8 +234,6 @@ const createTables = async () => {
 
 const dropTables = async () => {
   try {
-    await pool.query('DROP TABLE IF EXISTS daily_screenshots CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS input_activity_intervals CASCADE;');
     await pool.query('DROP TABLE IF EXISTS calculated_scores CASCADE;');
     await pool.query('DROP TABLE IF EXISTS raw_activity_intervals CASCADE;');
     await pool.query('DROP TABLE IF EXISTS employees CASCADE;');

@@ -1,5 +1,6 @@
+
 // electron/preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 
 let mediaPipeLoaded = false;
 let mediaPipeLoadPromise = null;
@@ -38,9 +39,11 @@ function loadMediaPipeScripts() {
         console.warn(`❌ Failed to load: ${src}`);
         checkDone();
       };
+      // Append script safely
       if (document.head) {
         document.head.appendChild(script);
       } else {
+        console.warn("⚠️ Document.head not ready, retrying on DOMContentLoaded");
         document.addEventListener('DOMContentLoaded', () => document.head.appendChild(script));
       }
     });
@@ -57,22 +60,40 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // General
   ping: async () => await ipcRenderer.invoke("ping"),
 
-  // Tracking Manager API
+  // Tracking
   tracking: {
+    sendData: (data) => ipcRenderer.send("tracking-data", data),
+    onResponse: (callback) => ipcRenderer.on("tracking-response", callback),
+    
+    // Keyboard & Mouse events
+    onKeyboardEvent: (callback) => {
+      ipcRenderer.on('keyboard-event', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('keyboard-event', callback);
+    },
+    onMouseEvent: (callback) => {
+      ipcRenderer.on('mouse-event', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('mouse-event', callback);
+    },
+    
+    // Analytics updates
+    onAnalyticsUpdate: (callback) => {
+      ipcRenderer.on('analytics-update', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('analytics-update', callback);
+    },
+    
+    // Tracking initialization status
+    onTrackingInitialized: (callback) => {
+      ipcRenderer.on('tracking-initialized', (event, data) => callback(data));
+      return () => ipcRenderer.removeListener('tracking-initialized', callback);
+    },
+    
+    // Control functions
     toggleTracking: (enabled) => {
       ipcRenderer.send('toggle-tracking', enabled);
     },
     
-    getCurrentData: () => {
-      return ipcRenderer.invoke('tracking:getCurrentData');
-    },
-    
     getDetailedStats: () => {
       return ipcRenderer.invoke('get-detailed-stats');
-    },
-    
-    reset: () => {
-      return ipcRenderer.invoke('tracking:reset');
     },
     
     resetStats: () => {
@@ -83,18 +104,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       return ipcRenderer.invoke('get-activity-pattern');
     },
     
-    updateConfig: (config) => {
-      ipcRenderer.send('update-config', config);
-    },
-    
-    onTrackingInitialized: (callback) => {
-      ipcRenderer.on('tracking-initialized', (event, data) => callback(data));
-      return () => ipcRenderer.removeListener('tracking-initialized', callback);
-    },
-    
-    onPeriodicData: (callback) => {
-      ipcRenderer.on('periodic-activity-data', (event, data) => callback(data));
-      return () => ipcRenderer.removeListener('periodic-activity-data', callback);
+    getRecentActivity: (seconds) => {
+      return ipcRenderer.invoke('get-recent-activity', seconds);
     }
   },
 
@@ -114,20 +125,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     setToken: (token) => ipcRenderer.invoke('screenshot:setToken', token),
   },
   
-  // Simple Sync Manager (no sessions)
-  sync: {
-    start: () => ipcRenderer.invoke('sync:start'),
-    stop: () => ipcRenderer.invoke('sync:stop'),
-    status: () => ipcRenderer.invoke('sync:status'),
-    setToken: (token) => ipcRenderer.invoke('sync:setToken', token),
-    forceReset: () => ipcRenderer.invoke('sync:forceReset'),
-    forceSend: () => ipcRenderer.invoke('sync:forceSend'),
-    onSyncCompleted: (callback) => {
-      ipcRenderer.on('sync-completed', (event, data) => callback(data));
-      return () => ipcRenderer.removeListener('sync-completed', callback);
-    },
-  },
-  
   // MediaPipe
   mediaPipe: {
     isReady: () => mediaPipeLoaded,
@@ -136,11 +133,116 @@ contextBridge.exposeInMainWorld("electronAPI", {
   
   // Utilities
   openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+  
+  // Debug
+  debug: {
+    getToken: () => ipcRenderer.invoke('debug:getToken'),
+    debugUiohook: () => ipcRenderer.invoke('debug-uiohook'),
+  },
+
+  // ONNX Model Handling (UPDATED)
+  model: {
+    // Load the model via IPC
+    load: () => ipcRenderer.invoke('model:load'),
+    
+    // Run inference via IPC
+    detect: (imageData) => ipcRenderer.invoke('model:detect', imageData),
+    
+    // Get model file path
+    getPath: (relativePath) => ipcRenderer.invoke('model:get-path', relativePath),
+    
+    // Read configuration files
+    readConfig: (configPath) => ipcRenderer.invoke('model:read-config', configPath),
+    
+    // Get system GPU info
+    getGpuInfo: () => ipcRenderer.invoke('model:get-gpu-info'),
+    
+    // Check if ONNX is available
+    checkOnnx: () => ipcRenderer.invoke('model:check-onnx'),
+    
+    // Test ONNX inference
+    testInference: () => ipcRenderer.invoke('model:test-inference'),
+    
+    // Path utilities - using IPC instead of direct require
+    path: {
+      join: (...args) => ipcRenderer.invoke('path:join', args),
+      resolve: (...args) => ipcRenderer.invoke('path:resolve', args),
+      dirname: (p) => ipcRenderer.invoke('path:dirname', p),
+      basename: (p, ext) => ipcRenderer.invoke('path:basename', p, ext),
+      extname: (p) => ipcRenderer.invoke('path:extname', p),
+      isAbsolute: (p) => ipcRenderer.invoke('path:isAbsolute', p)
+    },
+    
+    // File system utilities
+    fs: {
+      exists: async (path) => {
+        try {
+          await ipcRenderer.invoke('fs:exists', path);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      readFile: async (path) => {
+        return ipcRenderer.invoke('fs:read-file', path);
+      }
+    },
+    
+    // Environment info - expose process.env through IPC
+    env: {
+      isDev: () => ipcRenderer.invoke('env:get', 'NODE_ENV') === 'development',
+      platform: () => ipcRenderer.invoke('env:get', 'platform'),
+      electronVersion: () => ipcRenderer.invoke('env:get', 'electronVersion'),
+      nodeVersion: () => ipcRenderer.invoke('env:get', 'nodeVersion')
+    }
+  },
+
+  // File system utilities
+  fs: {
+    readFile: (path) => ipcRenderer.invoke('fs:read-file', path),
+    exists: (path) => ipcRenderer.invoke('fs:exists', path),
+  }
+});
+
+// Add missing IPC handlers for file system
+contextBridge.exposeInMainWorld('nodeAPI', {
+  // Use IPC to get process information instead of direct access
+  process: {
+    platform: () => ipcRenderer.invoke('process:get', 'platform'),
+    arch: () => ipcRenderer.invoke('process:get', 'arch'),
+    versions: () => ipcRenderer.invoke('process:get', 'versions'),
+    env: {
+      NODE_ENV: () => ipcRenderer.invoke('process:env:get', 'NODE_ENV')
+    }
+  }
+});
+
+// Prevent context menu in production
+document.addEventListener('contextmenu', (e) => {
+  // Use IPC to check environment instead of direct process access
+  ipcRenderer.invoke('env:get', 'NODE_ENV').then(nodeEnv => {
+    if (nodeEnv !== 'development') {
+      e.preventDefault();
+    }
+  });
+});
+
+// Add missing IPC handlers
+ipcRenderer.on('mouse-position', (event, data) => {
+  // Forward mouse position events if needed
+  window.dispatchEvent(new CustomEvent('electron-mouse-position', { detail: data }));
+});
+
+ipcRenderer.on('analytics-update', (event, data) => {
+  // Forward analytics updates
+  window.dispatchEvent(new CustomEvent('electron-analytics-update', { detail: data }));
 });
 
 // Automatically start loading MediaPipe when DOM is ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", loadMediaPipeScripts);
+  document.addEventListener("DOMContentLoaded", () => {
+    loadMediaPipeScripts();
+  });
 } else {
   loadMediaPipeScripts();
 }
