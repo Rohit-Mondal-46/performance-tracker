@@ -4,6 +4,7 @@ import * as faceapi from "face-api.js";
 import { drawResults } from "../utils/faceUtils";
 import useHolistic from "../hooks/useHolistic";
 import useActivityTracking from "../hooks/useActivityTracking";
+import ObjectDetectionService from "../services/ObjectDetectionService";
 
 // --- PDF Generation Imports ---
 // 1. Import the jsPDF library
@@ -15,10 +16,12 @@ import 'jspdf-autotable';
 const CameraMonitor = ({ onActivityChange }) => {
   const canvasRef = useRef(null);
   const faceCanvasRef = useRef(null);
+  const objectCanvasRef = useRef(null); // NEW: Canvas for object detection
   const [faceApiLoaded, setFaceApiLoaded] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [cameraStatus, setCameraStatus] = useState("waiting"); // Changed from "initializing" to "waiting"
   const [mediaPipeStatus, setMediaPipeStatus] = useState("checking");
+  const [objectDetectionReady, setObjectDetectionReady] = useState(false); // NEW: Track object detection status
   
   // NEW: State to track if camera has been started
   const [cameraStarted, setCameraStarted] = useState(false);
@@ -37,12 +40,17 @@ const CameraMonitor = ({ onActivityChange }) => {
   const [activityLog, setActivityLog] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
   const [sessionStats, setSessionStats] = useState({
-    Phone: 0,
+    'Using Phone': 0,
     Gesturing: 0,
     Sitting: 0,
     Reading: 0,
     'Looking Away': 0
   });
+  
+  // Object detection state
+  const [objectDetections, setObjectDetections] = useState([]);
+  const [phoneDetected, setPhoneDetected] = useState(false);
+  const objectDetectionIntervalRef = useRef(null);
   const [syncNotification, setSyncNotification] = useState(null);
   
   const lastActivityRef = useRef(null);
@@ -84,9 +92,16 @@ const CameraMonitor = ({ onActivityChange }) => {
     if (isTrackingPaused) return;
     
     const now = Date.now();
-    const enhancedActivity = isLookingAway ? 'Looking Away' : 
-                             (activity === 'Sitting' && !isLookingAway) ? 'Reading' : 
-                             activity;
+    
+    // Combine phone detection from object detection with other activities
+    let enhancedActivity = activity;
+    if (phoneDetected) {
+      enhancedActivity = 'Using Phone';
+    } else if (isLookingAway) {
+      enhancedActivity = 'Looking Away';
+    } else if (activity === 'Sitting' && !isLookingAway) {
+      enhancedActivity = 'Reading';
+    }
     
     // Track activity duration
     if (lastActivityRef.current && lastActivityRef.current !== enhancedActivity) {
@@ -113,7 +128,7 @@ const CameraMonitor = ({ onActivityChange }) => {
     lastActivityRef.current = enhancedActivity;
     setCurrentSession({ activity: enhancedActivity, startTime: now });
     onActivityChangeRef.current?.(enhancedActivity);
-  }, [isLookingAway, isTrackingPaused]);
+  }, [isLookingAway, isTrackingPaused, phoneDetected]);
 
   const { 
     videoRef,
@@ -153,6 +168,122 @@ const CameraMonitor = ({ onActivityChange }) => {
 
     loadFaceModels();
   }, [faceApiLoaded]);
+
+  // Initialize object detection when camera starts
+  useEffect(() => {
+    const initObjectDetection = async () => {
+      if (cameraStarted && !isTrackingPaused) {
+        try {
+          console.log('🔍 Initializing ONNX object detection model...');
+          setObjectDetectionReady(false);
+          const success = await ObjectDetectionService.initialize();
+          if (success) {
+            console.log('✅ ONNX object detection model initialized successfully');
+            const modelInfo = ObjectDetectionService.modelLoader.getModelInfo();
+            console.log('📊 Model info:', modelInfo);
+            setObjectDetectionReady(true);
+          } else {
+            console.error('❌ Failed to initialize object detection model');
+          }
+        } catch (err) {
+          console.error('❌ Object detection initialization error:', err);
+          console.error('Error stack:', err.stack);
+        }
+      } else {
+        setObjectDetectionReady(false);
+      }
+    };
+    
+    initObjectDetection();
+  }, [cameraStarted, isTrackingPaused]);
+
+  // Object detection interval - runs every 2 seconds
+  useEffect(() => {
+    if (!isInitialized || !videoRef.current || isTrackingPaused || !objectDetectionReady) return;
+
+    const detectObjects = async () => {
+      try {
+        const video = videoRef.current;
+        const canvas = objectCanvasRef.current;
+        
+        if (!video || video.readyState !== 4 || !canvas) return;
+
+        console.log('🔍 Running object detection...');
+        const result = await ObjectDetectionService.detect(video, {
+          confidence: 0.15, // Model trained on stretched images, max conf ~0.22
+          drawOnCanvas: false
+        });
+
+        console.log(`✅ Detection complete: ${result.detections.length} objects found`, result.detections);
+        setObjectDetections(result.detections);
+        
+        // Clear canvas first
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw detections on canvas
+        if (result.detections.length > 0) {
+          result.detections.forEach(det => {
+            const [x1, y1, x2, y2] = det.bbox;
+            
+            // Scale coordinates to canvas size
+            const scaleX = canvas.width / video.videoWidth;
+            const scaleY = canvas.height / video.videoHeight;
+            
+            const sx1 = x1 * scaleX;
+            const sy1 = y1 * scaleY;
+            const sx2 = x2 * scaleX;
+            const sy2 = y2 * scaleY;
+            
+            // Draw bounding box
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(sx1, sy1, sx2 - sx1, sy2 - sy1);
+            
+            // Draw label background
+            const label = `${det.class_name} ${(det.confidence * 100).toFixed(1)}%`;
+            ctx.font = 'bold 16px Arial';
+            const textWidth = ctx.measureText(label).width;
+            
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(sx1, sy1 - 25, textWidth + 10, 25);
+            
+            // Draw label text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(label, sx1 + 5, sy1 - 7);
+          });
+        }
+        
+        // Check if phone is detected
+        const hasPhone = result.detections.some(det => 
+          det.class_name.toLowerCase().includes('phone')
+        );
+        
+        if (hasPhone) {
+          console.log('📱 PHONE DETECTED!');
+        }
+        
+        setPhoneDetected(hasPhone);
+        
+      } catch (err) {
+        console.error('❌ Object detection error:', err);
+        console.error('Error details:', err.message);
+        console.error('Error stack:', err.stack);
+      }
+    };
+
+    // Run initial detection
+    detectObjects();
+    
+    // Set up interval
+    objectDetectionIntervalRef.current = setInterval(detectObjects, 2000); // Every 2 seconds
+    
+    return () => {
+      if (objectDetectionIntervalRef.current) {
+        clearInterval(objectDetectionIntervalRef.current);
+      }
+    };
+  }, [isInitialized, videoRef, isTrackingPaused, objectDetectionReady]);
 
   // Face detection and gaze tracking
   useEffect(() => {
@@ -250,13 +381,15 @@ const CameraMonitor = ({ onActivityChange }) => {
   // Canvas sizing
   useEffect(() => {
     const updateCanvasSize = () => {
-      if (videoRef.current && canvasRef.current && faceCanvasRef.current) {
+      if (videoRef.current && canvasRef.current && faceCanvasRef.current && objectCanvasRef.current) {
         const video = videoRef.current;
         if (video.videoWidth > 0 && video.videoHeight > 0) {
           canvasRef.current.width = video.videoWidth;
           canvasRef.current.height = video.videoHeight;
           faceCanvasRef.current.width = video.videoWidth;
           faceCanvasRef.current.height = video.videoHeight;
+          objectCanvasRef.current.width = video.videoWidth;
+          objectCanvasRef.current.height = video.videoHeight;
           setCameraStatus("ready");
         }
       }
@@ -275,9 +408,19 @@ const CameraMonitor = ({ onActivityChange }) => {
   }, [videoRef, isInitialized]);
 
   // NEW: Function to start camera
-  const startCamera = useCallback(() => {
-    setCameraStarted(true);
-    setCameraStatus("initializing");
+  const startCamera = useCallback(async () => {
+    try {
+      setCameraStatus("initializing");
+      // Check camera permissions first
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop()); // Stop the test stream
+      setCameraStarted(true);
+      setCameraStatus("active");
+    } catch (err) {
+      console.error("Camera permission error:", err);
+      setCameraStatus("error");
+      alert("Camera access denied. Please allow camera permissions.");
+    }
   }, []);
 
   // NEW: Toggle pause/resume tracking
@@ -479,6 +622,11 @@ const CameraMonitor = ({ onActivityChange }) => {
               className="absolute top-0 left-0 w-full h-full pointer-events-none"
               style={{ zIndex: 3 }}
             />
+            <canvas
+              ref={objectCanvasRef}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 4 }}
+            />
           </>
         ) : (
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center" style={{ zIndex: 1 }}>
@@ -514,7 +662,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           </div>
         )}
 
-        <div className="absolute top-2 left-2 flex flex-col gap-1" style={{ zIndex: 4 }}>
+        <div className="absolute top-2 left-2 flex flex-col gap-1" style={{ zIndex: 5 }}>
           <div className={`px-2 py-1 rounded text-xs font-medium ${getMediaPipeStatusColor()}`}>
             {getMediaPipeStatusMessage()}
           </div>
@@ -523,6 +671,16 @@ const CameraMonitor = ({ onActivityChange }) => {
           }`}>
             {faceApiLoaded ? 'Face Ready' : 'Loading Face'}
           </div>
+          <div className={`px-2 py-1 rounded text-xs font-medium ${
+            objectDetectionReady ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'
+          }`}>
+            {objectDetectionReady ? '🎯 ONNX Ready' : 'Loading ONNX'}
+          </div>
+          {phoneDetected && (
+            <div className="px-2 py-1 rounded text-xs font-medium bg-red-500 text-white animate-pulse">
+              📱 Phone Detected!
+            </div>
+          )}
           <div className={`px-2 py-1 rounded text-xs font-medium ${
             cameraStatus === 'ready' ? 'bg-green-500 text-white' : 
             cameraStatus === 'error' ? 'bg-red-500 text-white' : 
@@ -566,7 +724,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           enhancedActivity === 'Typing' ? 'bg-green-100 text-green-800 scale-105' :
           enhancedActivity === 'Writing' ? 'bg-blue-100 text-blue-800 scale-105' :
           enhancedActivity === 'Gesturing' ? 'bg-yellow-100 text-yellow-800 scale-105' :
-          enhancedActivity === 'Phone' ? 'bg-red-100 text-red-800 scale-105' :
+          enhancedActivity === 'Using Phone' ? 'bg-red-100 text-red-800 scale-105' :
           enhancedActivity === 'Reading' ? 'bg-purple-100 text-purple-800 scale-105' :
           enhancedActivity === 'Sitting' ? 'bg-gray-100 text-gray-800' :
           enhancedActivity === 'Looking Away' ? 'bg-orange-100 text-orange-800' :
@@ -577,7 +735,7 @@ const CameraMonitor = ({ onActivityChange }) => {
           <div className="flex items-center justify-center gap-2">
 
             {enhancedActivity === 'Gesturing' && '👋'}
-            {enhancedActivity === 'Phone' && '📱'}
+            {enhancedActivity === 'Using Phone' && '📱'}
             {enhancedActivity === 'Reading' && '📖'}
             {enhancedActivity === 'Sitting' && '🪑'}
             {enhancedActivity === 'Looking Away' && '👀'}
@@ -686,6 +844,9 @@ const CameraMonitor = ({ onActivityChange }) => {
             <p>Camera: {cameraStatus}</p>
             <p>MediaPipe: {mediaPipeStatus}</p>
             <p>Face Detection: {faceDetection ? 'Active' : 'Inactive'}</p>
+            <p>ONNX Detection: {objectDetectionReady ? 'Ready' : 'Not Ready'}</p>
+            <p>Phone Detected: {phoneDetected ? 'YES' : 'No'}</p>
+            <p>Objects Found: {objectDetections.length}</p>
             <p>Gaze: {gazeDirection} {isLookingAway ? '(Away)' : '(Focused)'}</p>
             <p>Tracking Status: {isTrackingPaused ? 'Paused' : 'Active'}</p>
             <p>Activities Logged: {activityLog.length}</p>

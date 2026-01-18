@@ -1,33 +1,31 @@
-//import * as ort from 'onnxruntime-node';
+// Image processing utilities for ONNX object detection
+// Tensor creation happens in main process, this just prepares the data
 
 export async function processImage(imageElement, targetSize = 640) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
-  // Maintain aspect ratio
-  const { width, height } = calculateAspectRatioFit(
-    imageElement.width,
-    imageElement.height,
-    targetSize,
-    targetSize
-  );
-  
   canvas.width = targetSize;
   canvas.height = targetSize;
   
-  // Draw image centered on canvas
-  const offsetX = (targetSize - width) / 2;
-  const offsetY = (targetSize - height) / 2;
+  // IMPORTANT: Stretch to fill (not maintain aspect ratio)
+  // This matches the "Resize to 640x640 (Stretch)" preprocessing used in training
+  ctx.drawImage(imageElement, 0, 0, targetSize, targetSize);
   
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 0, targetSize, targetSize);
-  ctx.drawImage(imageElement, offsetX, offsetY, width, height);
-  
-  // Convert to tensor
+  // Convert to tensor data (raw array)
   const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-  const tensor = await imageDataToTensor(imageData, targetSize);
+  const tensorData = imageDataToTensor(imageData, targetSize);
   
-  return { tensor, ctx: canvas.getContext('2d'), canvas, offsetX, offsetY, scale: width / imageElement.width };
+  // Return tensor data structure that can be sent via IPC
+  return { 
+    tensor: {
+      data: Array.from(tensorData), // Convert to regular array for IPC
+      dims: [1, 3, targetSize, targetSize]
+    }, 
+    ctx: canvas.getContext('2d'), 
+    canvas, 
+    scale: 1.0 // No longer using aspect ratio scaling
+  };
 }
 
 export function drawDetections(ctx, detections, classes, options = {}) {
@@ -61,11 +59,11 @@ export function drawDetections(ctx, detections, classes, options = {}) {
   });
 }
 
-async function imageDataToTensor(imageData, size) {
+function imageDataToTensor(imageData, size) {
   const { data, width, height } = imageData;
   const tensorData = new Float32Array(3 * size * size);
   
-  // Normalize and convert RGB
+  // Normalize and convert RGB to CHW format (YOLO format)
   for (let i = 0; i < height; i++) {
     for (let j = 0; j < width; j++) {
       const idx = (i * width + j) * 4;
@@ -80,7 +78,7 @@ async function imageDataToTensor(imageData, size) {
     }
   }
   
-  return new ort.Tensor('float32', tensorData, [1, 3, size, size]);
+  return tensorData;
 }
 
 function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {

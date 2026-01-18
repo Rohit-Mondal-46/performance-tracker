@@ -888,13 +888,14 @@ app.whenReady().then(() => {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: file: http://localhost:*",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: file: blob:",
-          "connect-src 'self' http://localhost:* ws://localhost:*",
-          "media-src 'self' blob:",
-          "font-src 'self' data:"
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: file: http://localhost:* https://cdn.jsdelivr.net",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.gstatic.com",
+          "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+          "img-src 'self' data: file: blob: https://cdn.jsdelivr.net",
+          "connect-src 'self' http://localhost:* ws://localhost:* https://cdn.jsdelivr.net https://*.gstatic.com",
+          "media-src 'self' blob: mediastream:",
+          "font-src 'self' data: https://cdn.jsdelivr.net",
+          "worker-src 'self' blob:"
         ].join('; ')
       }
     });
@@ -936,7 +937,8 @@ app.whenReady().then(() => {
   // AUTH LOGIC (ELECTRON SIDE)
   ipcMain.handle("auth:login", async (event, creds) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/auth/employee/login`, {
+      const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3000/api';
+      const res = await axios.post(`${API_BASE_URL.replace('/api', '')}/api/auth/employee/login`, {
         email: creds.email,
         password: creds.password,
       });
@@ -1216,11 +1218,21 @@ app.whenReady().then(() => {
       // imageData is an object with { tensorData, width, height }
       const { tensorData, width, height } = imageData;
       
+      console.log('🔍 Main process: Running inference...');
+      console.log('   - Input tensor length:', tensorData.length);
+      console.log('   - Expected length:', 3 * 640 * 640);
+      
       // Create a tensor from the raw data sent from the renderer
       const inputTensor = new ort.Tensor('float32', new Float32Array(tensorData), [1, 3, 640, 640]);
 
       const inputs = { [onnxSession.inputNames[0]]: inputTensor };
       const outputs = await onnxSession.run(inputs);
+
+      console.log('✅ Inference complete');
+      console.log('   - Output names:', Object.keys(outputs));
+      console.log('   - Output tensor dims:', outputs.output0.dims);
+      console.log('   - Output tensor size:', outputs.output0.size);
+      console.log('   - Output tensor data length:', outputs.output0.data.length);
 
       // Convert ONNX output to a simple JSON-serializable format to send back to renderer
       const outputData = outputs.output0.data;

@@ -104,8 +104,11 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
 
       // Check if MediaPipe is available
       if (typeof Holistic === 'undefined' || typeof Camera === 'undefined') {
-        throw new Error('MediaPipe Holistic not available. Please check script loading.');
+        console.error('MediaPipe not loaded. Holistic:', typeof Holistic, 'Camera:', typeof Camera);
+        throw new Error('MediaPipe Holistic not available. CDN scripts may be blocked by CSP or network issues.');
       }
+
+      console.log('✅ MediaPipe available, requesting camera access...');
 
       // Get camera access
       
@@ -204,17 +207,6 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
           // Calculate distances and positions
           const shoulderWidth = Math.abs(leftShoulder.x - rightShoulder.x);
           
-          // Enhanced phone detection - hand near ear, elevated position
-          const leftHandNearEar = hasLeftHand && leftWrist && leftEar && 
-            Math.abs(leftWrist.x - leftEar.x) < 0.15 && 
-            Math.abs(leftWrist.y - leftEar.y) < 0.2 &&
-            leftWrist.y < leftShoulder.y; // Hand above shoulder
-            
-          const rightHandNearEar = hasRightHand && rightWrist && rightEar && 
-            Math.abs(rightWrist.x - rightEar.x) < 0.15 && 
-            Math.abs(rightWrist.y - rightEar.y) < 0.2 &&
-            rightWrist.y < rightShoulder.y; // Hand above shoulder
-          
           // Gesturing detection - hand raised and away from body
           const leftHandRaised = hasLeftHand && leftWrist && leftShoulder && 
             leftWrist.y < leftShoulder.y && // Above shoulder
@@ -235,11 +227,8 @@ const useHolistic = (onResults, onActivityChange, cameraStarted = true) => {
               rightWrist.y < rightHip.y && // Above hip (desk level)
               rightWrist.z < -0.1)); // Hand forward
           
-          // Activity logic with clear priorities (camera-based only)
-          if (leftHandNearEar || rightHandNearEar) {
-            // Phone call - hand near ear
-            detectedActivity = 'Phone';
-          } else if (leftHandRaised || rightHandRaised) {
+          // Activity logic with clear priorities (camera-based only, phone detection removed)
+          if (leftHandRaised || rightHandRaised) {
             // Gesturing - hand raised and away from body
             detectedActivity = 'Gesturing';
           } else if (handsAtReadingPosition) {

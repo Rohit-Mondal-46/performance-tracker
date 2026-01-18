@@ -6,17 +6,12 @@ import { useAuth } from './contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import CameraMonitor from "./components/CameraMonitor";
-import InputMonitor from './components/InputMonitor';
-import ObjectDetector from './components/ObjectDetector';
+// import InputMonitor from './components/InputMonitor';
 import Login from "./pages/Login";
 import ProtectedRoute from './components/ProtectedRoute';
 import { employeeAPI, activityAPI } from './services/api';
 import useActivityTracking from './hooks/useActivityTracking';
 import { LayoutDashboard, Camera, Keyboard, Scan, LogOut, Activity, Cpu, AlertCircle } from 'lucide-react';
-
-// Import the object detection services
-import ObjectDetectionService from './services/ObjectDetectionService';
-import ModelLoader from './services/ModelLoader';
 
 // Helper function to safely get environment variables
 const getEnvVar = (key, defaultValue = '') => {
@@ -40,13 +35,7 @@ function DashboardPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingToday, setLoadingToday] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  const [activeView, setActiveView] = useState('both'); // 'camera', 'input', 'both', 'detector'
-  
-  // Object detection state
-  const [modelLoading, setModelLoading] = useState(false);
-  const [modelLoaded, setModelLoaded] = useState(false);
-  const [detectionResults, setDetectionResults] = useState(null);
-  const [detectionError, setDetectionError] = useState(null);
+  const [activeView, setActiveView] = useState('both'); // 'camera', 'input', 'both'
 
   // Initialize activity tracking hook
   const {
@@ -62,32 +51,6 @@ function DashboardPage() {
     (data) => console.log('✅ Activity batch sent:', data),
     (error) => console.error('❌ Error sending batch:', error)
   );
-
-  // Initialize object detection model when detector view is activated
-  useEffect(() => {
-    if (activeView === 'detector' && !modelLoaded && !modelLoading) {
-      setModelLoading(true);
-      setDetectionError(null);
-      
-      ObjectDetectionService.initialize()
-        .then(success => {
-          if (success) {
-            setModelLoaded(true);
-            console.log('Object detection model loaded successfully');
-          } else {
-            setDetectionError('Failed to load object detection model');
-            console.error('Failed to load object detection model');
-          }
-        })
-        .catch(error => {
-          setDetectionError(`Error loading model: ${error.message}`);
-          console.error('Error loading object detection model:', error);
-        })
-        .finally(() => {
-          setModelLoading(false);
-        });
-    }
-  }, [activeView, modelLoaded, modelLoading]);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -179,25 +142,6 @@ function DashboardPage() {
     }
   };
 
-  // Handle object detection
-  const handleDetection = async (imageElement) => {
-    if (!modelLoaded) return;
-    
-    try {
-      const results = await ObjectDetectionService.detect(imageElement, {
-        drawOnCanvas: true,
-        confidence: 0.5,
-        iou: 0.5
-      });
-      setDetectionResults(results);
-      return results;
-    } catch (error) {
-      setDetectionError(`Detection error: ${error.message}`);
-      console.error('Object detection error:', error);
-      return null;
-    }
-  };
-
   // Check if we're in development mode using the helper function
   const isDevelopment = getEnvVar('NODE_ENV') === 'development';
 
@@ -223,89 +167,11 @@ function DashboardPage() {
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </button>
-              <button
-                onClick={() => setActiveView('camera')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeView === 'camera' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Camera className="w-4 h-4" />
-                Camera Monitor
-              </button>
-              <button
-                onClick={() => setActiveView('input')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeView === 'input' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Keyboard className="w-4 h-4" />
-                Input Monitor
-              </button>
-              <button
-                onClick={() => setActiveView('detector')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  activeView === 'detector' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Scan className="w-4 h-4" />
-                Object Detector
-              </button>
             </div>
           </div>
 
-          {/* Object Detection Status Panel - Only show when in detector view */}
-          {activeView === 'detector' && (
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Cpu className="w-4 h-4 text-indigo-600" />
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide">Detection Model</h3>
-              </div>
-              
-              {modelLoading && (
-                <div className="flex items-center gap-2 text-xs text-blue-600 mb-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                  <span>Loading model...</span>
-                </div>
-              )}
-              
-              {modelLoaded && (
-                <div className="flex items-center gap-2 text-xs text-green-600 mb-2">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span>Model ready</span>
-                </div>
-              )}
-              
-              {detectionError && (
-                <div className="flex items-start gap-2 text-xs text-red-600 mb-2">
-                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                  <span>{detectionError}</span>
-                </div>
-              )}
-              
-              {detectionResults && (
-                <div className="mt-2 pt-2 border-t border-gray-100">
-                  <div className="text-xs text-gray-600 mb-1">Last Detection:</div>
-                  <div className="text-xs font-medium text-gray-800">
-                    {detectionResults.detections.length > 0 
-                      ? `Found ${detectionResults.detections.length} object(s)` 
-                      : 'No objects detected'}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Processing time: {detectionResults.processingTime}ms
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Tracking Control Panel */}
-          {activeView !== 'detector' && (
+          {activeView !== 'input' && (
             <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
@@ -378,20 +244,7 @@ function DashboardPage() {
               >
                 {currentActivity || "Waiting..."}
               </div>
-              
-              {/* Input Activity Mini-stats */}
-              <div className="mt-2 pt-2 border-t border-gray-100">
-                <div className="grid grid-cols-2 gap-1">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">Keys</div>
-                    <div className="text-sm font-bold text-blue-700">{keyboardStats?.totalKeys || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500">Clicks</div>
-                    <div className="text-sm font-bold text-purple-700">{mouseStats?.totalClicks || 0}</div>
-                  </div>
-                </div>
-              </div>
+
             </div>
           )}
 
@@ -442,22 +295,6 @@ function DashboardPage() {
                   <p className="text-xs text-red-600">Failed to load profile</p>
                 </div>
               )}
-
-              {/* Session Info */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-2">
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Session Info</h3>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Status</span>
-                    <span className={`font-semibold ${currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'text-green-600' : 'text-gray-600'}`}>
-                      {currentActivity && currentActivity !== 'Not Started' && currentActivity !== 'Paused' ? 'Tracking' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="pt-1 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 text-center">Auto-sync every 5 min</p>
-                  </div>
-                </div>
-              </div>
 
               {/* Performance Analytics */}
               {loadingToday ? (
@@ -557,36 +394,6 @@ function DashboardPage() {
                   </div>
                 </div>
               )}
-
-              {/* Input Activity Summary */}
-              <div className="bg-linear-to-br from-gray-50 to-slate-100 rounded-xl shadow-md p-2 border border-gray-200">
-                <h3 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-1.5">Input Activity</h3>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Keys per minute</span>
-                    </div>
-                    <span className="text-xs font-bold text-blue-700">{keyboardStats?.keysPerMinute || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Mouse distance</span>
-                    </div>
-                    <span className="text-xs font-bold text-purple-700">{Math.round(mouseStats?.distance || 0)} px</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600">Active</span>
-                    </div>
-                    <span className="text-xs font-bold text-green-700">
-                      {inputTracking ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </>
           )}
         </div>
@@ -611,31 +418,10 @@ function DashboardPage() {
               </div>
 
               {/* Bottom Section: Input Monitor */}
-              <div className="h-80 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-auto">
+              {/* <div className="h-80 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-auto">
                 <InputMonitor />
-              </div>
+              </div> */}
             </>
-          )}
-
-          {activeView === 'detector' && (
-            <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden">
-              <ObjectDetector 
-                modelLoaded={modelLoaded}
-                modelLoading={modelLoading}
-                onDetection={handleDetection}
-                detectionResults={detectionResults}
-                detectionError={detectionError}
-              />
-            </div>
-          )}
-
-          {/* Show Object Detector only in detector mode */}
-          {activeView === 'detector' && activeView !== 'detector' && (
-            <div className="mt-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-4">
-              <p className="text-gray-500 text-sm text-center">
-                Switch to "Object Detector" view from the navigation panel to use the detection feature
-              </p>
-            </div>
           )}
         </div>
       </div>
@@ -655,16 +441,6 @@ const App = () => {
           element={
             <ProtectedRoute>
               <DashboardPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/detector" 
-          element={
-            <ProtectedRoute>
-              <div className="h-screen w-screen">
-                <ObjectDetector />
-              </div>
             </ProtectedRoute>
           } 
         />
