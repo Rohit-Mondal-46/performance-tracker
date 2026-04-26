@@ -15,6 +15,8 @@ let authToken = null;
 
 // API Configuration
 const API_BASE_URL = 'http://localhost:3000/api';
+const APP_DISPLAY_NAME = 'Vista';
+const WINDOWS_APP_USER_MODEL_ID = 'com.vista.desktop';
 
 // =====================================================
 // SIMPLE SYNC MANAGER - No session logic
@@ -139,6 +141,16 @@ class SimpleSyncManager {
 // Create global sync manager instance
 const syncManager = new SimpleSyncManager();
 
+function configureAppIdentity() {
+  // Set a consistent runtime app name so desktop surfaces (including notifications)
+  // can attribute events to "Vista" instead of generic Electron names.
+  app.setName(APP_DISPLAY_NAME);
+
+  if (process.platform === 'win32') {
+    app.setAppUserModelId(WINDOWS_APP_USER_MODEL_ID);
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -185,6 +197,8 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+configureAppIdentity();
 
 app.whenReady().then(() => {
   createWindow();
