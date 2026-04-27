@@ -11,14 +11,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"), // cleaner imports
     },
   },
+  // define: {
+  //   'process.env': {}, // polyfill for FaceAPI
+  // },
   define: {
-    'process.env': {}, // polyfill for FaceAPI
-  },
+  process: {
+    env: {}
+  }
+},
+
   build: {
     outDir: 'dist',
     rollupOptions: {
       // Prevent bundling MediaPipe packages (WASM/JS load at runtime)
-      external: ["@mediapipe/holistic", "@mediapipe/hands"],
+      external: ["@mediapipe/holistic", "@mediapipe/hands","onnxruntime-node"],
     },
     chunkSizeWarningLimit: 1000, // optional, prevent warnings for large chunks
   },
