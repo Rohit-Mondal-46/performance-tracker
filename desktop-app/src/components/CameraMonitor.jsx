@@ -54,6 +54,8 @@ const CameraMonitor = ({ onActivityChange }) => {
   const [syncNotification, setSyncNotification] = useState(null);
   
   const lastActivityRef = useRef(null);
+  const lastAlertActivityRef = useRef(null);
+  const lastNotificationRef = useRef({ activity: null, timestamp: 0 });
   const sessionStartRef = useRef(Date.now());
   const faceDetectionIntervalRef = useRef(null);
   
@@ -61,6 +63,68 @@ const CameraMonitor = ({ onActivityChange }) => {
   useEffect(() => {
     onActivityChangeRef.current = onActivityChange;
   }, [onActivityChange]);
+
+  const getFocusNotificationCopy = useCallback((activity) => {
+    const notificationCopy = {
+      Phone: {
+        title: 'Phone detected',
+        body: 'A phone distraction was detected. Put it away and return to the task at hand.'
+      },
+      'Looking Away': {
+        title: 'Attention drifting',
+        body: 'Your gaze moved away from the screen. Bring your focus back to the work area.'
+      },
+      Idle: {
+        title: 'You look inactive',
+        body: 'No active work was detected. Start typing, writing, or reviewing the task.'
+      }
+    };
+
+    return notificationCopy[activity] || null;
+  }, []);
+
+  const showDesktopNotification = useCallback((activity) => {
+    const now = Date.now();
+    const notificationCopy = getFocusNotificationCopy(activity);
+
+    if (!notificationCopy) return;
+
+    const lastNotification = lastNotificationRef.current;
+    const cooldownMs = 60 * 1000;
+
+    if (lastNotification.activity === activity && now - lastNotification.timestamp < cooldownMs) {
+      return;
+    }
+
+    lastNotificationRef.current = { activity, timestamp: now };
+
+    if (typeof window === 'undefined' || typeof window.Notification === 'undefined') {
+      return;
+    }
+
+    const sendNotification = () => {
+      try {
+        new window.Notification(notificationCopy.title, {
+          body: notificationCopy.body
+        });
+      } catch (error) {
+        console.warn('Unable to show desktop notification:', error);
+      }
+    };
+
+    if (window.Notification.permission === 'granted') {
+      sendNotification();
+      return;
+    }
+
+    if (window.Notification.permission === 'default') {
+      window.Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          sendNotification();
+        }
+      });
+    }
+  }, [getFocusNotificationCopy]);
 
   // Enhanced results handler with face detection
   const handleResults = useCallback((results) => {
@@ -92,7 +156,6 @@ const CameraMonitor = ({ onActivityChange }) => {
     if (isTrackingPaused) return;
     
     const now = Date.now();
-    
     // Combine phone detection from object detection with other activities
     let enhancedActivity = activity;
     if (phoneDetected) {
@@ -102,6 +165,10 @@ const CameraMonitor = ({ onActivityChange }) => {
     } else if (activity === 'Sitting' && !isLookingAway) {
       enhancedActivity = 'Reading';
     }
+    const alertActivity = phoneDetected ? 'Phone' :
+                 isLookingAway ? 'Looking Away' :
+                 activity === 'Sitting' ? 'Idle' :
+                 activity;
     
     // Track activity duration
     if (lastActivityRef.current && lastActivityRef.current !== enhancedActivity) {
@@ -124,11 +191,21 @@ const CameraMonitor = ({ onActivityChange }) => {
       
       sessionStartRef.current = now;
     }
+
+    if (
+      cameraStarted &&
+      !isTrackingPaused &&
+      lastAlertActivityRef.current !== alertActivity &&
+      ['Phone', 'Looking Away', 'Idle'].includes(alertActivity)
+    ) {
+      showDesktopNotification(alertActivity);
+    }
+    lastAlertActivityRef.current = alertActivity;
     
     lastActivityRef.current = enhancedActivity;
     setCurrentSession({ activity: enhancedActivity, startTime: now });
     onActivityChangeRef.current?.(enhancedActivity);
-  }, [isLookingAway, isTrackingPaused, phoneDetected]);
+  }, [cameraStarted, isLookingAway, isTrackingPaused, phoneDetected, showDesktopNotification]);
 
   const { 
     videoRef,
